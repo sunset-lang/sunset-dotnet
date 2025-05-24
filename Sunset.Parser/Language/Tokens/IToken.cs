@@ -1,6 +1,6 @@
-﻿using Northrop.Common.Sunset.Errors;
+﻿using Sunset.Parser.Errors;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language.Tokens;
 
 public interface IToken : IErrorContainer
 {

@@ -1,7 +1,9 @@
-﻿using Northrop.Common.Sunset.Language;
-using Northrop.Common.Sunset.Variables;
+﻿using Sunset.Parser.Language.Constants;
+using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Variables;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Expressions;
+namespace Sunset.Parser;
 
 public interface IExpression
 {

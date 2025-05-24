@@ -1,4 +1,6 @@
-﻿namespace Northrop.Common.Sunset.Expressions;
+﻿using Sunset.Parser.Visitors;
+
+namespace Sunset.Parser;
 
 public class IfExpression : ExpressionBase
 {

@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.Contracts;
-using Northrop.Common.Sunset.Errors;
+﻿using Sunset.Parser.Errors;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language.Tokens;
 
 /// <summary>
 /// The base class for all tokens. Implements positioning behaviour and contains static token definitions.

@@ -1,7 +1,7 @@
-﻿using Northrop.Common.Sunset.Expressions;
-using Northrop.Common.Sunset.Units;
+﻿using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language.Constants;
 
 public class StringConstant(StringToken token) : ExpressionBase
 {

@@ -1,9 +1,10 @@
-﻿using System.Dynamic;
-using Northrop.Common.Sunset.Language;
-using Northrop.Common.Sunset.Units;
-using Northrop.Common.Sunset.Variables;
+﻿using Sunset.Parser.Language.Declarations;
+using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Units;
+using Sunset.Parser.Variables;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Expressions;
+namespace Sunset.Parser;
 
 public class VariableDeclaration : ExpressionBase
 {

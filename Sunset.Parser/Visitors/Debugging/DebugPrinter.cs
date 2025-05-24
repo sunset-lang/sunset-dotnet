@@ -1,8 +1,7 @@
-﻿using Northrop.Common.Sunset.Expressions;
-using Northrop.Common.Sunset.Language;
-using Northrop.Common.Sunset.Variables;
+﻿using Sunset.Parser.Language.Constants;
+using Sunset.Parser.Language.Declarations;
 
-namespace Northrop.Common.Sunset.Debug;
+namespace Sunset.Parser.Visitors.Debugging;
 
 /// <summary>
 /// Prints out the expression tree for debugging expressions.

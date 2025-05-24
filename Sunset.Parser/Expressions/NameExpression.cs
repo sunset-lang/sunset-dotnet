@@ -1,6 +1,7 @@
-﻿using Northrop.Common.Sunset.Language;
+﻿using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Expressions;
+namespace Sunset.Parser;
 
 public class NameExpression(StringToken nameToken) : ExpressionBase
 {

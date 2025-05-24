@@ -1,7 +1,8 @@
-﻿using Northrop.Common.Sunset.Language;
-using Northrop.Common.Sunset.Quantities;
+﻿using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Quantities;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Expressions;
+namespace Sunset.Parser;
 
 public class UnaryExpression(Token op, IExpression operand) : ExpressionBase
 {

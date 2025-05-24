@@ -1,4 +1,7 @@
-﻿namespace Northrop.Common.Sunset.Language;
+﻿using Sunset.Parser.Language.Statements;
+using Sunset.Parser.Visitors;
+
+namespace Sunset.Parser.Language.Declarations;
 
 public class ElementDeclaration : IDeclaration
 {

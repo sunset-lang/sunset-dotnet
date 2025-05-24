@@ -1,4 +1,4 @@
-﻿namespace Northrop.Common.Sunset.Errors;
+﻿namespace Sunset.Parser.Errors;
 
 public enum ErrorCode
 {

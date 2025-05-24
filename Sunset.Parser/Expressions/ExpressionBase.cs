@@ -1,9 +1,7 @@
-﻿using System.Numerics;
-using Northrop.Common.Sunset.Errors;
-using Northrop.Common.Sunset.Language;
-using Northrop.Common.Sunset.Variables;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Expressions;
+namespace Sunset.Parser;
 
 public abstract class ExpressionBase : IExpression, IErrorContainer
 {

@@ -1,4 +1,6 @@
-﻿namespace Northrop.Common.Sunset.Language;
+﻿using Sunset.Parser.Language.Tokens;
+
+namespace Sunset.Parser.Language.Declarations;
 
 public class SymbolName
 {

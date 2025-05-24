@@ -1,4 +1,6 @@
-﻿namespace Northrop.Common.Sunset.Language;
+﻿using Sunset.Parser.Visitors;
+
+namespace Sunset.Parser.Language.Declarations;
 
 /// <summary>
 /// Declarations assign a name to a value.

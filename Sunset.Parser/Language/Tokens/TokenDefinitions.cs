@@ -1,4 +1,4 @@
-﻿namespace Northrop.Common.Sunset.Language;
+﻿namespace Sunset.Parser.Language.Tokens;
 
 public static class TokenDefinitions
 {

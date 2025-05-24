@@ -1,6 +1,4 @@
-﻿using Northrop.Common.Sunset.Expressions;
-
-namespace Northrop.Common.Sunset.Language;
+﻿namespace Sunset.Parser.Language.Statements;
 
 public class InputGroup
 {

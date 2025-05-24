@@ -1,10 +1,7 @@
-﻿using System.Diagnostics;
-using System.Net.Http.Headers;
-using Northrop.Common.Sunset.Expressions;
-using Northrop.Common.Sunset.Quantities;
-using Northrop.Common.Sunset.Units;
+﻿using Sunset.Parser.Language.Tokens.Numbers;
+using Sunset.Parser.Visitors;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language.Constants;
 
 public class NumberConstant : ExpressionBase
 {

@@ -1,9 +1,9 @@
-﻿using System.Text;
-using Northrop.Common.Sunset.Errors;
-using Northrop.Common.Sunset.Expressions;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Language.Declarations;
+using Sunset.Parser.Language.Tokens;
 using Range = System.Range;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language;
 
 /// <summary>
 /// Converts a list of tokens into an abstract expression tree.

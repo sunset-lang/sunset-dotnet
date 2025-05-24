@@ -1,8 +1,9 @@
-﻿using System.Net;
-using System.Text;
-using Northrop.Common.Sunset.Errors;
+﻿using System.Text;
+using Sunset.Parser.Errors;
+using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Language.Tokens.Numbers;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language;
 
 /// <summary>
 /// Converts strings to a list of tokens.

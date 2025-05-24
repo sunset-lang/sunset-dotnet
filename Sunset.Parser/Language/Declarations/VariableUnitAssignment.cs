@@ -1,8 +1,8 @@
-﻿using Northrop.Common.Sunset.Evaluation;
-using Northrop.Common.Sunset.Expressions;
-using Northrop.Common.Sunset.Units;
+﻿using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Units;
+using Sunset.Parser.Visitors.Evaluation;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language.Declarations;
 
 public class VariableUnitAssignment(IToken open, IToken? close, IExpression unitExpression)
 {

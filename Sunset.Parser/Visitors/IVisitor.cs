@@ -1,7 +1,6 @@
-﻿using Northrop.Common.Sunset.Expressions;
-using Northrop.Common.Sunset.Language;
+﻿using Sunset.Parser.Language.Constants;
 
-namespace Northrop.Common.Sunset;
+namespace Sunset.Parser.Visitors;
 
 /// <summary>
 /// Interface for visitors that return a value.

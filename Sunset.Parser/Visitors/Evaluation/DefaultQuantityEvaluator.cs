@@ -1,9 +1,9 @@
-﻿using Northrop.Common.Sunset.Expressions;
-using Northrop.Common.Sunset.Language;
-using Northrop.Common.Sunset.Quantities;
-using Northrop.Common.Sunset.Units;
+﻿using Sunset.Parser.Language.Constants;
+using Sunset.Parser.Language.Tokens;
+using Sunset.Parser.Quantities;
+using Sunset.Parser.Units;
 
-namespace Northrop.Common.Sunset.Evaluation;
+namespace Sunset.Parser.Visitors.Evaluation;
 
 /// <summary>
 /// Evaluates default results for all elements based on the default input variables.

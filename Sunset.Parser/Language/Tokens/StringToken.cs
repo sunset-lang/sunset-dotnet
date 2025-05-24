@@ -1,6 +1,6 @@
-﻿using Northrop.Common.Sunset.Units;
+﻿using Sunset.Parser.Units;
 
-namespace Northrop.Common.Sunset.Language;
+namespace Sunset.Parser.Language.Tokens;
 
 public class StringToken : ValueTokenBase<ReadOnlyMemory<char>>
 {

@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\src\Sunset.TestHelpers\Sunset.TestHelpers.csproj" />
       <ProjectReference Include="..\Sunset.Parser\Sunset.Parser.csproj" />
     </ItemGroup>
 

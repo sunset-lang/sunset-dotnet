@@ -1,4 +1,4 @@
-﻿namespace Sunset.Compiler.Units;
+﻿namespace Northrop.Common.Sunset.Units;
 
 public class NamedUnitMultiple : NamedUnit
 {

@@ -1,7 +1,8 @@
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
+using Northrop.Common.Sunset.MathHelpers;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Reporting;
 
-namespace Sunset.Compiler.Units;
+namespace Northrop.Common.Sunset.Units;
 
 // Simplification methods for the Unit class.
 public partial class Unit

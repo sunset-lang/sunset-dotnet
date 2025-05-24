@@ -1,6 +1,7 @@
-using Sunset.Compiler.Quantities;
+using Northrop.Common.Sunset.MathHelpers;
+using Northrop.Common.Sunset.Quantities;
 
-namespace Sunset.Compiler.Units;
+namespace Northrop.Common.Sunset.Units;
 
 // Mathematical operators for the Unit class
 public partial class Unit
@@ -21,6 +22,18 @@ public partial class Unit
         for (int i = 0; i < Dimension.NumberOfDimensions; i++)
         {
             result.UnitDimensions[i].Power *= rationalPower;
+        }
+
+        return result;
+    }
+
+    public Unit Pow(int power)
+    {
+        var result = Clone();
+        
+        for (int i = 0; i < Dimension.NumberOfDimensions; i++)
+        {
+            result.UnitDimensions[i].Power *= power;
         }
 
         return result;

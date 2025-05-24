@@ -1,4 +1,4 @@
-namespace Sunset.Compiler.Quantities;
+namespace Northrop.Common.Sunset.Quantities;
 
 public enum Operator
 {

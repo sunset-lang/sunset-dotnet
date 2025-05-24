@@ -1,0 +1,286 @@
+﻿using System.Text;
+using Northrop.Common.Sunset.Errors;
+using Northrop.Common.Sunset.Expressions;
+using Range = System.Range;
+
+namespace Northrop.Common.Sunset.Language;
+
+/// <summary>
+/// Converts a list of tokens into an abstract expression tree.
+/// </summary>
+public partial class Parser
+{
+    private readonly IToken[] _tokens;
+    private int _position = 0;
+
+    private IToken _current;
+    private IToken? _peek;
+    private IToken? _peekNext;
+    private bool _inUnitExpression = false;
+
+    private readonly ReadOnlyMemory<char> _source;
+
+    private bool _panicMode = false;
+
+    public IExpression? SyntaxTree;
+
+    public Parser(string source, bool parse = true) : this(source.AsMemory(), parse)
+    {
+    }
+
+    public Parser(ReadOnlyMemory<char> source, bool parse = true) : this(new Lexer(source), parse)
+    {
+        _source = source;
+    }
+
+    public Parser(Lexer lexer, bool parse = true)
+    {
+        _tokens = lexer.Tokens.ToArray();
+        _current = _tokens[0];
+
+        Reset();
+        if (parse) Parse();
+    }
+
+    #region Parser controls
+
+    /// <summary>
+    /// Get the token in the array and increment the position.
+    /// </summary>
+    /// <returns>The next token in the token array. Return EndOfLine token if at the end of the array.</returns>
+    private void Advance()
+    {
+        // Skip errors while parsing
+        for (var i = _position + 1; i < _tokens.Length; i++)
+        {
+            if (_tokens[i].HasErrors == false)
+            {
+                // TODO: Do something about this error
+                _panicMode = true;
+                _position = i;
+                break;
+            }
+        }
+
+        _current = _tokens[_position];
+        _peek = Peek();
+        _peekNext = PeekNext();
+    }
+
+    /// <summary>
+    /// Consumes a token with no effect. If the token is not as expected, will throw an error
+    /// </summary>
+    /// <param name="type">Expected token type to be consumed.</param>
+    /// <param name="optional">True if the token type is optional. Throws an error if the token type is not found and false.</param>
+    private IToken? Consume(TokenType type, bool optional = false)
+    {
+        if (_current.Type == type)
+        {
+            var consumed = _current;
+            Advance();
+            return consumed;
+        }
+
+        if (!optional)
+        {
+            _current.AddError(ErrorCode.UnexpectedSymbol);
+        }
+
+        return null;
+    }
+
+    private IToken? OptionalConsume(TokenType type)
+    {
+        return Consume(type, false);
+    }
+
+    /// <summary>
+    /// Get the next token in the token array without incrementing the position.
+    /// </summary>
+    /// <param name="lookAhead">The number of tokens to look ahead within the list of tokens.</param>
+    /// <returns>The next token in the token array. Return EndOfLine token if at the end of the array.</returns>
+    private IToken? Peek(int lookAhead = 1)
+    {
+        return _position < _tokens.Length - lookAhead ? _tokens[_position + lookAhead] : null;
+    }
+
+    /// <summary>
+    /// Get the token after the next token in the token array without incrementing the position.
+    /// </summary>
+    /// <returns>The token after the next token in the token array. Return EndOfLine token if at the end of the array.</returns>
+    private IToken? PeekNext()
+    {
+        return Peek(2);
+    }
+
+    private void Reset()
+    {
+        _position = 0;
+        _current = _tokens[_position];
+        _peek = Peek();
+        _peekNext = PeekNext();
+    }
+
+    #endregion
+
+    public void Parse()
+    {
+        SyntaxTree = GetExpression();
+    }
+
+    /// <summary>
+    /// Gets the Range that an expression could take up within a given <paramref name="range"/> of the token array.
+    /// </summary>
+    /// <param name="range">Range of tokens within the array to search through.</param>
+    /// <returns>A range that could contain an expression.</returns>
+    public Range GetExpressionRange(Range range)
+    {
+        // TODO: Check that the range is within the bounds of the array
+
+        var start = range.Start.Value;
+        var end = range.End.Value;
+        for (var i = start; i < range.End.Value; i++)
+        {
+            // Must also check for close parentheses and braces as these can be in an expression but do not have parsing rules
+            if (!ParsingRules.ContainsKey(_tokens[i].Type) &&
+                _tokens[i].Type is not (TokenType.CloseParenthesis or TokenType.CloseBrace))
+            {
+                end = i;
+                break;
+            }
+        }
+
+        return new Range(start, end);
+    }
+
+    /// <summary>
+    /// Gets an expression starting with the token at the current position. Leaves the position at the next token.
+    /// </summary>
+    /// <param name="minPrecedence">The minimum precedence at which the infix expression loop breaks.</param>
+    /// <returns>An IExpression.</returns>
+    /// <exception cref="Exception"></exception>
+    public IExpression GetExpression(Precedence minPrecedence = Precedence.Assignment)
+    {
+        // Start by looking for a prefix expression
+        var prefixParsingRule = GetParsingRule(_current.Type);
+
+        if (prefixParsingRule.prefixParse == null)
+        {
+            // TODO: Handle this error a bit better
+            throw new Exception("Error parsing expression");
+        }
+
+        var leftExpression = prefixParsingRule.prefixParse(this);
+
+        // Assume that the prefix parsing rule has advanced the position to the next token
+        // Look for an infix expression
+        while (_position < _tokens.Length)
+        {
+            // TODO: Consider a better point to break this loop that is not quite so manual
+            if (_current.Type is TokenType.EndOfFile
+                or TokenType.Newline
+                or TokenType.CloseParenthesis
+                or TokenType.CloseBrace)
+            {
+                break;
+            }
+
+            // Particular logic for avoiding implicit multiplication outside of unit expressions despite it being returned within
+            // the parsing rules.
+            if (!_inUnitExpression && _current.Type == TokenType.Identifier)
+            {
+                throw new Exception("Implicit multiplication is not allowed outside unit expressions");
+            }
+
+            var infixParsingRule = GetParsingRule(_current.Type);
+
+            if (infixParsingRule.infixParse == null)
+            {
+                throw new Exception("Error parsing expression, expected an infix parse rule");
+            }
+
+            if (infixParsingRule.infixPrecedence < minPrecedence)
+            {
+                break;
+            }
+
+            leftExpression = infixParsingRule.infixParse(this, leftExpression);
+        }
+
+        return leftExpression;
+    }
+
+    public VariableDeclaration GetVariableDeclaration()
+    {
+        // Grammar:
+        // (IDENTIFIER symbolAssignment? | IDENTIFIER_SYMBOL) unitAssignment? "=" expression
+        StringToken nameToken;
+        SymbolName? symbolExpression = null;
+
+        switch (_current)
+        {
+            case { Type: TokenType.Identifier }:
+            {
+                nameToken = Consume(TokenType.Identifier) as StringToken ?? throw new("Expected an identifier");
+                if (_current.Type == TokenType.OpenAngleBracket)
+                {
+                    symbolExpression = GetSymbolExpression();
+                }
+
+                break;
+            }
+            case { Type: TokenType.IdentifierSymbol }:
+            {
+                nameToken = Consume(TokenType.IdentifierSymbol) as StringToken ??
+                            throw new Exception("Expected an identifier symbol");
+                symbolExpression = new SymbolName([nameToken]);
+                break;
+            }
+            default:
+                throw new Exception("Expected an identifier or identifier symbol");
+        }
+
+        VariableUnitAssignment? unitAssignment = null;
+
+        if (_current.Type == TokenType.OpenBrace)
+        {
+            var openBrace = Consume(TokenType.OpenBrace);
+            var unitExpression = GetExpression();
+            var closeBrace = Consume(TokenType.CloseBrace);
+
+            unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
+        }
+
+        Consume(TokenType.Assignment);
+
+        var expression = GetExpression();
+        // TODO: Get the metadata information after the expression
+
+        return new VariableDeclaration(nameToken, expression, unitAssignment, symbolExpression);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="SymbolName"/> starting at the current token, which is assumed to be an open angle bracket.
+    /// </summary>
+    /// <returns></returns>
+    private SymbolName GetSymbolExpression()
+    {
+        Consume(TokenType.OpenAngleBracket);
+        List<IToken> tokens = [];
+        while (_current.Type is not TokenType.CloseAngleBracket)
+        {
+            tokens.Add(_current);
+            Advance();
+
+            if (_current.Type is TokenType.Newline or TokenType.EndOfFile)
+            {
+                _current.AddError(ErrorCode.UnexpectedSymbol);
+                break;
+            }
+        }
+
+        Consume(TokenType.CloseAngleBracket);
+
+        return new SymbolName(tokens);
+    }
+}

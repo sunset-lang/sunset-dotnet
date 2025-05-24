@@ -1,4 +1,4 @@
-namespace Sunset.Compiler.Units;
+namespace Northrop.Common.Sunset.Units;
 
 // Partial class that implements the Base Unit functionality
 public partial class Unit
@@ -171,8 +171,14 @@ public partial class Unit
 
     // TODO: Create test to ensure that all units that are defined are included
 
+    /// <summary>
+    /// This dictionary contains all of the named units that are multiples of the base named units
+    /// </summary>
     public static readonly Dictionary<NamedUnit, List<NamedUnitMultiple>> NamedUnitMultiples =
         GetNamedUnitMultiples();
+
+    public static readonly Dictionary<string, NamedUnit> NamedCoherentUnitsBySymbol = NamedCoherentUnits
+        .ToDictionary(unit => unit.Symbol, unit => unit);
 
     private static Dictionary<NamedUnit, List<NamedUnitMultiple>> GetNamedUnitMultiples()
     {

@@ -1,6 +1,7 @@
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Units;
 
-namespace Sunset.Compiler.Test.Quantities;
+namespace Northrop.Common.Sunset.Tests.Quantities;
 
 [TestClass]
 public class BaseUnitTests

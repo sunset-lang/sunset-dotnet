@@ -1,166 +1,33 @@
-﻿using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
-using Sunset.Compiler.Units;
+﻿using Northrop.Common.Sunset.Expressions;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Units;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
-// Partial class for implementing the IQuantity interface
-public abstract class PropertyBase : IQuantity
+/// <summary>
+/// A base class for Properties, which are Variables that are owned by an Element.
+/// </summary>
+public abstract class PropertyBase : Variable
 {
-    public abstract Quantity PropertyValue { get; }
-
-    public Unit Unit => PropertyValue.Unit;
-    public double Value => PropertyValue.Value;
-    public string? Symbol => PropertyValue.Symbol;
-
-    public string Name
-    {
-        get => PropertyValue.Name;
-        set => PropertyValue.Name = value;
-    }
-
-    public string Description
-    {
-        get => PropertyValue.Description;
-        set => PropertyValue.Description = value;
-    }
-
-    public string Reference
-    {
-        get => PropertyValue.Reference;
-        set => PropertyValue.Reference = value;
-    }
-
-    public string Comment
-    {
-        get => PropertyValue.Comment;
-        set => PropertyValue.Comment = value;
-    }
-
-    public Operator Operator => PropertyValue.Operator;
-    public Quantity? Left => PropertyValue.Left;
-    public Quantity? Right => PropertyValue.Right;
-
-    public ReportSection? DefaultReport
-    {
-        get => PropertyValue.DefaultReport;
-        set => PropertyValue.DefaultReport = value;
-    }
-
-    public IQuantity Report(ReportSection report)
-    {
-        AddToReport(report);
-        return this;
-    }
-
-    public IQuantity Report()
-    {
-        AddToReport();
-        return this;
-    }
-
-    public void AddToReport(ReportSection report)
-    {
-        PropertyValue.AddToReport(report);
-    }
-
-    public void AddToReport()
-    {
-        PropertyValue.AddToReport();
-    }
-
-    public void SimplifyUnits()
-    {
-        PropertyValue.SimplifyUnits();
-    }
-
-    public IQuantity WithSimplifiedUnits()
-    {
-        return PropertyValue.WithSimplifiedUnits();
-    }
-
-
-    public string ValueToLatexString()
-    {
-        return PropertyValue.ValueToLatexString();
-    }
-
-    public List<Quantity> GetDependentQuantities(Quantity? quantity = null)
-    {
-        return PropertyValue.GetDependentQuantities(quantity) ?? [];
-    }
-
-    public Quantity Pow(double power)
-    {
-        return PropertyValue.Pow(power);
-    }
-
-    public Quantity Sqrt()
-    {
-        return PropertyValue.Sqrt();
-    }
-
-    public IQuantity AssignSymbol(string symbol)
-    {
-        PropertyValue.AssignSymbol(symbol);
-        return this;
-    }
-
-    public IQuantity AssignName(string name)
-    {
-        PropertyValue.AssignName(name);
-        return this;
-    }
-
-    public IQuantity AddDescription(string description)
-    {
-        PropertyValue.AddDescription(description);
-        return this;
-    }
-
-    public IQuantity AddReference(string reference)
-    {
-        PropertyValue.AddReference(reference);
-        return this;
-    }
-
     /// <summary>
-    /// Implicit conversion method for converting a CalculatedProperty to a Quantity.
+    /// A base class for Properties, which are Variables that are owned by an Element.
     /// </summary>
-    /// <param name="property">The property to be converted.</param>
-    /// <returns>The backing Quantity behind the calculated property.</returns>
-    public static implicit operator Quantity(PropertyBase property)
+    protected PropertyBase(double value,
+        Unit unit,
+        string name,
+        string symbol = "",
+        string description = "",
+        string reference = "",
+        string label = "") : base(value, unit, name, symbol,
+        description, reference, label)
     {
-        return property.PropertyValue;
     }
 
-    public override string ToString()
+    protected PropertyBase()
     {
-        return PropertyValue.ToString();
+        
     }
 
-    public Quantity ToQuantity()
-    {
-        return (Quantity)this;
-    }
-
-    public static Quantity operator +(PropertyBase left, PropertyBase right)
-    {
-        return left.ToQuantity() + right.ToQuantity();
-    }
-
-    public static Quantity operator -(PropertyBase left, PropertyBase right)
-    {
-        return left.ToQuantity() - right.ToQuantity();
-    }
-
-    public static Quantity operator *(PropertyBase left, PropertyBase right)
-    {
-        return left.ToQuantity() * right.ToQuantity();
-    }
-
-    public static Quantity operator /(PropertyBase left, PropertyBase right)
-    {
-        return left.ToQuantity() / right.ToQuantity();
-    }
+    public abstract IQuantity Quantity { get; }
 }

@@ -1,7 +1,10 @@
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.JavaScript;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Reporting;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 /// <summary>
 /// Interface for an element that contains a number of capacities, demands and checks.
@@ -30,16 +33,17 @@ public abstract class CheckableElementBase<T> : IElement
         Checks.Add(check);
     }
 
-    protected void AddRangeCheck(string name, PropertyBase property, IQuantity? min, IQuantity? max)
+    protected void AddRangeCheck(string name, PropertyBase property, Quantity? min, Quantity? max)
     {
         var check = new RangeCheck(property, min, max);
         AddCheck(check);
     }
 
-    protected void AddCapacityCheck<TDemand>(string name, PropertyBase capacity, Func<TDemand, IQuantity?> demandGetter)
+    protected void AddCapacityCheck<TDemand>(string name, PropertyBase capacity,
+        Func<TDemand, PropertyBase?> demandGetter)
         where TDemand : IDemand<T>
     {
-        Func<IDemand<T>, IQuantity?> demandGetterWrapper = demand => demandGetter((TDemand)demand);
+        Func<IDemand<T>, PropertyBase?> demandGetterWrapper = demand => demandGetter((TDemand)demand);
 
         var check = new CapacityCheck<T>(name, capacity, demandGetterWrapper, this);
         AddCheck(check);

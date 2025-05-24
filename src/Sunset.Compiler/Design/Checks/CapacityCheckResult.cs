@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 public struct CapacityCheckResult<T>(IDemand<T> demand) where T : IElement
 {

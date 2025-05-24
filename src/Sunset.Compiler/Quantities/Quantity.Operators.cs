@@ -1,24 +1,69 @@
 using System.Numerics;
+using System.Runtime.InteropServices.JavaScript;
+using Northrop.Common.Sunset.Design;
+using Northrop.Common.Sunset.MathHelpers;
 
-namespace Sunset.Compiler.Quantities;
+namespace Northrop.Common.Sunset.Quantities;
 
-public partial class Quantity : IAdditionOperators<Quantity, Quantity, Quantity>,
-    ISubtractionOperators<Quantity, Quantity, Quantity>, IMultiplyOperators<Quantity, Quantity, Quantity>,
-    IMultiplyOperators<Quantity, double, Quantity>, IDivisionOperators<Quantity, Quantity, Quantity>,
-    IDivisionOperators<Quantity, double, Quantity>
+public partial class Quantity
 {
-    public Quantity Pow(double power)
+    public IQuantity Pow(double power)
     {
-        return new Quantity(Math.Pow(Value, power), Unit.Pow(power), Operator.Power, this, new Quantity(power));
+        return new Quantity(Math.Pow(Value, power), Unit.Pow(power));
     }
 
-    public Quantity Sqrt()
+    public IQuantity Sqrt()
     {
-        return new Quantity(Math.Sqrt(Value), Unit.Sqrt(), Operator.Sqrt, this, new Quantity(2));
+        return new Quantity(Math.Sqrt(Value), Unit.Sqrt());
     }
 
+    // TODO: Handle int and Rational numeric types
 
-    // TODO: Ensure default report is copied from the quantities provided
+    public static Quantity operator +(Quantity q1, Quantity q2)
+    {
+        var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
+        return new Quantity(q1.Value + q2.Value * conversionFactor, q1.Unit + q2.Unit);
+    }
+
+    public static Quantity operator -(Quantity q1, Quantity q2)
+    {
+        var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
+        return new Quantity(q1.Value - q2.Value * conversionFactor, q1.Unit - q2.Unit);
+    }
+
+    public static Quantity operator *(Quantity q1, Quantity q2)
+    {
+        var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
+        var resultUnit = q1.Unit * q2.Unit;
+
+        return new Quantity(q1.Value * q2.Value * conversionFactor, resultUnit);
+    }
+
+    public static Quantity operator *(Quantity q1, double q2)
+    {
+        return new Quantity(q1.Value * q2, q1.Unit);
+    }
+
+    public static Quantity operator *(Quantity q1, int q2)
+    {
+        return new Quantity(q1.Value * q2, q1.Unit);
+    }
+
+    public static Quantity operator /(Quantity q1, Quantity q2)
+    {
+        var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
+        return new Quantity(q1.Value / (q2.Value * conversionFactor), q1.Unit / q2.Unit);
+    }
+
+    public static Quantity operator /(Quantity q1, double q2)
+    {
+        return new Quantity(q1.Value / q2, q1.Unit);
+    }
+
+    public static Quantity operator /(Quantity q1, int q2)
+    {
+        return new Quantity(q1.Value / q2, q1.Unit);
+    }
 
     // Note regarding the multiplication and division operators below:
     // If the operator of either of the quantities being multiplied is a division, the numerators and denominators
@@ -26,7 +71,7 @@ public partial class Quantity : IAdditionOperators<Quantity, Quantity, Quantity>
     // The simplification of division quantities only occurs if the quantity that has a division operator
     // does not have an assigned symbol. Otherwise, this process will lose the applied symbol.
 
-    public static Quantity operator +(Quantity q1, Quantity q2)
+    /*public static Quantity operator +(Quantity q1, Quantity q2)
     {
         var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
         return new Quantity(q1.Value + q2.Value * conversionFactor, q1.Unit + q2.Unit,
@@ -125,5 +170,5 @@ public partial class Quantity : IAdditionOperators<Quantity, Quantity, Quantity>
         }
 
         return new Quantity(q1.Value / q2, q1.Unit, Operator.Divide, q1, new Quantity(q2));
-    }
+    }*/
 }

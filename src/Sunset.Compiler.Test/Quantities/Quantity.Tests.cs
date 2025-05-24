@@ -1,7 +1,7 @@
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Units;
 
-namespace Sunset.Compiler.Test.Quantities;
+namespace Northrop.Common.Sunset.Tests.Quantities;
 
 [TestClass]
 public class QuantityTests
@@ -9,8 +9,8 @@ public class QuantityTests
     [TestMethod]
     public void Addition_SameDimensionsDifferent_ShouldReturnCorrectValuePowerAndLeftFactor()
     {
-        var leftOperand = new Quantity(3.5, Unit.Metre, "x");
-        var rightOperand = new Quantity(500, Unit.Millimetre, "y");
+        var leftOperand = new Quantity(3.5, Unit.Metre);
+        var rightOperand = new Quantity(500, Unit.Millimetre);
 
         var additionResult = leftOperand + rightOperand;
 
@@ -22,8 +22,8 @@ public class QuantityTests
     [TestMethod]
     public void Multiplication_SameDimensions_ShouldReturnCorrectValuePowerAndLeftFactorAndStringRepresentation()
     {
-        var leftOperand = new Quantity(500, Unit.Millimetre, "x");
-        var rightOperand = new Quantity(3.5, Unit.Metre, "y");
+        var leftOperand = new Quantity(500, Unit.Millimetre);
+        var rightOperand = new Quantity(3.5, Unit.Metre);
 
         var multiplicationResult = leftOperand * rightOperand;
         var expectedResult = new Quantity(1.75, Unit.Metre * Unit.Metre);

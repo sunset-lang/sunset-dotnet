@@ -1,4 +1,4 @@
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 // TODO: Not implemented yet
 

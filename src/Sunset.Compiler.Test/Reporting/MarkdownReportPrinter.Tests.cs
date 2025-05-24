@@ -1,8 +1,9 @@
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Reporting;
+using Northrop.Common.Sunset.Units;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Test.Reporting;
+namespace Northrop.Common.Sunset.Tests.Reporting;
 
 [TestClass]
 public class MarkdownReportPrinterTests
@@ -13,20 +14,20 @@ public class MarkdownReportPrinterTests
 
         report.AddText("Calculate the axial section capacity of a steel plate.");
 
-        var yield = new Quantity(350, Unit.Megapascal, "f_y", "Yield strength",
+        var yield = new Variable(350, Unit.Megapascal, "f_y", "Yield strength",
             "The yield strength of the steel plate.");
-        var width = new Quantity(100, Unit.Millimetre, "b", "Width", "The width of the steel plate.");
-        var thickness = new Quantity(10, Unit.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
-        var area = (width * thickness).AssignSymbol("A").Report(report);
-        area.Name = "Area";
-        area.Description = "The cross-sectional area of the steel plate.";
-        var capacityFactor = new Quantity(0.9, Unit.Dimensionless, "\\phi", "Capacity Factor", "",
+        var width = new Variable(100, Unit.Millimetre, "b", "Width", "The width of the steel plate.");
+        var thickness = new Variable(10, Unit.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
+        var area = new Variable(width * thickness).AssignSymbol("A").Report(report);
+        area.AssignName("Area");
+        area.AssignDescription("The cross-sectional area of the steel plate.");
+        var capacityFactor = new Variable(0.9, Unit.Dimensionless, "\\phi", "Capacity factor", "",
             "AS 4100-1998 Clause 2.1.5");
 
-        var capacity = (capacityFactor * yield * area).AssignSymbol("\\phi N_s").Report(report);
-        capacity.Name = "Axial capacity";
-        capacity.Description = "The axial capacity of the steel plate.";
-        capacity.Reference = "AS 4100-1998 Clause 4.3.1";
+        var capacity = new Variable(capacityFactor * yield * area).AssignSymbol("\\phi N_s").Report(report);
+        capacity.AssignName("Axial capacity");
+        capacity.AssignDescription("The axial capacity of the steel plate.");
+        capacity.AssignReference("AS 4100-1998 Clause 4.3.1");
 
         return report;
     }
@@ -37,23 +38,23 @@ public class MarkdownReportPrinterTests
 
         report.AddText("Calculate the bending section capacity of a steel plate.");
 
-        var yield = new Quantity(350, Unit.Megapascal, "f_y", "Yield strength",
+        var yield = new Variable(350, Unit.Megapascal, "f_y", "Yield strength",
             "The yield strength of the steel plate.");
-        var width = new Quantity(100, Unit.Millimetre, "b", "Width", "The width of the steel plate.");
-        var thickness = new Quantity(10, Unit.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
-        var sectionModulus = (width * thickness.Pow(2) / 4).AssignSymbol("Z_p").Report(report);
-        sectionModulus.Description = "The plastic section modulus of the plate.";
-        var capacityFactor = new Quantity(0.9, Unit.Dimensionless, "\\phi", "Capacity Factor", "",
+        var width = new Variable(100, Unit.Millimetre, "b", "Width", "The width of the steel plate.");
+        var thickness = new Variable(10, Unit.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
+        var sectionModulus = new Variable(width * thickness.Pow(2) / 4).AssignSymbol("Z_p").Report(report);
+        sectionModulus.AssignDescription("The plastic section modulus of the plate.");
+        var capacityFactor = new Variable(0.9, Unit.Dimensionless, "\\phi", "Capacity Factor", "",
             "AS 4100-1998 Clause 2.1.5");
 
-        var capacity = (capacityFactor * yield * sectionModulus);
+        var capacity = new Variable(capacityFactor * yield * sectionModulus);
         capacity.AssignSymbol("\\phi M_s").Report(report);
-        capacity.Name = "Bending capacity";
-        capacity.Description = "The bending capacity of the steel plate.";
-        capacity.Reference = "AS 4100-1998 Clause 5.2.4";
+        capacity.AssignName("Bending capacity");
+        capacity.AssignDescription("The bending capacity of the steel plate.");
+        capacity.AssignReference("AS 4100-1998 Clause 5.2.4");
 
         return report;
-        
+
         // TODO: No assertions
     }
 
@@ -81,7 +82,8 @@ public class MarkdownReportPrinterTests
                        \end{alignedat}
                        $$
                        """;
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected), Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport));
+        Assert.AreEqual(TestHelpers.TestHelpers.NormalizeString(expected),
+            TestHelpers.TestHelpers.NormalizeString(printedReport));
     }
 
     [TestMethod]
@@ -107,7 +109,8 @@ public class MarkdownReportPrinterTests
                        \end{alignedat}
                        $$
                        """;
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected), Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport));
+        Assert.AreEqual(TestHelpers.TestHelpers.NormalizeString(expected),
+            TestHelpers.TestHelpers.NormalizeString(printedReport));
     }
 
     [TestMethod]
@@ -174,7 +177,8 @@ public class MarkdownReportPrinterTests
                        - $f_y$ The yield strength of the steel plate.
                        - $\phi M_s$ The bending capacity of the steel plate. (AS 4100-1998 Clause 5.2.4)
                        """;
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected), Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport));
+        Assert.AreEqual(TestHelpers.TestHelpers.NormalizeString(expected),
+            TestHelpers.TestHelpers.NormalizeString(printedReport));
     }
 
     [TestMethod]
@@ -202,6 +206,7 @@ public class MarkdownReportPrinterTests
                          - [1.2 Bending section capacity](#1.2)
                        """;
 
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected), Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedTableOfContents));
+        Assert.AreEqual(TestHelpers.TestHelpers.NormalizeString(expected),
+            TestHelpers.TestHelpers.NormalizeString(printedTableOfContents));
     }
 }

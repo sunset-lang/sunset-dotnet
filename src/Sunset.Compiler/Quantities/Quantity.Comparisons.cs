@@ -1,18 +1,17 @@
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Units;
 
-namespace Sunset.Compiler.Quantities;
+namespace Northrop.Common.Sunset.Quantities;
 
-public partial class Quantity : IEquatable<Quantity>
+public partial class Quantity
 {
-    /// <inheritdoc/>
-    public bool Equals(Quantity? other)
+    public bool Equals(IQuantity? other)
     {
-        if (other is null) return false;
+        if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
 
-        if (!Unit.EqualDimensions(this.Unit, other.Unit)) return false;
-
+        if (!Unit.EqualDimensions(Unit, other.Unit)) return false;
         var otherValueConverted = other.Value * other.Unit.GetConversionFactor(Unit);
+
         return Math.Abs(Value - otherValueConverted) < 1e-14;
     }
 

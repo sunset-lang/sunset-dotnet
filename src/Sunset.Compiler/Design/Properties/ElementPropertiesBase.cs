@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Reporting;
+using Northrop.Common.Sunset.Units;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 public abstract class ElementPropertiesBase<T> where T : ElementPropertiesBase<T>
 {
@@ -19,32 +20,22 @@ public abstract class ElementPropertiesBase<T> where T : ElementPropertiesBase<T
     /// Does not calculate the property immediately, but waits for the input properties to change.
     /// Calculation can be triggered by calling the Calculate method on the property on the CalculateAllProperties method on the set of properties.
     /// </summary>
-    /// <param name="calculation">Method used to calculate the property based on the other properties within the set.</param>
-    /// <returns>A reference to the CalculatedProperty that has been registered in the property set.</returns>
-    public CalculatedProperty<T> AddCalculatedProperty(Func<T, Quantity> calculation)
+    /// <param name="calculatedProperty">Calculated property to be added to the Element</param>
+    public void AddCalculatedProperty(CalculatedProperty<T> calculatedProperty)
     {
-        var calculatedProperty = new CalculatedProperty<T>((T)this, calculation);
-
         _calculatedProperties.Add(calculatedProperty);
-
-        return calculatedProperty;
     }
 
     /// <summary>
     /// Adds a new input property to the set of properties. Registers the property to an event handler that fires whenever
     /// the value of the property changes. This event handler will trigger the recalculation of all calculated properties.
     /// </summary>
-    /// <param name="name">Name of the property. Used to set the Quantity name.</param>
-    /// <param name="value">The quantity used to set up the input property.</param>
+    /// <param name="inputProperty">Property to be added to this Element</param>
     /// <returns>A reference to the InputProperty that has been registered in the property set.</returns>
-    public InputProperty AddInputProperty(string name, IQuantity value, List<NamedUnit> validUnits)
+    public void AddInputProperty(InputProperty inputProperty)
     {
-        var inputProperty = new InputProperty(name, value.ToQuantity(), validUnits);
-
         inputProperty.PropertyChanged += OnInputPropertyChanged;
         _inputProperties.Add(inputProperty);
-
-        return inputProperty;
     }
 
     /// <summary>
@@ -67,7 +58,6 @@ public abstract class ElementPropertiesBase<T> where T : ElementPropertiesBase<T
         CalculateAllProperties();
     }
 
-    /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -81,8 +71,7 @@ public abstract class ElementPropertiesBase<T> where T : ElementPropertiesBase<T
 
         foreach (var property in InputProperties)
         {
-            // TODO: report.AddItem(property) doesn't work the same way, although it should. Investigate this and create an issue.
-            property.Report(report);
+            report.AddItem(property);
         }
 
         return report;
@@ -94,10 +83,9 @@ public abstract class ElementPropertiesBase<T> where T : ElementPropertiesBase<T
 
         foreach (var property in CalculatedProperties)
         {
-            property.Report(report);
+            report.AddItem(property);
         }
 
         return report;
     }
-    
 }

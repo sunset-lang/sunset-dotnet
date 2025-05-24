@@ -1,6 +1,6 @@
-using Sunset.Compiler.Reporting;
+using Northrop.Common.Sunset.Reporting;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 /// <summary>
 /// Interface for a design check that is performed on an IElement, which compares an ICapacity value to one or more

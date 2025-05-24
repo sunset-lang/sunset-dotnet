@@ -1,32 +1,36 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Expressions;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Units;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
-public sealed class InputProperty : PropertyBase, INotifyPropertyChanged
+/// <summary>
+/// An InputProperty is a Variable owned by an Element that has a default value but may also have different values assigned to it.
+/// </summary>
+public sealed class InputProperty(
+    double value,
+    Unit unit,
+    List<NamedUnit> validUnits,
+    string name,
+    string symbol = "",
+    string description = "",
+    string reference = "",
+    string label = "")
+    : PropertyBase(value, unit, name,
+        symbol, description, reference, label), INotifyPropertyChanged
 {
-    private Quantity _propertyValue;
+    public List<NamedUnit> ValidUnits { get; } = validUnits;
 
-    public InputProperty(Quantity value)
-    {
-        _propertyValue = value;
-    }
-
-    public InputProperty(string name, Quantity value, List<NamedUnit> validUnits)
-    {
-        value.Name = name;
-        _propertyValue = value;
-        ValidUnits = validUnits;
-    }
-
-    public List<NamedUnit> ValidUnits { get; }
+    private IQuantity? _propertyValue;
 
     /// <summary>
     /// Quantity representing the value of the property.
     /// </summary>
-    public override Quantity PropertyValue => _propertyValue;
+    // DefaultValue here is imposed as not null as it is set by the constructor.
+    public override IQuantity Quantity => _propertyValue ??= DefaultValue!;
 
     /// <summary>
     /// Sets the value of this property to a new Quantity value and unit. Can only be set to a quantity with the same dimensions as the current quantity.
@@ -34,12 +38,12 @@ public sealed class InputProperty : PropertyBase, INotifyPropertyChanged
     /// </summary>
     /// <param name="quantity">Quantity to replace the previous property value.</param>
     /// <exception cref="ArgumentException">Thrown if the unit dimensions do not match.</exception>
-    public void Set(Quantity quantity)
+    public void Set(IQuantity quantity)
     {
-        if (!Unit.EqualDimensions(quantity, _propertyValue)) throw new ArgumentException("Dimensions do not match");
+        if (!Unit.EqualDimensions(quantity, Quantity)) throw new ArgumentException("Dimensions do not match");
 
         _propertyValue = quantity;
-        OnPropertyChanged(nameof(PropertyValue));
+        OnPropertyChanged(nameof(Quantity));
     }
 
     /// <summary>
@@ -49,10 +53,10 @@ public sealed class InputProperty : PropertyBase, INotifyPropertyChanged
     /// <param name="value">New value of the property.</param>
     public void Set(double value)
     {
-        if (Math.Abs(value - _propertyValue.Value) < 1e-12) return;
+        if (Math.Abs(value - Quantity.Value) < 1e-12) return;
 
-        _propertyValue.Set(value);
-        OnPropertyChanged(nameof(Value));
+        _propertyValue = new Quantity(value, Quantity.Unit);
+        OnPropertyChanged(nameof(Quantity));
     }
 
     /// <summary>
@@ -62,10 +66,9 @@ public sealed class InputProperty : PropertyBase, INotifyPropertyChanged
     /// <param name="unit">New unit of the property.</param>
     public void Set(Unit unit)
     {
-        if (unit == _propertyValue.Unit) return;
-
-        _propertyValue.Set(unit);
-        OnPropertyChanged(nameof(PropertyValue));
+        if (unit == Quantity.Unit) return;
+        _propertyValue?.SetUnits(unit);
+        OnPropertyChanged(nameof(Quantity));
     }
 
     /// <summary>
@@ -76,10 +79,10 @@ public sealed class InputProperty : PropertyBase, INotifyPropertyChanged
     /// <param name="unit">New unit of the property.</param>
     public void Set(double value, Unit unit)
     {
-        if (Math.Abs(value - _propertyValue.Value) < 1e-12 && unit == _propertyValue.Unit) return;
+        if (Math.Abs(value - Quantity.Value) < 1e-12 && unit == Quantity.Unit) return;
 
-        _propertyValue.Set(value, unit);
-        OnPropertyChanged(nameof(PropertyValue));
+        _propertyValue = new Quantity(value, unit);
+        OnPropertyChanged(nameof(Quantity));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

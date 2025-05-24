@@ -1,7 +1,8 @@
 using System.Numerics;
-using Sunset.Compiler.Quantities;
+using Northrop.Common.Sunset.MathHelpers;
+using Northrop.Common.Sunset.Quantities;
 
-namespace Sunset.Compiler.Units;
+namespace Northrop.Common.Sunset.Units;
 
 /// <summary>
 /// Represents a physical unit with multiple dimensions and factors for each dimension.
@@ -78,6 +79,8 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     /// The dimensions of the unit. Each dimension has a power and a factor.
     /// </summary>
     public Dimension[] UnitDimensions { get; init; } = Dimension.DimensionlessSet();
+
+    public bool IsDimensionless => Unit.EqualDimensions(this, Unit.Dimensionless);
 
     /// <summary>
     /// The absolute sum of all dimension powers. Used to sort units for simplification purposes.

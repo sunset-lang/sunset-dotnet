@@ -1,6 +1,7 @@
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Units;
 
-namespace Sunset.Compiler.Test.Quantities;
+namespace Northrop.Common.Sunset.Tests.Quantities;
 
 [TestClass]
 public class UnitTests
@@ -76,5 +77,16 @@ public class UnitTests
         var simplifiedUnit = millimetre.Simplify();
 
         Assert.AreEqual(true, Unit.EqualDimensions(millimetre, simplifiedUnit));
+    }
+
+    [TestMethod]
+    public void ToString_NamedMultipleUnits_CorrectStringRepresentation()
+    {
+        var unit1 = Unit.Millimetre;
+        var unit2 = Unit.Millimetre;
+
+        var unitMultiple = unit1 * unit2;
+
+        Assert.AreEqual("mm^2", unitMultiple.ToString());
     }
 }

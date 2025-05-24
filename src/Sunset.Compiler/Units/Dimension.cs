@@ -1,6 +1,7 @@
-using Sunset.Compiler.Quantities;
+using Northrop.Common.Sunset.MathHelpers;
+using Northrop.Common.Sunset.Quantities;
 
-namespace Sunset.Compiler.Units;
+namespace Northrop.Common.Sunset.Units;
 
 public struct Dimension(DimensionName name)
 {

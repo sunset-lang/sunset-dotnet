@@ -1,6 +1,6 @@
-using Sunset.Compiler.Reporting;
+using Northrop.Common.Sunset.Reporting;
 
-namespace Sunset.Compiler.Test.Reporting;
+namespace Northrop.Common.Sunset.Tests.Reporting;
 
 [TestClass]
 public class NumberUtilitiesTests

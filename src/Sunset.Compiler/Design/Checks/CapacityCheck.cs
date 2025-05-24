@@ -1,21 +1,19 @@
 using System.Text;
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
-using Sunset.Compiler.Units;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Reporting;
+using Northrop.Common.Sunset.Units;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 /// <summary>
 /// Abstract base class for checks of a capacity against a demand.
 /// </summary>
 public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
 {
-    /// <summary>
-    /// Abstract base class for checks of a capacity against a demand.
-    /// </summary>
     public CapacityCheck(string name,
         PropertyBase capacity,
-        Func<IDemand<T>, IQuantity?> demandGetter,
+        Func<IDemand<T>, PropertyBase?> demandGetter,
         List<IDemand<T>> demands)
     {
         Name = name;
@@ -26,7 +24,7 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
 
     public CapacityCheck(string name,
         PropertyBase capacity,
-        Func<IDemand<T>, IQuantity?> demandGetter,
+        Func<IDemand<T>, PropertyBase?> demandGetter,
         CheckableElementBase<T> element)
     {
         Name = name;
@@ -41,8 +39,6 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
     /// </summary>
     public CheckableElementBase<T>? Element;
 
-    // TODO: Consider this being just an implementation of ICheck such that the same capacity can be calculated once and shared across
-    // multiple different checks.
     public string Name { get; }
 
     /// <summary>
@@ -53,7 +49,7 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
     /// <summary>
     /// Function that gets the particular demand quantity from the IDemand
     /// </summary>
-    public Func<IDemand<T>, IQuantity?> DemandGetter { get; }
+    public Func<IDemand<T>, PropertyBase?> DemandGetter { get; }
 
     /// <inheritdoc />
     public bool? Pass { get; } = null;
@@ -147,7 +143,7 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
 
         var builder = new StringBuilder();
 
-        builder.Append(Capacity.ValueToLatexString());
+        builder.Append(Capacity.Quantity.ToLatexString());
 
         foreach (var result in Results)
         {
@@ -157,12 +153,12 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
             // Show the value of the capacity and the value of the demand
             if (result.Value.Pass)
             {
-                builder.Append(" &> " + demand.ValueToLatexString() +
+                builder.Append(" &> " + demand.Quantity.ToLatexString() +
                                @" \quad\text{ Pass} \\");
             }
             else
             {
-                builder.Append(" &< " + demand.ValueToLatexString() +
+                builder.Append(" &< " + demand.Quantity.ToLatexString() +
                                @" \quad\text{ Fail} \");
             }
         }
@@ -178,9 +174,8 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
     public CapacityCheckResult<T> CheckSingle(IDemand<T> demand)
     {
         var result = new CapacityCheckResult<T>(demand);
-        var message = new StringBuilder();
 
-        var demandQuantity = DemandGetter(demand);
+        var demandQuantity = DemandGetter(demand)?.Quantity;
         if (demandQuantity == null)
         {
             result.AddMessage("Demand not provided.");
@@ -189,17 +184,17 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
         // By default, return false if the check didn't work.
         if (demandQuantity == null) return result;
 
-        if (!Unit.EqualDimensions(Capacity, demandQuantity))
+        if (!Unit.EqualDimensions(Capacity.Unit, demandQuantity.Unit))
         {
             result.AddMessage(
                 $"Capacity and demand must have the same units. Capacity is in units {Capacity.Unit} and demand is in {demandQuantity.Unit}");
         }
 
 
-        var ratio = (demandQuantity / Capacity.ToQuantity()).Value;
+        var ratio = (demandQuantity / Capacity.Quantity).Value;
 
         result.Ratio = ratio;
-        
+
         Results.Remove(demand);
         Results.TryAdd(demand, result);
 
@@ -207,19 +202,8 @@ public class CapacityCheck<T> : ICheck where T : CheckableElementBase<T>
     }
 
     /// <inheritdoc />
-    public ReportSection? DefaultReport { get; set; }
-
-    // TODO: Add Report Builder pattern functions
-
-    /// <inheritdoc />
     public void AddToReport(ReportSection report)
     {
         report.AddItem(this);
-    }
-
-    /// <inheritdoc />
-    public void AddToReport()
-    {
-        DefaultReport?.AddItem(this);
     }
 }

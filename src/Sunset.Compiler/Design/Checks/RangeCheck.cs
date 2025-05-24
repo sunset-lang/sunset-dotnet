@@ -1,8 +1,9 @@
 using System.Text;
-using Sunset.Compiler.Quantities;
-using Sunset.Compiler.Reporting;
+using Northrop.Common.Sunset.Quantities;
+using Northrop.Common.Sunset.Reporting;
+using Northrop.Common.Sunset.Variables;
 
-namespace Sunset.Compiler.Design;
+namespace Northrop.Common.Sunset.Design;
 
 /// <summary>
 /// Checks a property of an element to see if it is within a specified range.
@@ -24,12 +25,12 @@ public class RangeCheck : ICheck
     /// <summary>
     /// Minimum value that the property must be greater than or equal to. If null, there is no bottom range to the check.
     /// </summary>
-    public IQuantity? Min { get; }
+    public Quantity? Min { get; }
 
     /// <summary>
     /// Maximum value that the property must be less than or equal to. If null, there is no top range to the check.
     /// </summary>
-    public IQuantity? Max { get; }
+    public Quantity? Max { get; }
 
     /// <summary>
     /// Constructs a new RangeCheck for a given property and between two (optional) values.
@@ -37,7 +38,7 @@ public class RangeCheck : ICheck
     /// <param name="property">The property to be checked.</param>
     /// <param name="min">Minimum value that the property must be greater than or equal to. If null, there is no bottom range to the check.</param>
     /// <param name="max">Maximum value that the property must be less than or equal to. If null, there is no top range to the check.</param>
-    public RangeCheck(PropertyBase property, IQuantity? min, IQuantity? max)
+    public RangeCheck(PropertyBase property, Quantity? min, Quantity? max)
     {
         Name = property.Name;
 
@@ -53,7 +54,7 @@ public class RangeCheck : ICheck
     /// <param name="property">The property to be checked against.</param>
     /// <param name="min">Minimum value that the property must be greater than or equal to. If null, there is no bottom range to the check.</param>
     /// <param name="max">Maximum value that the property must be less than or equal to. If null, there is no top range to the check.</param>
-    public RangeCheck(string name, PropertyBase property, IQuantity? min, IQuantity? max)
+    public RangeCheck(string name, PropertyBase property, Quantity? min, Quantity? max)
     {
         Name = name;
 
@@ -71,7 +72,7 @@ public class RangeCheck : ICheck
     {
         if (Min != null)
         {
-            if (Property.PropertyValue < Min.ToQuantity())
+            if (Property.Quantity < Min)
             {
                 _pass = false;
                 return _pass.Value;
@@ -80,7 +81,7 @@ public class RangeCheck : ICheck
 
         if (Max != null)
         {
-            if (Property.PropertyValue > Max.ToQuantity())
+            if (Property.Quantity > Max)
             {
                 _pass = false;
                 return _pass.Value;
@@ -97,7 +98,6 @@ public class RangeCheck : ICheck
 
         builder.AppendLine($"**{Name}**");
         builder.AppendLine("$$ \n \\begin{align*}");
-        builder.AppendLine($@"{ReportSymbols()}\\");
         builder.Append(ReportValues());
         builder.AppendLine($"\\quad\\text{{{ReportMessage()}}}");
         builder.AppendLine("\\end{align*} \n $$");
@@ -105,24 +105,6 @@ public class RangeCheck : ICheck
         return builder.ToString();
     }
 
-    public string ReportSymbols()
-    {
-        var result = "";
-
-        if (Min != null)
-        {
-            result += (Min.Symbol ?? Min.ValueToLatexString()) + " <= ";
-        }
-
-        result += "&" + Property.Symbol;
-
-        if (Max != null)
-        {
-            result += " <= " + (Max.Symbol ?? Max.ValueToLatexString());
-        }
-
-        return result;
-    }
 
     public string ReportValues()
     {
@@ -132,18 +114,18 @@ public class RangeCheck : ICheck
         // Property < Min
         if (Min != null)
         {
-            if (Property.PropertyValue < Min.ToQuantity())
+            if (Property.Quantity < Min)
             {
-                return Property.ValueToLatexString() + " &< " + Min.ValueToLatexString();
+                return Property.Quantity.ToLatexString() + " &< " + Min.ToLatexString();
             }
         }
 
         // Property > Max
         if (Max != null)
         {
-            if (Property.PropertyValue > Max.ToQuantity())
+            if (Property.Quantity > Max)
             {
-                return Property.ValueToLatexString() + " &> " + Max.ValueToLatexString();
+                return Property.Quantity.ToLatexString() + " &> " + Max.ToLatexString();
             }
         }
 
@@ -151,9 +133,9 @@ public class RangeCheck : ICheck
         // Min < Property < Max
         if (Min != null && Max != null)
         {
-            result = Min.ValueToLatexString() + " <= ";
-            result += "&" + Property.ValueToLatexString();
-            result += " <= " + Max.ValueToLatexString();
+            result = Min.ToLatexString() + " <= ";
+            result += "&" + Property.Quantity.ToLatexString();
+            result += " <= " + Max.ToLatexString();
 
             return result;
         }
@@ -161,14 +143,14 @@ public class RangeCheck : ICheck
         // Property > Min
         if (Min != null)
         {
-            result = $"{Property.ValueToLatexString()} &> {Min.ValueToLatexString()}";
+            result = $"{Property.Quantity.ToLatexString()} &> {Min.ToLatexString()}";
             return result;
         }
 
         // Property < Max
         if (Max != null)
         {
-            result = $"{Property.ValueToLatexString()} &< {Max.ValueToLatexString()}";
+            result = $"{Property.Quantity.ToLatexString()} &< {Max.ToLatexString()}";
             return result;
         }
 

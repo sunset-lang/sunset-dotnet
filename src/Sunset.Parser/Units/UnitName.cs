@@ -46,5 +46,5 @@ public enum UnitName
     // Frequency
     // TODO: Not implemented yet.
     Millihertz,
-    Hertz,
+    Hertz
 }

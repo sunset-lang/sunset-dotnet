@@ -5,14 +5,19 @@ namespace Sunset.Parser.Quantities;
 public interface IQuantity
 {
     /// <summary>
-    /// The unit of the value of this quantity.
+    ///     The unit of the value of this quantity.
     /// </summary>
     public Unit Unit { get; }
+
+    /// <summary>
+    ///     The value of this Quantity.
+    /// </summary>
+    public double Value { get; }
 
     public void SimplifyUnits();
 
     /// <summary>
-    /// Returns a new IQuantity with simplified units.
+    ///     Returns a new IQuantity with simplified units.
     /// </summary>
     /// <returns></returns>
     public IQuantity WithSimplifiedUnits();
@@ -21,17 +26,12 @@ public interface IQuantity
 
     public IQuantity Sqrt();
 
-    /// <summary>
-    /// The value of this Quantity.
-    /// </summary>
-    public double Value { get; }
-
     public IQuantity Clone();
 
     public IQuantity SetUnits(Unit unit);
 
     /// <summary>
-    /// Prints the value of the Quantity in the LaTeX format.
+    ///     Prints the value of the Quantity in the LaTeX format.
     /// </summary>
     /// <returns></returns>
     public string ToLatexString();

@@ -7,16 +7,11 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser.Visitors.Evaluation;
 
 /// <summary>
-/// Evaluates default results for all elements based on the default input variables.
+///     Evaluates default results for all elements based on the default input variables.
 /// </summary>
 public class DefaultQuantityEvaluator : IVisitor<IQuantity>
 {
     private static readonly DefaultQuantityEvaluator Singleton = new();
-
-    public static IQuantity Evaluate(IExpression expression)
-    {
-        return Singleton.Visit(expression);
-    }
 
     public IQuantity Visit(IExpression expression)
     {
@@ -101,5 +96,10 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity>
     public IQuantity Visit(UnitConstant dest)
     {
         throw new NotImplementedException();
+    }
+
+    public static IQuantity Evaluate(IExpression expression)
+    {
+        return Singleton.Visit(expression);
     }
 }

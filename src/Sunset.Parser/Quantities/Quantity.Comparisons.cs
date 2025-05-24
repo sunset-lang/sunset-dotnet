@@ -15,17 +15,14 @@ public partial class Quantity
         return Math.Abs(Value - otherValueConverted) < 1e-14;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (obj is null) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
 
-        if (obj is Quantity quantity)
-        {
-            return Equals(quantity);
-        }
+        if (obj is Quantity quantity) return Equals(quantity);
 
         return false;
     }

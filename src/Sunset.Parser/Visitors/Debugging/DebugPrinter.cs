@@ -5,22 +5,10 @@ using Sunset.Parser.Parsing.Declarations;
 namespace Sunset.Parser.Visitors.Debugging;
 
 /// <summary>
-/// Prints out the expression tree for debugging expressions.
+///     Prints out the expression tree for debugging expressions.
 /// </summary>
 public class DebugPrinter : IVisitor<string>
 {
-    /// <summary>
-    ///  Prints a string representation of a variable in the form:
-    /// name symbol unit = expression
-    /// </summary>
-    /// <param name="variableDeclaration"></param>
-    /// <returns></returns>
-    public string PrintVariableDeclaration(VariableDeclaration variableDeclaration)
-    {
-        var variable = variableDeclaration.Variable;
-        return $"{variable.Name} <{variable.Symbol}> {{{variableDeclaration.Unit}}} = {Visit(variableDeclaration.Expression)}";
-    }
-
     public string Visit(IExpression expression)
     {
         return expression switch
@@ -87,6 +75,19 @@ public class DebugPrinter : IVisitor<string>
     public string Visit(VariableDeclaration dest)
     {
         return $"{dest.Variable.Name}";
+    }
+
+    /// <summary>
+    ///     Prints a string representation of a variable in the form:
+    ///     name symbol unit = expression
+    /// </summary>
+    /// <param name="variableDeclaration"></param>
+    /// <returns></returns>
+    public string PrintVariableDeclaration(VariableDeclaration variableDeclaration)
+    {
+        var variable = variableDeclaration.Variable;
+        return
+            $"{variable.Name} <{variable.Symbol}> {{{variableDeclaration.Unit}}} = {Visit(variableDeclaration.Expression)}";
     }
 
     public string Visit(SymbolName dest)

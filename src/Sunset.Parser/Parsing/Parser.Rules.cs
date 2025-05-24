@@ -7,13 +7,37 @@ namespace Sunset.Parser.Parsing;
 
 public partial class Parser
 {
+    // These keys to this dictionary are all the allowable token types that can be used in a single expression.
+    private static readonly
+        Dictionary<TokenType, (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
+            infixParse, Precedence infixPrecedence)> ParsingRules = new()
+        {
+            { TokenType.Equal, (null, Binary, Precedence.Equality) },
+            { TokenType.NotEqual, (null, Binary, Precedence.Equality) },
+            { TokenType.LessThan, (null, Binary, Precedence.Comparison) },
+            { TokenType.LessThanOrEqual, (null, Binary, Precedence.Comparison) },
+            { TokenType.GreaterThan, (null, Binary, Precedence.Comparison) },
+            { TokenType.GreaterThanOrEqual, (null, Binary, Precedence.Comparison) },
+            { TokenType.Plus, (null, Binary, Precedence.Addition) },
+            { TokenType.Minus, (Unary, Binary, Precedence.Addition) },
+            { TokenType.Multiply, (null, Binary, Precedence.Multiplication) },
+            { TokenType.Divide, (null, Binary, Precedence.Multiplication) },
+            { TokenType.Modulo, (null, Binary, Precedence.Multiplication) },
+            { TokenType.Power, (null, Binary, Precedence.Exponentiation) },
+            { TokenType.OpenParenthesis, (Grouping, Call, Precedence.Call) },
+            { TokenType.OpenBracket, (null, CollectionAccess, Precedence.Call) },
+            { TokenType.OpenBrace, (null, UnitAssignment, Precedence.Call) },
+            { TokenType.Dot, (null, Access, Precedence.Call) },
+            { TokenType.Number, (Number, null, Precedence.Primary) },
+            { TokenType.String, (String, null, Precedence.Primary) },
+            { TokenType.Identifier, (Name, null, Precedence.Primary) },
+            { TokenType.NamedUnit, (Unit, ImplicitMultiplication, Precedence.Primary) }
+        };
+
     private static (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
         infixParse, Precedence infixPrecedence) GetParsingRule(TokenType type)
     {
-        if (ParsingRules.TryGetValue(type, out var rule))
-        {
-            return rule;
-        }
+        if (ParsingRules.TryGetValue(type, out var rule)) return rule;
 
         throw new Exception($"Token type {type} not found in parsing rules");
     }
@@ -84,20 +108,14 @@ public partial class Parser
 
     private static IExpression Name(Parser parser)
     {
-        if (parser.Consume(TokenType.Identifier) is StringToken token)
-        {
-            return new NameExpression(token);
-        }
+        if (parser.Consume(TokenType.Identifier) is StringToken token) return new NameExpression(token);
 
         throw new Exception("Expected a string token");
     }
 
     private static IExpression Unit(Parser parser)
     {
-        if (parser.Consume(TokenType.NamedUnit) is StringToken token)
-        {
-            return new UnitConstant(token);
-        }
+        if (parser.Consume(TokenType.NamedUnit) is StringToken token) return new UnitConstant(token);
 
         throw new Exception("Expected a string token");
     }
@@ -110,20 +128,14 @@ public partial class Parser
 
     private static IExpression String(Parser parser)
     {
-        if (parser.Consume(TokenType.String) is StringToken token)
-        {
-            return new StringConstant(token);
-        }
+        if (parser.Consume(TokenType.String) is StringToken token) return new StringConstant(token);
 
         throw new Exception("Expected a string token");
     }
 
     private static IExpression Number(Parser parser)
     {
-        if (parser.Consume(TokenType.Number) is INumberToken token)
-        {
-            return new NumberConstant(token);
-        }
+        if (parser.Consume(TokenType.Number) is INumberToken token) return new NumberConstant(token);
 
         throw new Exception("Expected a number token");
     }
@@ -132,31 +144,4 @@ public partial class Parser
     {
         return ParsingRules[type].infixPrecedence;
     }
-
-    // These keys to this dictionary are all the allowable token types that can be used in a single expression.
-    private static readonly
-        Dictionary<TokenType, (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
-            infixParse, Precedence infixPrecedence)> ParsingRules = new()
-        {
-            { TokenType.Equal, (null, Binary, Precedence.Equality) },
-            { TokenType.NotEqual, (null, Binary, Precedence.Equality) },
-            { TokenType.LessThan, (null, Binary, Precedence.Comparison) },
-            { TokenType.LessThanOrEqual, (null, Binary, Precedence.Comparison) },
-            { TokenType.GreaterThan, (null, Binary, Precedence.Comparison) },
-            { TokenType.GreaterThanOrEqual, (null, Binary, Precedence.Comparison) },
-            { TokenType.Plus, (null, Binary, Precedence.Addition) },
-            { TokenType.Minus, (Unary, Binary, Precedence.Addition) },
-            { TokenType.Multiply, (null, Binary, Precedence.Multiplication) },
-            { TokenType.Divide, (null, Binary, Precedence.Multiplication) },
-            { TokenType.Modulo, (null, Binary, Precedence.Multiplication) },
-            { TokenType.Power, (null, Binary, Precedence.Exponentiation) },
-            { TokenType.OpenParenthesis, (Grouping, Call, Precedence.Call) },
-            { TokenType.OpenBracket, (null, CollectionAccess, Precedence.Call) },
-            { TokenType.OpenBrace, (null, UnitAssignment, Precedence.Call) },
-            { TokenType.Dot, (null, Access, Precedence.Call) },
-            { TokenType.Number, (Number, null, Precedence.Primary) },
-            { TokenType.String, (String, null, Precedence.Primary) },
-            { TokenType.Identifier, (Name, null, Precedence.Primary) },
-            { TokenType.NamedUnit, (Unit, ImplicitMultiplication, Precedence.Primary) },
-        };
 }

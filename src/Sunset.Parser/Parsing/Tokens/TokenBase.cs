@@ -3,44 +3,16 @@
 namespace Sunset.Parser.Parsing.Tokens;
 
 /// <summary>
-/// The base class for all tokens. Implements positioning behaviour and contains static token definitions.
+///     The base class for all tokens. Implements positioning behaviour and contains static token definitions.
 /// </summary>
 public abstract class TokenBase : IToken
 {
-    /// <summary>
-    /// The type of this token.
-    /// </summary>
-    public TokenType Type { get; protected init; }
-
-    public int PositionStart => _positionStart;
-    public int PositionEnd => _positionEnd ?? _positionStart;
-    public int LineStart => _lineStart;
-    public int LineEnd => _lineEnd ?? _lineStart;
-    public int ColumnStart => _columnStart;
-    public int ColumnEnd => _columnEnd ?? _columnStart;
-    public int Length => _length;
-
-    private readonly int _positionStart;
-    private readonly int? _positionEnd = null;
-    private readonly int _length;
-    private readonly int _lineStart;
-    private readonly int? _lineEnd = null;
-    private readonly int _columnStart;
-    private readonly int? _columnEnd = null;
+    private readonly int? _columnEnd;
+    private readonly int? _lineEnd;
+    private readonly int? _positionEnd;
 
     /// <summary>
-    /// A list of the <see cref="Error"/> instances that this token contains.
-    /// </summary>
-    public List<Error> Errors { get; } = [];
-
-    /// <summary>
-    /// Returns true if there are errors and false if there aren't.
-    /// Refer to <see cref="Errors"/> for the list of errors.
-    /// </summary>
-    public bool HasErrors => Errors.Count > 0;
-
-    /// <summary>
-    /// Creates a new multi-character, multi-line token with content.
+    ///     Creates a new multi-character, multi-line token with content.
     /// </summary>
     /// <param name="type">Type of the token.</param>
     /// <param name="positionStart">Position of the start of the token from the beginning of the source.</param>
@@ -53,17 +25,17 @@ public abstract class TokenBase : IToken
         int columnStart, int columnEnd)
     {
         Type = type;
-        _positionStart = positionStart;
+        PositionStart = positionStart;
         _positionEnd = positionEnd;
-        _length = positionEnd - positionStart + 1;
-        _lineStart = lineStart;
+        Length = positionEnd - positionStart + 1;
+        LineStart = lineStart;
         _lineEnd = lineEnd;
-        _columnStart = columnStart;
+        ColumnStart = columnStart;
         _columnEnd = columnEnd;
     }
 
     /// <summary>
-    /// Creates a new multi-character, single line token with content.
+    ///     Creates a new multi-character, single line token with content.
     /// </summary>
     /// <param name="type">Type of the token.</param>
     /// <param name="positionStart">Position of the start of the token from the beginning of the source.</param>
@@ -75,18 +47,18 @@ public abstract class TokenBase : IToken
     {
         Type = type;
 
-        _positionStart = positionStart;
+        PositionStart = positionStart;
         _positionEnd = positionEnd;
-        _length = positionEnd - positionStart + 1;
+        Length = positionEnd - positionStart + 1;
 
-        _lineStart = lineStart;
+        LineStart = lineStart;
 
-        _columnStart = columnEnd - (_length - 1);
+        ColumnStart = columnEnd - (Length - 1);
         _columnEnd = columnEnd;
     }
 
     /// <summary>
-    /// Creates a new single character token.
+    ///     Creates a new single character token.
     /// </summary>
     /// <param name="type">Type of the token.</param>
     /// <param name="position">Position of the token from the beginning of the source file.</param>
@@ -95,11 +67,38 @@ public abstract class TokenBase : IToken
     protected TokenBase(TokenType type, int position, int lineStart, int column)
     {
         Type = type;
-        _positionStart = position;
-        _lineStart = lineStart;
-        _columnStart = column;
-        _length = 1;
+        PositionStart = position;
+        LineStart = lineStart;
+        ColumnStart = column;
+        Length = 1;
     }
+
+    /// <summary>
+    ///     The type of this token.
+    /// </summary>
+    public TokenType Type { get; protected init; }
+
+    public int PositionStart { get; }
+
+    public int PositionEnd => _positionEnd ?? PositionStart;
+    public int LineStart { get; }
+
+    public int LineEnd => _lineEnd ?? LineStart;
+    public int ColumnStart { get; }
+
+    public int ColumnEnd => _columnEnd ?? ColumnStart;
+    public int Length { get; }
+
+    /// <summary>
+    ///     A list of the <see cref="Error" /> instances that this token contains.
+    /// </summary>
+    public List<Error> Errors { get; } = [];
+
+    /// <summary>
+    ///     Returns true if there are errors and false if there aren't.
+    ///     Refer to <see cref="Errors" /> for the list of errors.
+    /// </summary>
+    public bool HasErrors => Errors.Count > 0;
 
 
     public override string ToString()

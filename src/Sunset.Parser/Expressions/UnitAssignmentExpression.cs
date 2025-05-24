@@ -6,13 +6,6 @@ namespace Sunset.Parser.Expressions;
 
 public class UnitAssignmentExpression : ExpressionBase
 {
-    public IToken? Open { get; }
-    public IToken? Close { get; }
-    public IExpression Value { get; }
-    public IExpression UnitExpression { get; }
-
-    public Unit? Unit { get; set; }
-
     public UnitAssignmentExpression(IToken open, IToken? close, IExpression value, IExpression unitExpression)
     {
         Open = open;
@@ -26,6 +19,13 @@ public class UnitAssignmentExpression : ExpressionBase
         Value = value;
         UnitExpression = unitExpression;
     }
+
+    public IToken? Open { get; }
+    public IToken? Close { get; }
+    public IExpression Value { get; }
+    public IExpression UnitExpression { get; }
+
+    public Unit? Unit { get; set; }
 
     public override T Accept<T>(IVisitor<T> visitor)
     {

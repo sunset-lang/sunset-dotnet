@@ -3,14 +3,14 @@
 namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
-/// Declarations assign a name to a value.
+///     Declarations assign a name to a value.
 /// </summary>
 public interface IDeclaration
 {
     public string Name { get; }
 
     /// <summary>
-    /// Accepts a visitor to process the declaration.
+    ///     Accepts a visitor to process the declaration.
     /// </summary>
     /// <param name="visitor">The <see cref="IVisitor" /> that is being accepted.</param>
     /// <typeparam name="T">The type that is being returned by the <see cref="IVisitor" />.</typeparam>

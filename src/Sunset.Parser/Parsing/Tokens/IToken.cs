@@ -5,7 +5,7 @@ namespace Sunset.Parser.Parsing.Tokens;
 public interface IToken : IErrorContainer
 {
     /// <summary>
-    /// The type of this token.
+    ///     The type of this token.
     /// </summary>
     TokenType Type { get; }
 

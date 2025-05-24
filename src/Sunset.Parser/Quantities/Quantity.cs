@@ -5,12 +5,8 @@ namespace Sunset.Parser.Quantities;
 
 public partial class Quantity : IQuantity
 {
-    public double Value { get; private set; }
-
-    public Unit Unit { get; private set; } = Unit.Dimensionless;
-
     /// <summary>
-    /// Constructs a new Quantity with a value. The unit is set to Dimensionless.
+    ///     Constructs a new Quantity with a value. The unit is set to Dimensionless.
     /// </summary>
     /// <param name="value">Value to be provided to the Quantity.</param>
     public Quantity(double value)
@@ -19,7 +15,7 @@ public partial class Quantity : IQuantity
     }
 
     /// <summary>
-    /// Constructs a new Quantity with a given value and unit.
+    ///     Constructs a new Quantity with a given value and unit.
     /// </summary>
     /// <param name="value"></param>
     /// <param name="unit"></param>
@@ -29,6 +25,10 @@ public partial class Quantity : IQuantity
         Unit = unit;
     }
 
+    public double Value { get; private set; }
+
+    public Unit Unit { get; private set; } = Unit.Dimensionless;
+
     public void SimplifyUnits()
     {
         var simplifiedUnit = Unit.Simplify(Value);
@@ -36,8 +36,8 @@ public partial class Quantity : IQuantity
     }
 
     /// <summary>
-    /// Returns a new Quantity with the units simplified and the value converted as required.
-    /// If you want to modify the current Quantity, use SimplifyUnits() instead.
+    ///     Returns a new Quantity with the units simplified and the value converted as required.
+    ///     If you want to modify the current Quantity, use SimplifyUnits() instead.
     /// </summary>
     /// <returns>A quantity with the value converted to simplified base units.</returns>
     public IQuantity WithSimplifiedUnits()
@@ -50,12 +50,6 @@ public partial class Quantity : IQuantity
     public IQuantity Clone()
     {
         return new Quantity(Value, Unit);
-    }
-
-    public override string ToString()
-    {
-        var simplifiedValue = WithSimplifiedUnits();
-        return simplifiedValue.Value + " " + simplifiedValue.Unit;
     }
 
     public string ToLatexString()
@@ -81,5 +75,11 @@ public partial class Quantity : IQuantity
         Value *= Unit.GetConversionFactor(unit);
         Unit = unit;
         return this;
+    }
+
+    public override string ToString()
+    {
+        var simplifiedValue = WithSimplifiedUnits();
+        return simplifiedValue.Value + " " + simplifiedValue.Unit;
     }
 }

@@ -75,5 +75,4 @@ public enum TokenType
     False, // false
 
     NamedUnit // e.g. m, s, kg, etc. See Common.Sunset.Units.BaseUnit.NamedCoherentUnitsBySymbol
-    ,
 }

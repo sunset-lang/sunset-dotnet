@@ -6,7 +6,8 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser.Design;
 
 /// <summary>
-/// An InputProperty is a Variable owned by an Element that has a default value but may also have different values assigned to it.
+///     An InputProperty is a Variable owned by an Element that has a default value but may also have different values
+///     assigned to it.
 /// </summary>
 public sealed class InputProperty(
     double value,
@@ -20,19 +21,21 @@ public sealed class InputProperty(
     : PropertyBase(value, unit, name,
         symbol, description, reference, label), INotifyPropertyChanged
 {
+    private IQuantity? _propertyValue;
     public List<NamedUnit> ValidUnits { get; } = validUnits;
 
-    private IQuantity? _propertyValue;
-
     /// <summary>
-    /// Quantity representing the value of the property.
+    ///     Quantity representing the value of the property.
     /// </summary>
     // DefaultValue here is imposed as not null as it is set by the constructor.
     public override IQuantity Quantity => _propertyValue ??= DefaultValue!;
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     /// <summary>
-    /// Sets the value of this property to a new Quantity value and unit. Can only be set to a quantity with the same dimensions as the current quantity.
-    /// Does not change any of the other properties of quantity such as the symbol or name.
+    ///     Sets the value of this property to a new Quantity value and unit. Can only be set to a quantity with the same
+    ///     dimensions as the current quantity.
+    ///     Does not change any of the other properties of quantity such as the symbol or name.
     /// </summary>
     /// <param name="quantity">Quantity to replace the previous property value.</param>
     /// <exception cref="ArgumentException">Thrown if the unit dimensions do not match.</exception>
@@ -45,8 +48,8 @@ public sealed class InputProperty(
     }
 
     /// <summary>
-    /// Sets the value of this property to a new value. The unit of the value is not changed on this property.
-    /// Does not perform any unit conversions.
+    ///     Sets the value of this property to a new value. The unit of the value is not changed on this property.
+    ///     Does not perform any unit conversions.
     /// </summary>
     /// <param name="value">New value of the property.</param>
     public void Set(double value)
@@ -58,8 +61,9 @@ public sealed class InputProperty(
     }
 
     /// <summary>
-    /// Sets the units of this property to a new unit. Can only be set to a unit with the same dimensions as the current unit.
-    /// Performs an automatic unit conversion for the value of the property.
+    ///     Sets the units of this property to a new unit. Can only be set to a unit with the same dimensions as the current
+    ///     unit.
+    ///     Performs an automatic unit conversion for the value of the property.
     /// </summary>
     /// <param name="unit">New unit of the property.</param>
     public void Set(Unit unit)
@@ -70,8 +74,9 @@ public sealed class InputProperty(
     }
 
     /// <summary>
-    /// Sets the value and unit of this property to a new value and unit. The unit can only be set to a unit with the same dimensions as the current unit.
-    /// Does not perform any unit conversions.
+    ///     Sets the value and unit of this property to a new value and unit. The unit can only be set to a unit with the same
+    ///     dimensions as the current unit.
+    ///     Does not perform any unit conversions.
     /// </summary>
     /// <param name="value">New value of the property.</param>
     /// <param name="unit">New unit of the property.</param>
@@ -82,8 +87,6 @@ public sealed class InputProperty(
         _propertyValue = new Quantity(value, unit);
         OnPropertyChanged(nameof(Quantity));
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {

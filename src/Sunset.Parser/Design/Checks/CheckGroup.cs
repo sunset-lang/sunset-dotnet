@@ -1,7 +1,6 @@
 namespace Sunset.Parser.Design;
 
 // TODO: Not implemented yet
-
 /*
 /// <summary>
 /// Contains a group of checks. Can check all checks in the group simultaneously.
@@ -22,7 +21,7 @@ public class CheckGroup<T>(T element, string name) : ICheck where T : CheckableE
     /// The checks within this check group
     /// </summary>
     public List<ICheck> Checks { get; } = [];
-    
+
 
     /// <inheritdoc />
     public bool Check()
@@ -42,7 +41,7 @@ public class CheckGroup<T>(T element, string name) : ICheck where T : CheckableE
     }
 
     public ReportSection? DefaultReport { get; set; }
-    
+
     public void AddToReport(ReportSection report)
     {
         throw new NotImplementedException();

@@ -5,9 +5,9 @@ namespace Sunset.Parser.Expressions;
 
 public class BinaryExpression(Token op, IExpression left, IExpression right) : ExpressionBase
 {
-    public BinaryExpression(TokenType op, IExpression left, IExpression right) 
+    public BinaryExpression(TokenType op, IExpression left, IExpression right)
         : this(new Token(op, 0, 0, 0, 0), left,
-        right)
+            right)
     {
     }
 

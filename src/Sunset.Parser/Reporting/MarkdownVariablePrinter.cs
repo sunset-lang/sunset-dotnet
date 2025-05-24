@@ -15,11 +15,6 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
 
     public PrinterSettings Settings { get; } = settings;
 
-    public static string Report(IVariable variable)
-    {
-        return Singleton.ReportVariable(variable);
-    }
-
     /// <summary>
     ///     Reports a full expression for a quantity. This is in the form of:
     ///     q = expression (e.g. x * y)
@@ -79,6 +74,11 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // Example output for density calculation
         // = \frac{20 \text{ kg}}{10 \text{ m}^{3}}
         return "= " + MarkdownValueExpressionPrinter.Report(variable.Declaration.Expression);
+    }
+
+    public static string Report(IVariable variable)
+    {
+        return Singleton.ReportVariable(variable);
     }
 
     public string ReportValue(IVariable variable)

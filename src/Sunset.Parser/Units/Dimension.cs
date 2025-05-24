@@ -25,10 +25,7 @@ public struct Dimension(DimensionName name)
     public static Dimension[] DimensionlessSet()
     {
         var dimensionlessSet = new Dimension[Enum.GetValues(typeof(DimensionName)).Length];
-        for (var i = 0; i < dimensionlessSet.Length; i++)
-        {
-            dimensionlessSet[i] = new Dimension((DimensionName)i);
-        }
+        for (var i = 0; i < dimensionlessSet.Length; i++) dimensionlessSet[i] = new Dimension((DimensionName)i);
 
         return dimensionlessSet;
     }

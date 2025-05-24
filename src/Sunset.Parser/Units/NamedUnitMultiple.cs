@@ -3,14 +3,9 @@
 public class NamedUnitMultiple : NamedUnit
 {
     /// <summary>
-    /// Parent unit of this NamedUnitMultiple that the unit is based on.
-    /// For example, a NamedUnitMultiple for a kilometre would have a parent of a metre.
-    /// </summary>
-    public NamedUnit NamedUnitParent { get; }
-
-    /// <summary>
-    /// Constructs a new NamedUnitMultiple based on a NamedUnit with a new symbol. Used primarily for derived unit multiples.
-    /// Note that the factor must be set as an initialised property.
+    ///     Constructs a new NamedUnitMultiple based on a NamedUnit with a new symbol. Used primarily for derived unit
+    ///     multiples.
+    ///     Note that the factor must be set as an initialised property.
     /// </summary>
     /// <param name="namedUnitParent">Parent of this NamedUnitMultiple</param>
     /// <param name="unitName">Name of the unit.</param>
@@ -25,8 +20,9 @@ public class NamedUnitMultiple : NamedUnit
     }
 
     /// <summary>
-    /// Constructs a new NamedUnitMultiple based on a NamedUnit adopting the parent unit's symbol. Used primarily for derived unit multiples.
-    /// Note that the factor must be set as an initialised property.
+    ///     Constructs a new NamedUnitMultiple based on a NamedUnit adopting the parent unit's symbol. Used primarily for
+    ///     derived unit multiples.
+    ///     Note that the factor must be set as an initialised property.
     /// </summary>
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of unit multiple.</param>
@@ -40,7 +36,8 @@ public class NamedUnitMultiple : NamedUnit
     }
 
     /// <summary>
-    /// Constructs a new NamedUnitMultiple based on a BaseUnit overriding the parent unit's symbol. Used primarily for base unit multiples.
+    ///     Constructs a new NamedUnitMultiple based on a BaseUnit overriding the parent unit's symbol. Used primarily for base
+    ///     unit multiples.
     /// </summary>
     /// <param name="baseUnitParent">Parent of this NamedUnitMultiple.</param>
     /// <param name="unitName">Name of the unit.</param>
@@ -59,7 +56,8 @@ public class NamedUnitMultiple : NamedUnit
     }
 
     /// <summary>
-    /// Constructs a new NamedUnitMultiple based on a BaseUnit adopting the parent unit's symbol. Used primarily for base unit multiples.
+    ///     Constructs a new NamedUnitMultiple based on a BaseUnit adopting the parent unit's symbol. Used primarily for base
+    ///     unit multiples.
     /// </summary>
     /// <param name="baseUnitParent">Parent of this NamedUnitMultiple.</param>
     /// <param name="unitName">Name of the unit.</param>
@@ -75,4 +73,10 @@ public class NamedUnitMultiple : NamedUnit
         NamedUnitParent = baseUnitParent;
         Symbol = prefixSymbol + baseUnitParent.UnitSymbol;
     }
+
+    /// <summary>
+    ///     Parent unit of this NamedUnitMultiple that the unit is based on.
+    ///     For example, a NamedUnitMultiple for a kilometre would have a parent of a metre.
+    /// </summary>
+    public NamedUnit NamedUnitParent { get; }
 }

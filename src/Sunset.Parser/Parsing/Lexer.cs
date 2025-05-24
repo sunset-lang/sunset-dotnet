@@ -6,38 +6,39 @@ using Sunset.Parser.Parsing.Tokens.Numbers;
 namespace Sunset.Parser.Parsing;
 
 /// <summary>
-/// Converts strings to a list of tokens.
+///     Converts strings to a list of tokens.
 /// </summary>
 public class Lexer
 {
     private readonly ReadOnlyMemory<char> _source;
 
     /// <summary>
-    /// The position that the lexer is currently at within the source as it is scanning.
-    /// </summary>
-    private int _position;
-
-    /// <summary>
-    /// The line that the lexer is currently at within the source. Zero based.
-    /// </summary>
-    private int _line;
-
-    /// <summary>
-    /// The column that the lexer is currently at. Zero based.
-    /// </summary>
-    private int _column;
-
-    private char _current;
-    private char _peek;
-    private char _peekNext;
-
-    /// <summary>
-    ///  The tokens in the source. 
+    ///     The tokens in the source.
     /// </summary>
     public readonly List<IToken> Tokens = [];
 
     /// <summary>
-    /// Creates a new Lexer object with a given source.
+    ///     The column that the lexer is currently at. Zero based.
+    /// </summary>
+    private int _column;
+
+    private char _current;
+
+    /// <summary>
+    ///     The line that the lexer is currently at within the source. Zero based.
+    /// </summary>
+    private int _line;
+
+    private char _peek;
+    private char _peekNext;
+
+    /// <summary>
+    ///     The position that the lexer is currently at within the source as it is scanning.
+    /// </summary>
+    private int _position;
+
+    /// <summary>
+    ///     Creates a new Lexer object with a given source.
     /// </summary>
     /// <param name="source">Source string to be converted into a list of tokens.</param>
     /// <param name="scan">true to automatically scan the source on construction.</param>
@@ -46,7 +47,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Creates a new Lexer object with a given source in ReadOnlyMemory form.
+    ///     Creates a new Lexer object with a given source in ReadOnlyMemory form.
     /// </summary>
     /// <param name="source">Source to be converted into a list of tokens.</param>
     /// <param name="scan">true to automatically scan the source on construction.</param>
@@ -60,7 +61,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Increment the position in the source.
+    ///     Increment the position in the source.
     /// </summary>
     private void Advance()
     {
@@ -80,7 +81,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Looks backwards one character. Returns null if at the start of the file.
+    ///     Looks backwards one character. Returns null if at the start of the file.
     /// </summary>
     /// <returns>The previous character in the source. Returns null if at the beginning of the source.</returns>
     private char? PeekBack()
@@ -89,16 +90,19 @@ public class Lexer
     }
 
     /// <summary>
-    /// Get the character lookAhead characters after the current character in the source without incrementing the position.
+    ///     Get the character lookAhead characters after the current character in the source without incrementing the position.
     /// </summary>
-    /// <returns>The character lookAhead characters after the current character in the source. Returns '\0' if at the end of the source.</returns>
+    /// <returns>
+    ///     The character lookAhead characters after the current character in the source. Returns '\0' if at the end of
+    ///     the source.
+    /// </returns>
     private char Peek(int lookAhead = 1)
     {
         return _position < _source.Length - lookAhead ? _source.Span[_position + lookAhead] : '\0';
     }
 
     /// <summary>
-    /// Get the character after the next character in the source without incrementing the position.
+    ///     Get the character after the next character in the source without incrementing the position.
     /// </summary>
     /// <returns>The character after the next character in the source. Return '\0' if at the end of the source.</returns>
     private char PeekNext()
@@ -107,7 +111,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Clear the list of tokens and convert the source to a list of tokens.
+    ///     Clear the list of tokens and convert the source to a list of tokens.
     /// </summary>
     private void Scan(bool ignoreWhitespace = true)
     {
@@ -128,7 +132,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Clears the list of tokens and resets the position to the beginning of the string.
+    ///     Clears the list of tokens and resets the position to the beginning of the string.
     /// </summary>
     private void Reset()
     {
@@ -144,8 +148,8 @@ public class Lexer
     }
 
     /// <summary>
-    /// Gets the next token in the source. Advances the position of the lexer to the last token of the lexer.
-    /// The lexer is then responsible during the next iteration in <see cref="Scan"/> to advance to the next token.
+    ///     Gets the next token in the source. Advances the position of the lexer to the last token of the lexer.
+    ///     The lexer is then responsible during the next iteration in <see cref="Scan" /> to advance to the next token.
     /// </summary>
     /// <returns>The next token.</returns>
     public IToken GetNextToken()
@@ -172,16 +176,10 @@ public class Lexer
         }
 
         // Multi-character tokens : Numbers
-        if (char.IsDigit(_current) || (_current == '-' && char.IsDigit(_peek)))
-        {
-            return GetNumberToken();
-        }
+        if (char.IsDigit(_current) || (_current == '-' && char.IsDigit(_peek))) return GetNumberToken();
 
         // Multi-character tokens : Identifiers
-        if (char.IsLetter(_current) || _current == '_')
-        {
-            return GetIdentifierToken();
-        }
+        if (char.IsLetter(_current) || _current == '_') return GetIdentifierToken();
 
         // Multi-character tokens : Triggered
         switch (_current)
@@ -209,7 +207,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Returns a string token of type Comment or Documentation from.
+    ///     Returns a string token of type Comment or Documentation from.
     /// </summary>
     private StringToken GetCommentToken()
     {
@@ -224,22 +222,17 @@ public class Lexer
             Advance();
         }
 
-        while (_current != '\n' && _current != '\0')
-        {
-            Advance();
-        }
+        while (_current != '\n' && _current != '\0') Advance();
 
         if (isDocumentation)
-        {
             return new StringToken(_source[(start + 2).._position], TokenType.Documentation, start, _position, _line,
                 _column);
-        }
 
         return new StringToken(_source[(start + 1).._position], TokenType.Comment, start, _position, _line, _column);
     }
 
     /// <summary>
-    /// Returns a number token from the source. Could be either an integer or a floating point number.
+    ///     Returns a number token from the source. Could be either an integer or a floating point number.
     /// </summary>
     /// <returns>A token representing a number.</returns>
     private INumberToken GetNumberToken()
@@ -302,32 +295,24 @@ public class Lexer
         if (decimalPlaceError || exponentError)
         {
             var numberToken = new DoubleToken(0, start, _position, _line, _column);
-            if (decimalPlaceError)
-            {
-                numberToken.AddError(ErrorCode.NumberWithMoreThanOneDecimalPlace);
-            }
+            if (decimalPlaceError) numberToken.AddError(ErrorCode.NumberWithMoreThanOneDecimalPlace);
 
-            if (exponentError)
-            {
-                numberToken.AddError(ErrorCode.NumberWithMoreThanOneExponent);
-            }
+            if (exponentError) numberToken.AddError(ErrorCode.NumberWithMoreThanOneExponent);
 
             return numberToken;
         }
 
         if (foundDecimalPlace || foundExponent)
-        {
             return new DoubleToken(
                 double.Parse(_source[start.._position].Span),
                 start, _position, _line, _column);
-        }
 
         return new IntToken(int.Parse(_source[start.._position].Span), start, _position, _line, _column);
     }
 
     /// <summary>
-    /// Gets the next identifier token in the source. Advances the position of the lexer.
-    /// Assumes that the current character is a letter or underscore and begins the identifier.
+    ///     Gets the next identifier token in the source. Advances the position of the lexer.
+    ///     Assumes that the current character is a letter or underscore and begins the identifier.
     /// </summary>
     /// <returns>An identifier token.</returns>
     private IToken GetIdentifierToken()
@@ -336,18 +321,15 @@ public class Lexer
 
         Advance();
 
-        while (_current == '_' || char.IsLetterOrDigit(_current))
-        {
-            Advance();
-        }
+        while (_current == '_' || char.IsLetterOrDigit(_current)) Advance();
 
         return new StringToken(_source[start.._position], TokenType.Identifier, start, _position, _line, _column);
     }
 
     /// <summary>
-    /// Gets a string or multiline string token from the source.
-    /// Assumes that the first character is a double quote ("), and will check if there is a multiline string by
-    /// checking whether the next two characters are also double quotes.
+    ///     Gets a string or multiline string token from the source.
+    ///     Assumes that the first character is a double quote ("), and will check if there is a multiline string by
+    ///     checking whether the next two characters are also double quotes.
     /// </summary>
     /// <returns>A string token.</returns>
     private IToken GetStringToken()
@@ -404,18 +386,15 @@ public class Lexer
     }
 
     /// <summary>
-    /// Gets the next WhitespaceToken, assuming that the current character is either a ' ' or '\t'.
-    /// Whitespace does not include new lines.
+    ///     Gets the next WhitespaceToken, assuming that the current character is either a ' ' or '\t'.
+    ///     Whitespace does not include new lines.
     /// </summary>
     /// <returns>A token representing whitespace.</returns>
     private IToken GetWhitespaceToken()
     {
         var start = _position;
         Advance();
-        while (_current == ' ' || _current == '\t')
-        {
-            Advance();
-        }
+        while (_current == ' ' || _current == '\t') Advance();
 
         // This assumes that whitespace cannot cross a new line as new lines have a semantic meaning
         return new StringToken(_source[start.._position], TokenType.Whitespace, start, _position, _line,
@@ -423,7 +402,7 @@ public class Lexer
     }
 
     /// <summary>
-    /// Gets the next IdentifierSymbolToken, assuming that the current character is an '@'.
+    ///     Gets the next IdentifierSymbolToken, assuming that the current character is an '@'.
     /// </summary>
     /// <returns>A token representing the IdentifierSymbolToken</returns>
     private IToken GetIdentifierSymbolToken()
@@ -443,10 +422,7 @@ public class Lexer
                 if (foundSubscript)
                 {
                     // If there is a letter or digit after the next character, keep scanning and report error later
-                    if (_peekNext == '_' || char.IsLetterOrDigit(_peekNext))
-                    {
-                        subscriptError = true;
-                    }
+                    if (_peekNext == '_' || char.IsLetterOrDigit(_peekNext)) subscriptError = true;
 
                     var identifierSymbolErrorToken = new StringToken(_source[(start + 1).._position],
                         TokenType.IdentifierSymbol,
@@ -464,15 +440,9 @@ public class Lexer
         var identifierSymbolToken = new StringToken(_source[(start + 1).._position], TokenType.IdentifierSymbol,
             start, _position, _line, _column);
 
-        if (subscriptError)
-        {
-            identifierSymbolToken.AddError(ErrorCode.IdentifierSymbolWithMoreThanOneUnderscore);
-        }
+        if (subscriptError) identifierSymbolToken.AddError(ErrorCode.IdentifierSymbolWithMoreThanOneUnderscore);
 
-        if (_current == '_')
-        {
-            identifierSymbolToken.AddError(ErrorCode.IdentifierSymbolEndsInUnderscore);
-        }
+        if (_current == '_') identifierSymbolToken.AddError(ErrorCode.IdentifierSymbolEndsInUnderscore);
 
         return identifierSymbolToken;
     }
@@ -481,10 +451,7 @@ public class Lexer
     {
         var builder = new StringBuilder();
 
-        foreach (var token in Tokens)
-        {
-            builder.AppendLine(token.ToString());
-        }
+        foreach (var token in Tokens) builder.AppendLine(token.ToString());
 
         return builder.ToString();
     }
@@ -493,10 +460,7 @@ public class Lexer
     {
         var builder = new StringBuilder();
 
-        foreach (var token in Tokens)
-        {
-            builder.AppendLine(token.ToDebugString());
-        }
+        foreach (var token in Tokens) builder.AppendLine(token.ToDebugString());
 
         return builder.ToString();
     }

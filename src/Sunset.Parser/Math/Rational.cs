@@ -10,7 +10,7 @@ public readonly struct Rational : INumber<Rational>
     public readonly int Denominator = 1;
 
     public bool IsInteger => Denominator == 1;
-    public int Sign => System.Math.Sign(Numerator);
+    public int Sign => Math.Sign(Numerator);
 
     public override bool Equals(object? obj)
     {
@@ -23,8 +23,8 @@ public readonly struct Rational : INumber<Rational>
     }
 
     /// <summary>
-    /// Creates a new Rational number. If no denominator is provided, it defaults to 1.
-    /// Automatically simplifies the fraction.
+    ///     Creates a new Rational number. If no denominator is provided, it defaults to 1.
+    ///     Automatically simplifies the fraction.
     /// </summary>
     /// <param name="numerator">Numerator of the fraction.</param>
     /// <param name="denominator">Denominator of the fraction. Defaults to 1, i.e. the Rational is an integer.</param>
@@ -47,24 +47,30 @@ public readonly struct Rational : INumber<Rational>
 
     public Rational Pow(int exponent)
     {
-        return new Rational((int)System.Math.Pow(Numerator, exponent), (int)System.Math.Pow(Denominator, exponent));
+        return new Rational((int)Math.Pow(Numerator, exponent), (int)Math.Pow(Denominator, exponent));
     }
 
     public Rational Abs()
     {
-        return new Rational(System.Math.Abs(Numerator), System.Math.Abs(Denominator));
+        return new Rational(Math.Abs(Numerator), Math.Abs(Denominator));
     }
 
     #region Operators
 
-    public static Rational operator +(Rational a, Rational b) =>
-        new(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator);
+    public static Rational operator +(Rational a, Rational b)
+    {
+        return new Rational(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator);
+    }
 
-    public static Rational operator -(Rational a, Rational b) =>
-        new(a.Numerator * b.Denominator - b.Numerator * a.Denominator, a.Denominator * b.Denominator);
+    public static Rational operator -(Rational a, Rational b)
+    {
+        return new Rational(a.Numerator * b.Denominator - b.Numerator * a.Denominator, a.Denominator * b.Denominator);
+    }
 
-    public static Rational operator *(Rational a, Rational b) =>
-        new(a.Numerator * b.Numerator, a.Denominator * b.Denominator);
+    public static Rational operator *(Rational a, Rational b)
+    {
+        return new Rational(a.Numerator * b.Numerator, a.Denominator * b.Denominator);
+    }
 
     public static Rational operator /(Rational a, Rational b)
     {
@@ -79,23 +85,38 @@ public readonly struct Rational : INumber<Rational>
         return a.Numerator == b.Numerator && a.Denominator == b.Denominator;
     }
 
-    public static bool operator !=(Rational a, Rational b) => !(a == b);
+    public static bool operator !=(Rational a, Rational b)
+    {
+        return !(a == b);
+    }
 
     #endregion
 
 
     // Implicit conversion of integer to Rational
-    public static implicit operator Rational(int value) => new(value);
+    public static implicit operator Rational(int value)
+    {
+        return new Rational(value);
+    }
 
     // Explicit conversion of Rational to integer
-    public static explicit operator int(Rational rational) => rational.Numerator / rational.Denominator;
+    public static explicit operator int(Rational rational)
+    {
+        return rational.Numerator / rational.Denominator;
+    }
 
     // Implicit conversion of Rational to double
-    public static implicit operator double(Rational rational) => (double)rational.Numerator / rational.Denominator;
+    public static implicit operator double(Rational rational)
+    {
+        return (double)rational.Numerator / rational.Denominator;
+    }
 
     // Explicit conversion of double to Rational
     // TODO: Double check this usage of 1000
-    public static explicit operator Rational(double value) => new((int)(value * 1000), 1000);
+    public static explicit operator Rational(double value)
+    {
+        return new Rational((int)(value * 1000), 1000);
+    }
 
     public int CompareTo(Rational other)
     {
@@ -117,7 +138,10 @@ public readonly struct Rational : INumber<Rational>
         return value.Abs();
     }
 
-    public override string ToString() => Denominator == 1 ? Numerator.ToString() : $"{Numerator}/{Denominator}";
+    public override string ToString()
+    {
+        return Denominator == 1 ? Numerator.ToString() : $"{Numerator}/{Denominator}";
+    }
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
@@ -140,8 +164,10 @@ public readonly struct Rational : INumber<Rational>
         return CompareTo(rational);
     }
 
-    public string ToLatexString() =>
-        Denominator == 1 ? Numerator.ToString() : $"\\frac{{{Numerator}}}{{{Denominator}}}";
+    public string ToLatexString()
+    {
+        return Denominator == 1 ? Numerator.ToString() : $"\\frac{{{Numerator}}}{{{Denominator}}}";
+    }
 
     public static Rational Parse(string s, IFormatProvider? provider)
     {
@@ -204,7 +230,7 @@ public readonly struct Rational : INumber<Rational>
 
     public static Rational Abs(Rational value)
     {
-        return new Rational(System.Math.Abs(value.Numerator), System.Math.Abs(value.Denominator));
+        return new Rational(Math.Abs(value.Numerator), Math.Abs(value.Denominator));
     }
 
     public static bool IsCanonical(Rational value)
@@ -212,41 +238,85 @@ public readonly struct Rational : INumber<Rational>
         throw new NotImplementedException();
     }
 
-    public static bool IsComplexNumber(Rational value) => false;
+    public static bool IsComplexNumber(Rational value)
+    {
+        return false;
+    }
 
     public static bool IsEvenInteger(Rational value)
     {
         return value.Denominator == 1 && value.Numerator % 2 == 0;
     }
 
-    public static bool IsFinite(Rational value) => true;
+    public static bool IsFinite(Rational value)
+    {
+        return true;
+    }
 
-    public static bool IsImaginaryNumber(Rational value) => true;
+    public static bool IsImaginaryNumber(Rational value)
+    {
+        return true;
+    }
 
-    public static bool IsInfinity(Rational value) => false;
+    public static bool IsInfinity(Rational value)
+    {
+        return false;
+    }
 
-    static bool INumberBase<Rational>.IsInteger(Rational value) => value.Denominator == 1;
+    static bool INumberBase<Rational>.IsInteger(Rational value)
+    {
+        return value.Denominator == 1;
+    }
 
-    public static bool IsNaN(Rational value) => value.Denominator == 0;
+    public static bool IsNaN(Rational value)
+    {
+        return value.Denominator == 0;
+    }
 
-    public static bool IsNegative(Rational value) => value.Sign == -1;
+    public static bool IsNegative(Rational value)
+    {
+        return value.Sign == -1;
+    }
 
-    public static bool IsNegativeInfinity(Rational value) => false;
+    public static bool IsNegativeInfinity(Rational value)
+    {
+        return false;
+    }
 
-    public static bool IsNormal(Rational value) => true;
+    public static bool IsNormal(Rational value)
+    {
+        return true;
+    }
 
     public static bool IsOddInteger(Rational value)
     {
         return value.Denominator == 1 && value.Numerator % 2 != 0;
     }
 
-    public static bool IsPositive(Rational value) => value.Sign == 1;
+    public static bool IsPositive(Rational value)
+    {
+        return value.Sign == 1;
+    }
 
-    public static bool IsPositiveInfinity(Rational value) => false;
-    public static bool IsRealNumber(Rational value) => true;
+    public static bool IsPositiveInfinity(Rational value)
+    {
+        return false;
+    }
 
-    public static bool IsSubnormal(Rational value) => false;
-    public static bool IsZero(Rational value) => value.Numerator == 0;
+    public static bool IsRealNumber(Rational value)
+    {
+        return true;
+    }
+
+    public static bool IsSubnormal(Rational value)
+    {
+        return false;
+    }
+
+    public static bool IsZero(Rational value)
+    {
+        return value.Numerator == 0;
+    }
 
     public static Rational MaxMagnitude(Rational x, Rational y)
     {
@@ -340,7 +410,7 @@ public readonly struct Rational : INumber<Rational>
         throw new NotImplementedException();
     }
 
-    public static Rational One => new Rational(1);
+    public static Rational One => new(1);
     public static int Radix => 10;
-    public static Rational Zero => new Rational(0);
+    public static Rational Zero => new(0);
 }

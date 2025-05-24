@@ -7,7 +7,7 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser.Visitors.Evaluation;
 
 /// <summary>
-/// Performs type checking and circular logic checking on the AST.
+///     Performs type checking and circular logic checking on the AST.
 /// </summary>
 public class UnitTypeChecker : IVisitor<Unit?>
 {
@@ -45,16 +45,14 @@ public class UnitTypeChecker : IVisitor<Unit?>
         // would result in static type checking being impossible and as such has been strictly disallowed.
         // TODO: Allow power operations with dimensionless quantities where the left operand is also dimensionless
         if (dest is { Operator: TokenType.Power, Right: NumberConstant numberConstant })
-        {
             return leftResult.Pow(numberConstant.Value);
-        }
 
         if (dest.Operator is TokenType.Plus or TokenType.Minus)
         {
             var additionResult = dest.Operator switch
             {
                 TokenType.Plus => leftResult + rightResult,
-                TokenType.Minus => leftResult - rightResult,
+                TokenType.Minus => leftResult - rightResult
             };
 
             if (!additionResult.Valid)

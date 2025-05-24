@@ -5,18 +5,18 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Parsing.Constants;
 
 /// <summary>
-/// Represents a constant number in the expression tree.
+///     Represents a constant number in the expression tree.
 /// </summary>
 /// <param name="token">Token that the number is generated from.</param>
 public class NumberConstant(INumberToken token) : ExpressionBase
 {
-    public INumberToken Token { get; } = token;
-    public double Value => ToDouble();
-
     public NumberConstant(double value)
         : this(new DoubleToken(value, 0, 0, 0, 0))
     {
     }
+
+    public INumberToken Token { get; } = token;
+    public double Value => ToDouble();
 
     public double ToDouble()
     {

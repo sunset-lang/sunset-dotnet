@@ -4,7 +4,7 @@ using Sunset.Parser.Parsing.Constants;
 namespace Sunset.Parser.Visitors;
 
 /// <summary>
-/// Interface for visitors that return a value.
+///     Interface for visitors that return a value.
 /// </summary>
 public interface IVisitor<out T>
 {

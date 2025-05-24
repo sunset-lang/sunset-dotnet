@@ -23,10 +23,7 @@ public class StringToken : ValueTokenBase<ReadOnlyMemory<char>>
                 return;
             }
 
-            if (Unit.NamedCoherentUnitsBySymbol.ContainsKey(valueString))
-            {
-                Type = TokenType.NamedUnit;
-            }
+            if (Unit.NamedCoherentUnitsBySymbol.ContainsKey(valueString)) Type = TokenType.NamedUnit;
         }
     }
 

@@ -27,17 +27,6 @@ public enum ErrorCode
 
 public class Error
 {
-    public readonly ErrorCode Code;
-    public readonly ErrorType Type;
-    public readonly string Message;
-
-    private Error(ErrorCode code, ErrorType type, string message)
-    {
-        Code = code;
-        Type = type;
-        Message = message;
-    }
-
     private static readonly Dictionary<ErrorCode, (ErrorType errorType, string message)> ErrorMessages = new()
     {
         { ErrorCode.UnexpectedSymbol, (ErrorType.Syntax, "Unexpected symbol found here.") },
@@ -65,6 +54,17 @@ public class Error
         { ErrorCode.UnitMismatch, (ErrorType.Semantic, "Unit mismatch.") },
         { ErrorCode.StringInExpression, (ErrorType.Semantic, "String in expression.") }
     };
+
+    public readonly ErrorCode Code;
+    public readonly string Message;
+    public readonly ErrorType Type;
+
+    private Error(ErrorCode code, ErrorType type, string message)
+    {
+        Code = code;
+        Type = type;
+        Message = message;
+    }
 
     public static Error Create(ErrorCode code)
     {

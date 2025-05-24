@@ -8,17 +8,13 @@ namespace Sunset.Parser.Expressions;
 
 public class VariableDeclaration : ExpressionBase
 {
-    public IVariable Variable { get; }
-    public IExpression Expression { get; }
-
-    public Unit? Unit => _unitAssignment?.Unit;
+    private readonly StringToken? _descriptionToken;
+    private readonly StringToken? _labelToken;
+    private readonly StringToken? _nameToken;
+    private readonly StringToken? _referenceToken;
+    private readonly SymbolName? _symbolExpression;
 
     private readonly VariableUnitAssignment? _unitAssignment;
-    private readonly StringToken? _nameToken;
-    private readonly SymbolName? _symbolExpression;
-    private readonly StringToken? _referenceToken;
-    private readonly StringToken? _labelToken;
-    private readonly StringToken? _descriptionToken;
 
     public VariableDeclaration(IVariable variable, IExpression expression)
     {
@@ -52,6 +48,11 @@ public class VariableDeclaration : ExpressionBase
 
         Expression = expression;
     }
+
+    public IVariable Variable { get; }
+    public IExpression Expression { get; }
+
+    public Unit? Unit => _unitAssignment?.Unit;
 
     public override T Accept<T>(IVisitor<T> visitor)
     {

@@ -8,7 +8,7 @@ namespace Sunset.Parser.Variables;
 public interface IVariable : IReportItem
 {
     /// <summary>
-    /// The name of the quantity, used for the Sunset Language.
+    ///     The name of the quantity, used for the Sunset Language.
     /// </summary>
     public string Name { get; }
 
@@ -18,22 +18,23 @@ public interface IVariable : IReportItem
     public IQuantity? DefaultValue { get; internal set; }
 
     /// <summary>
-    /// The Unit that the variable is measured in. This is set separately to the Unit of the DefaultQuantity and Expression to simplify type checking.
+    ///     The Unit that the variable is measured in. This is set separately to the Unit of the DefaultQuantity and Expression
+    ///     to simplify type checking.
     /// </summary>
     public Unit Unit { get; }
 
     /// <summary>
-    /// A string representing the symbol of the Quantity. This should be a LaTeX string.
+    ///     A string representing the symbol of the Quantity. This should be a LaTeX string.
     /// </summary>
     public string Symbol { get; }
 
     /// <summary>
-    /// A description of the quantity.
+    ///     A description of the quantity.
     /// </summary>
     public string Description { get; }
 
     /// <summary>
-    /// An optional code reference for the quantity.
+    ///     An optional code reference for the quantity.
     /// </summary>
     public string Reference { get; }
 

@@ -9,11 +9,6 @@ public class UnitEvaluator : IVisitor<Unit>
 {
     private static readonly UnitEvaluator Singleton = new();
 
-    public static Unit Evaluate(IExpression expression)
-    {
-        return Singleton.Visit(expression);
-    }
-
     public Unit Visit(IExpression expression)
     {
         return expression switch
@@ -44,16 +39,6 @@ public class UnitEvaluator : IVisitor<Unit>
             TokenType.Power => Visit(dest.Left).Pow(NumericValue(dest.Right)),
             _ => throw new NotImplementedException()
         };
-    }
-
-    private double NumericValue(IExpression expression)
-    {
-        if (expression is NumberConstant numberConstant)
-        {
-            return numberConstant.Value;
-        }
-
-        throw new Exception($"Expected a number but got an expression of type {expression.GetType()}");
     }
 
     public Unit Visit(UnaryExpression dest)
@@ -100,5 +85,17 @@ public class UnitEvaluator : IVisitor<Unit>
     public Unit Visit(VariableDeclaration dest)
     {
         return dest.Variable.Unit;
+    }
+
+    public static Unit Evaluate(IExpression expression)
+    {
+        return Singleton.Visit(expression);
+    }
+
+    private double NumericValue(IExpression expression)
+    {
+        if (expression is NumberConstant numberConstant) return numberConstant.Value;
+
+        throw new Exception($"Expected a number but got an expression of type {expression.GetType()}");
     }
 }

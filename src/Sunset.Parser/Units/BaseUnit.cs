@@ -2,8 +2,6 @@ namespace Sunset.Parser.Units;
 
 public class BaseUnit : NamedUnit
 {
-    public DimensionName PrimaryDimension { get; set; }
-
     public BaseUnit(DimensionName dimensionName, UnitName unitName, string prefixSymbol, string baseUnitSymbol)
         : base(unitName, prefixSymbol, baseUnitSymbol)
     {
@@ -12,4 +10,6 @@ public class BaseUnit : NamedUnit
 
         Symbol = prefixSymbol + baseUnitSymbol;
     }
+
+    public DimensionName PrimaryDimension { get; set; }
 }

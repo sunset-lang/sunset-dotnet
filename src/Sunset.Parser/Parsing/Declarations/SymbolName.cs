@@ -4,8 +4,8 @@ namespace Sunset.Parser.Parsing.Declarations;
 
 public class SymbolName
 {
-    public readonly IToken[] Tokens;
     public readonly string Name;
+    public readonly IToken[] Tokens;
 
     public SymbolName(IEnumerable<IToken> tokens)
     {

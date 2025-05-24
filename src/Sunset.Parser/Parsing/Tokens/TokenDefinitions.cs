@@ -37,7 +37,7 @@ public static class TokenDefinitions
             { ('d', ':'), TokenType.DescriptionAssignment },
             { ('r', ':'), TokenType.ReferenceAssignment },
             { ('l', ':'), TokenType.LabelAssignment },
-            { ('\r', '\n'), TokenType.Newline },
+            { ('\r', '\n'), TokenType.Newline }
         };
 
     public static readonly Dictionary<string, TokenType> Keywords = new()

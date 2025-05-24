@@ -9,7 +9,7 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser.Variables;
 
 /// <summary>
-/// A variable is a named container for a value. The value may or may not have been assigned a value.
+///     A variable is a named container for a value. The value may or may not have been assigned a value.
 /// </summary>
 public class Variable : IVariable,
     IAdditionOperators<Variable, Variable, IExpression?>,
@@ -17,16 +17,6 @@ public class Variable : IVariable,
     IMultiplyOperators<Variable, Variable, IExpression?>,
     IDivisionOperators<Variable, Variable, IExpression?>
 {
-    public IQuantity? DefaultValue { get; set; }
-    public Unit Unit { get; } = Unit.Dimensionless;
-    public string Symbol { get; private set; } = "";
-    public string Name { get; private set; } = "";
-    public string Description { get; private set; } = "";
-    public string Reference { get; private set; } = "";
-    public string Label { get; private set; } = "";
-    public IExpression Expression => Declaration;
-    public VariableDeclaration Declaration { get; private set; }
-
     public Variable(double value, Unit unit, string symbol = "", string name = "",
         string description = "",
         string reference = "",
@@ -66,22 +56,40 @@ public class Variable : IVariable,
         Declaration = GetDeclaration(expression);
     }
 
-    private VariableDeclaration GetDeclaration(IExpression expression)
-    {
-        // If the expression provided is already a VariableDeclaration, no need for additional redirection
-        if (expression is VariableDeclaration variableDeclaration && variableDeclaration.Variable == this)
-        {
-            return variableDeclaration;
-        }
-
-        // It not, wrap the expression in a new VariableDeclaration to allow for printing.
-        return new VariableDeclaration(this, expression);
-    }
-
     protected Variable()
     {
         throw new Exception("Variables cannot be created with no expression.");
     }
+
+    public static IExpression operator +(Variable left, Variable right)
+    {
+        return left.Expression + right.Expression;
+    }
+
+    public static IExpression operator /(Variable left, Variable right)
+    {
+        return left.Expression / right.Expression;
+    }
+
+    public static IExpression operator *(Variable left, Variable right)
+    {
+        return left.Expression * right.Expression;
+    }
+
+    public static IExpression operator -(Variable left, Variable right)
+    {
+        return left.Expression - right.Expression;
+    }
+
+    public IQuantity? DefaultValue { get; set; }
+    public Unit Unit { get; } = Unit.Dimensionless;
+    public string Symbol { get; private set; } = "";
+    public string Name { get; private set; } = "";
+    public string Description { get; private set; } = "";
+    public string Reference { get; private set; } = "";
+    public string Label { get; private set; } = "";
+    public IExpression Expression => Declaration;
+    public VariableDeclaration Declaration { get; }
 
     public IVariable AssignSymbol(string symbol)
     {
@@ -126,6 +134,27 @@ public class Variable : IVariable,
         return GetDependentVariables(Expression);
     }
 
+    public IVariable Report(ReportSection report)
+    {
+        AddToReport(report);
+        return this;
+    }
+
+    public void AddToReport(ReportSection report)
+    {
+        report.AddItem(this);
+    }
+
+    private VariableDeclaration GetDeclaration(IExpression expression)
+    {
+        // If the expression provided is already a VariableDeclaration, no need for additional redirection
+        if (expression is VariableDeclaration variableDeclaration && variableDeclaration.Variable == this)
+            return variableDeclaration;
+
+        // It not, wrap the expression in a new VariableDeclaration to allow for printing.
+        return new VariableDeclaration(this, expression);
+    }
+
     public static IExpression FromIVariable(IVariable variable)
     {
         throw new NotImplementedException();
@@ -153,36 +182,5 @@ public class Variable : IVariable,
     public IExpression Pow(double power)
     {
         return new BinaryExpression(TokenType.Power, Expression, new NumberConstant(power));
-    }
-
-    public static IExpression operator +(Variable left, Variable right)
-    {
-        return left.Expression + right.Expression;
-    }
-
-    public static IExpression operator -(Variable left, Variable right)
-    {
-        return left.Expression - right.Expression;
-    }
-
-    public static IExpression operator *(Variable left, Variable right)
-    {
-        return left.Expression * right.Expression;
-    }
-
-    public static IExpression operator /(Variable left, Variable right)
-    {
-        return left.Expression / right.Expression;
-    }
-
-    public IVariable Report(ReportSection report)
-    {
-        AddToReport(report);
-        return this;
-    }
-
-    public void AddToReport(ReportSection report)
-    {
-        report.AddItem(this);
     }
 }

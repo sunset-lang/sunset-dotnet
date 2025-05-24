@@ -8,5 +8,5 @@ public enum Operator
     Divide,
     Power,
     Sqrt,
-    Value,
+    Value
 }

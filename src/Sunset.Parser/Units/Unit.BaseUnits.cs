@@ -3,11 +3,16 @@ namespace Sunset.Parser.Units;
 // Partial class that implements the Base Unit functionality
 public partial class Unit
 {
+    public static NamedUnit? GetBySymbol(string unitSymbol)
+    {
+        return AllUnits.OfType<NamedUnit>().FirstOrDefault(unit => unit.Symbol == unitSymbol);
+    }
+
     #region Base Units
 
     // Base units
     // Dimensionless unit
-    public static readonly Unit Dimensionless = new Unit();
+    public static readonly Unit Dimensionless = new();
 
     // Mass units - note: base unit is kilograms
     public static readonly BaseUnit
@@ -23,7 +28,7 @@ public partial class Unit
         Tonne = new(Kilogram, UnitName.Tonne, "", "T", 1e3);
 
     // Length units
-    public static readonly BaseUnit Metre = new BaseUnit(DimensionName.Length, UnitName.Metre, "", "m");
+    public static readonly BaseUnit Metre = new(DimensionName.Length, UnitName.Metre, "", "m");
 
     public static readonly NamedUnitMultiple Nanometre = new(Metre, UnitName.Nanometre, "n", 1e-9);
 
@@ -38,7 +43,7 @@ public partial class Unit
 
     // Time units
 
-    public static readonly BaseUnit Second = new BaseUnit(DimensionName.Time, UnitName.Second, "", "s");
+    public static readonly BaseUnit Second = new(DimensionName.Time, UnitName.Second, "", "s");
 
     public static readonly NamedUnitMultiple Millisecond = new(Second, UnitName.Millisecond, "m", 1e-3);
 
@@ -75,22 +80,22 @@ public partial class Unit
 
     public static readonly NamedUnit Pascal = new(UnitName.Pascal, "", "Pa")
     {
-        UnitDimensions = PressureUnitDimensions(1),
+        UnitDimensions = PressureUnitDimensions(1)
     };
 
     public static readonly NamedUnitMultiple Kilopascal = new(Pascal, UnitName.Kilopascal, "k")
     {
-        UnitDimensions = PressureUnitDimensions(1e3),
+        UnitDimensions = PressureUnitDimensions(1e3)
     };
 
     public static readonly NamedUnitMultiple Megapascal = new(Pascal, UnitName.Megapascal, "M")
     {
-        UnitDimensions = PressureUnitDimensions(1e6),
+        UnitDimensions = PressureUnitDimensions(1e6)
     };
 
     public static readonly NamedUnitMultiple Gigapascal = new(Pascal, UnitName.Gigapascal, "G")
     {
-        UnitDimensions = PressureUnitDimensions(1e9),
+        UnitDimensions = PressureUnitDimensions(1e9)
     };
 
     // Force units
@@ -106,17 +111,17 @@ public partial class Unit
 
     public static readonly NamedUnit Newton = new(UnitName.Newton, "", "N")
     {
-        UnitDimensions = ForceUnitDimensions(1),
+        UnitDimensions = ForceUnitDimensions(1)
     };
 
     public static readonly NamedUnitMultiple Kilonewton = new(Newton, UnitName.Kilonewton, "k")
     {
-        UnitDimensions = ForceUnitDimensions(1e3),
+        UnitDimensions = ForceUnitDimensions(1e3)
     };
 
     public static readonly NamedUnitMultiple Meganewton = new(Newton, UnitName.Meganewton, "M")
     {
-        UnitDimensions = ForceUnitDimensions(1e6),
+        UnitDimensions = ForceUnitDimensions(1e6)
     };
 
     #endregion
@@ -154,25 +159,25 @@ public partial class Unit
     ];
 
     /// <summary>
-    /// All the standard coherent base units (i.e. the units that are not multiples of other units).
+    ///     All the standard coherent base units (i.e. the units that are not multiples of other units).
     /// </summary>
     public static readonly List<BaseUnit> BaseCoherentUnits = AllUnits.OfType<BaseUnit>().ToList();
 
     /// <summary>
-    /// This list contains all the named coherent units that are not base units (e.g. Pascal but not Kilogram). 
+    ///     This list contains all the named coherent units that are not base units (e.g. Pascal but not Kilogram).
     /// </summary>
     public static readonly List<NamedUnit> DerivedCoherentUnits =
         AllUnits.Where(unit => unit.GetType() == typeof(NamedUnit)).Cast<NamedUnit>().ToList();
 
     /// <summary>
-    /// This list contains all the named coherent units, including the base units (e.g. Pascal and Kilogram).
+    ///     This list contains all the named coherent units, including the base units (e.g. Pascal and Kilogram).
     /// </summary>
     public static readonly List<NamedUnit> NamedCoherentUnits = AllUnits.OfType<NamedUnit>().ToList();
 
     // TODO: Create test to ensure that all units that are defined are included
 
     /// <summary>
-    /// This dictionary contains all of the named units that are multiples of the base named units
+    ///     This dictionary contains all of the named units that are multiples of the base named units
     /// </summary>
     public static readonly Dictionary<NamedUnit, List<NamedUnitMultiple>> NamedUnitMultiples =
         GetNamedUnitMultiples();
@@ -197,9 +202,4 @@ public partial class Unit
     }
 
     #endregion
-
-    public static NamedUnit? GetBySymbol(string unitSymbol)
-    {
-        return AllUnits.OfType<NamedUnit>().FirstOrDefault(unit => unit.Symbol == unitSymbol);
-    }
 }

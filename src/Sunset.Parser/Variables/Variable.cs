@@ -82,7 +82,7 @@ public class Variable : IVariable,
     }
 
     public IQuantity? DefaultValue { get; set; }
-    public Unit Unit { get; } = Unit.Dimensionless;
+    public Unit Unit { get; } = DefinedUnits.Dimensionless;
     public string Symbol { get; private set; } = "";
     public string Name { get; private set; } = "";
     public string Description { get; private set; } = "";

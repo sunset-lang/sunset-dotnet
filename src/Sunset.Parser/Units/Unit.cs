@@ -11,46 +11,49 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     ISubtractionOperators<Unit, Unit, Unit>,
     IMultiplyOperators<Unit, Unit, Unit>, IDivisionOperators<Unit, Unit, Unit>
 {
-    private List<(NamedUnit unit, Rational exponent)>? _baseUnits;
-    private List<(NamedUnit unit, Rational exponent)>? _denominatorBaseUnits;
-    private List<(NamedUnit unit, Rational exponent)>? _numeratorBaseUnits;
+    // TODO: The logic behind this is quite messy, do we even need the base coherent units?
+
+    // Simplify() generally replaces _baseUnits with a more complex list of constituent units that make up the unit.
+    private List<(NamedUnit unit, Rational exponent)>? _definedUnits;
+    private List<(NamedUnit unit, Rational exponent)>? _denominatorDefinedUnits;
+    private List<(NamedUnit unit, Rational exponent)>? _numeratorDefinedUnits;
 
     /// <summary>
-    ///     A list of all the base units that make up the current unit. Note that this does not include any multiples and
-    ///     as a result will result in a possibly incorrect unit if the attached quantity is not simplified appropriately.
+    ///     A list of all the base units that make up the current unit and their exponents.
     /// </summary>
-    public List<(NamedUnit unit, Rational exponent)> BaseUnits
+    public List<(NamedUnit unit, Rational exponent)> DefinedUnits
     {
         get
         {
             // To only allow one simplification, we cache the named units.
-            _baseUnits ??= Simplify()._baseUnits;
+            _definedUnits ??= GetBaseCoherentUnits();
 
-            return _baseUnits!;
+            return _definedUnits!;
         }
     }
 
     /// <summary>
     ///     A list of all the base units that make up the current unit, where the exponent is greater than 0.
-    ///     <seealso cref="BaseUnits" />
+    ///     <seealso cref="DefinedUnits" />
     /// </summary>
     public List<(NamedUnit unit, Rational exponent)> NumeratorBaseUnits
     {
         get
         {
-            return _numeratorBaseUnits ??= BaseUnits.Where((unitDetails, index) => unitDetails.exponent > 0).ToList();
+            return _numeratorDefinedUnits ??=
+                DefinedUnits.Where((unitDetails, index) => unitDetails.exponent > 0).ToList();
         }
     }
 
     /// <summary>
     ///     A list of all the base units that make up the current unit, where the exponent is less than 1.
-    ///     <seealso cref="BaseUnits" />
+    ///     <seealso cref="DefinedUnits" />
     /// </summary>
     public List<(NamedUnit unit, Rational exponent)> DenominatorBaseUnits
     {
         get
         {
-            return _denominatorBaseUnits ??= BaseUnits.Where((unitDetails, _)
+            return _denominatorDefinedUnits ??= DefinedUnits.Where((unitDetails, _)
                 => unitDetails.exponent < 0).ToList();
         }
     }
@@ -65,9 +68,9 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     ///     The dimensions of the unit. Each dimension has a power and a factor.
     ///     <seealso cref="Dimension"/>
     /// </summary>
-    public ImmutableArray<Dimension> UnitDimensions { get; protected set; } = [..Dimension.DimensionlessSet()];
+    public ImmutableArray<Dimension> UnitDimensions { get; protected internal set; } = [..Dimension.DimensionlessSet()];
 
-    public bool IsDimensionless => EqualDimensions(this, Dimensionless);
+    public bool IsDimensionless => EqualDimensions(this, Units.DefinedUnits.Dimensionless);
 
     /// <summary>
     ///     The absolute sum of all dimension powers. Used to sort units for simplification purposes.
@@ -81,10 +84,45 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         }
     }
 
-    public bool IsBaseUnit => this is BaseUnit;
-    public bool IsDerivedUnit => this is NamedUnit && this is not NamedUnitMultiple && this is not BaseUnit;
-    public bool IsCalculatedUnit => !IsDerivedUnit && !IsBaseUnit;
-    public bool IsCoherentUnit => IsDerivedUnit || IsBaseUnit;
+    public bool IsBaseCoherentUnit
+    {
+        get
+        {
+            // All the defined BaseUnits are coherent, so we can just check if this is a BaseUnit.
+            if (this is BaseCoherentUnit) return true;
+            // Otherwise, do the more complex check of whether it is a base unit and coherent.
+            return IsBaseUnit && IsCoherentUnit;
+        }
+    }
+
+    /// <summary>
+    /// The units that apply to only one dimensions, e.g. metres, kilograms, millimetres.
+    /// </summary>
+    public bool IsBaseUnit
+    {
+        // Check that only one power is 1, or it is a defined BaseUnit.
+        get
+        {
+            if (this is BaseCoherentUnit) return true;
+            return UnitDimensions.Count(d => d.Power == 1) == 1 &&
+                   UnitDimensions.Count(d => d.Power == 0) == UnitDimensions.Length - 1;
+        }
+    }
+
+    /// <summary>
+    /// The units that have been assigned a special name, e.g. metres, millimetres, pascals, kilopascals.
+    /// </summary>
+    public bool IsNamedUnit => this is NamedUnit;
+
+    /// <summary>
+    /// Units where there are no multipliers applied to the dimensions, e.g. metres, kilograms, pascals
+    /// </summary>
+    public bool IsCoherentUnit => UnitDimensions.All(d => d.Factor - 1 < 1e-14);
+
+    /// <summary>
+    /// All units that have more than one active dimension, e.g. newtons, pascals, joules.
+    /// </summary>
+    public bool IsDerivedUnit => !IsBaseUnit;
 
     public static Unit UnitError(string? errorMessage = null)
     {
@@ -176,14 +214,15 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         if (this is NamedUnit namedUnit) return namedUnit.Symbol;
 
         // TODO: This could be tidied up a bit
+        var unit = Simplify();
 
-        var numeratorSymbols = new string[NumeratorBaseUnits.Count];
+        var numeratorSymbols = new string[unit.NumeratorBaseUnits.Count];
         var numeratorIndex = 0;
 
-        var denominatorSymbols = new string[DenominatorBaseUnits.Count];
+        var denominatorSymbols = new string[unit.DenominatorBaseUnits.Count];
         var denominatorIndex = 0;
 
-        foreach (var numeratorUnit in NumeratorBaseUnits)
+        foreach (var numeratorUnit in unit.NumeratorBaseUnits)
         {
             var symbol = numeratorUnit.unit.Symbol;
             if (numeratorUnit.exponent != 1) symbol += $"^{numeratorUnit.exponent}";
@@ -192,7 +231,7 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
             numeratorIndex++;
         }
 
-        foreach (var denominatorUnit in DenominatorBaseUnits)
+        foreach (var denominatorUnit in unit.DenominatorBaseUnits)
         {
             var symbol = denominatorUnit.unit.Symbol;
             if (denominatorUnit.exponent != -1) symbol += $"^{-denominatorUnit.exponent}";
@@ -213,14 +252,16 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     {
         if (this is NamedUnit namedUnit) return $" \\text{{ {namedUnit.Symbol}}}";
 
-        if (EqualDimensions(this, Dimensionless)) return "";
+        if (EqualDimensions(this, Units.DefinedUnits.Dimensionless)) return "";
+
+        var unit = Simplify();
 
         // If there is no symbol, generate a LaTeX representation of the unit
 
         var result = " \\text{";
 
         // Rearrange the units into numerators first and denominators last
-        var units = NumeratorBaseUnits.Concat(DenominatorBaseUnits).ToList();
+        var units = unit.NumeratorBaseUnits.Concat(DenominatorBaseUnits).ToList();
 
         // Join each unit symbol with the next symbol
         for (var i = 0; i < units.Count - 1; i++)

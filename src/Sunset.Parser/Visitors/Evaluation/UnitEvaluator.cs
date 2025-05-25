@@ -69,12 +69,12 @@ public class UnitEvaluator : IVisitor<Unit>
 
     public Unit Visit(NumberConstant dest)
     {
-        return Unit.Dimensionless;
+        return DefinedUnits.Dimensionless;
     }
 
     public Unit Visit(StringConstant dest)
     {
-        return Unit.Dimensionless;
+        return DefinedUnits.Dimensionless;
     }
 
     public Unit Visit(UnitConstant dest)

@@ -13,14 +13,14 @@ public class MarkdownReportPrinterTests
 
         report.AddText("Calculate the axial section capacity of a steel plate.");
 
-        var yield = new Variable(350, Unit.Megapascal, "f_y", "Yield strength",
+        var yield = new Variable(350, DefinedUnits.Megapascal, "f_y", "Yield strength",
             "The yield strength of the steel plate.");
-        var width = new Variable(100, Unit.Millimetre, "b", "Width", "The width of the steel plate.");
-        var thickness = new Variable(10, Unit.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
+        var width = new Variable(100, DefinedUnits.Millimetre, "b", "Width", "The width of the steel plate.");
+        var thickness = new Variable(10, DefinedUnits.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
         var area = new Variable(width * thickness).AssignSymbol("A").Report(report);
         area.AssignName("Area");
         area.AssignDescription("The cross-sectional area of the steel plate.");
-        var capacityFactor = new Variable(0.9, Unit.Dimensionless, "\\phi", "Capacity factor", "",
+        var capacityFactor = new Variable(0.9, DefinedUnits.Dimensionless, "\\phi", "Capacity factor", "",
             "AS 4100-1998 Clause 2.1.5");
 
         var capacity = new Variable(capacityFactor * yield * area).AssignSymbol("\\phi N_s").Report(report);
@@ -37,13 +37,13 @@ public class MarkdownReportPrinterTests
 
         report.AddText("Calculate the bending section capacity of a steel plate.");
 
-        var yield = new Variable(350, Unit.Megapascal, "f_y", "Yield strength",
+        var yield = new Variable(350, DefinedUnits.Megapascal, "f_y", "Yield strength",
             "The yield strength of the steel plate.");
-        var width = new Variable(100, Unit.Millimetre, "b", "Width", "The width of the steel plate.");
-        var thickness = new Variable(10, Unit.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
+        var width = new Variable(100, DefinedUnits.Millimetre, "b", "Width", "The width of the steel plate.");
+        var thickness = new Variable(10, DefinedUnits.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
         var sectionModulus = new Variable(width * thickness.Pow(2) / 4).AssignSymbol("Z_p").Report(report);
         sectionModulus.AssignDescription("The plastic section modulus of the plate.");
-        var capacityFactor = new Variable(0.9, Unit.Dimensionless, "\\phi", "Capacity Factor", "",
+        var capacityFactor = new Variable(0.9, DefinedUnits.Dimensionless, "\\phi", "Capacity Factor", "",
             "AS 4100-1998 Clause 2.1.5");
 
         var capacity = new Variable(capacityFactor * yield * sectionModulus);

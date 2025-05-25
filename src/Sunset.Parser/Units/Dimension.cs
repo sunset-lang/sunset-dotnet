@@ -5,7 +5,12 @@ public struct Dimension(DimensionName name)
     /// <summary>
     /// The name of the dimension, e.g. Length, Mass, Time, etc.
     /// </summary>
-    public DimensionName Name { get; set; } = name;
+    public DimensionName Name { get; } = name;
+
+    /// <summary>
+    /// The index of the dimension in the <see cref="DimensionName" /> enum.
+    /// </summary>
+    public int Index => (int)Name;
 
     /// <summary>
     /// The power of the dimension for a particular unit. For example, for a length unit like mm, the power is 1.

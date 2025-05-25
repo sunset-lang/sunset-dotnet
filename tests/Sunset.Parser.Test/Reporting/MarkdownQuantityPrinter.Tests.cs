@@ -9,10 +9,10 @@ namespace Sunset.Parser.Test.Reporting;
 public class MarkdownVariablePrinterTests()
 {
     private readonly MarkdownVariablePrinter _markdownVariablePrinter = new();
-    private readonly IVariable _length = new Variable(100, Unit.Millimetre, "l", "length");
-    private readonly IVariable _width = new Variable(200, Unit.Millimetre, "w", "width");
-    private readonly IVariable _height = new Variable(300, Unit.Millimetre, "h", "height");
-    private readonly IVariable _mass = new Variable(20, Unit.Kilogram, "m", "mass");
+    private readonly IVariable _length = new Variable(100, DefinedUnits.Millimetre, "l", "length");
+    private readonly IVariable _width = new Variable(200, DefinedUnits.Millimetre, "w", "width");
+    private readonly IVariable _height = new Variable(300, DefinedUnits.Millimetre, "h", "height");
+    private readonly IVariable _mass = new Variable(20, DefinedUnits.Kilogram, "m", "mass");
 
     private IVariable? _volume;
     private IVariable? _density;
@@ -27,7 +27,7 @@ public class MarkdownVariablePrinterTests()
     [Test]
     public void ReportValue_BaseUnit_ShouldReportCorrectValue()
     {
-        var mass = new Variable(20, Unit.Kilogram, "m");
+        var mass = new Variable(20, DefinedUnits.Kilogram, "m");
         Assert.That(_markdownVariablePrinter.ReportValue(mass), Is.EqualTo("20 \\text{ kg}"));
 
         Console.WriteLine("Mass: " + _markdownVariablePrinter.ReportValue(mass));
@@ -36,7 +36,7 @@ public class MarkdownVariablePrinterTests()
     [Test]
     public void ReportValue_Dimensionless_ShouldReportCorrectSignificantFigures()
     {
-        var quantity = new Variable(0.9, Unit.Dimensionless, "\\phi");
+        var quantity = new Variable(0.9, DefinedUnits.Dimensionless, "\\phi");
         Assert.That(_markdownVariablePrinter.ReportValue(quantity), Is.EqualTo("0.9"));
         Console.WriteLine("Dimensionless: " + _markdownVariablePrinter.ReportValue(quantity));
     }
@@ -60,9 +60,9 @@ public class MarkdownVariablePrinterTests()
     {
         MarkdownVariablePrinter markdownVariablePrinter = new();
 
-        var length = new Variable(100, Unit.Metre, "l");
-        var width = new Variable(200, Unit.Metre, "w");
-        var height = new Variable(300, Unit.Metre, "h");
+        var length = new Variable(100, DefinedUnits.Metre, "l");
+        var width = new Variable(200, DefinedUnits.Metre, "w");
+        var height = new Variable(300, DefinedUnits.Metre, "h");
         var volume = new Variable(length * width * height);
         var density = new Variable(_mass / volume);
 
@@ -95,7 +95,7 @@ public class MarkdownVariablePrinterTests()
     [Test]
     public void ReportSymbolExpression_QuantityIncludesPower_ShouldReportWithCorrectSpacing()
     {
-        var t = new Variable(10, Unit.Millimetre, "t");
+        var t = new Variable(10, DefinedUnits.Millimetre, "t");
         var tSquared = new Variable(t.Pow(2));
         Assert.That(_markdownVariablePrinter.ReportSymbolExpression(tSquared), Is.EqualTo(@"= t^{2}"));
     }
@@ -103,8 +103,8 @@ public class MarkdownVariablePrinterTests()
     [Test]
     public void ReportSymbolExpression_QuantityIncludesMultipliedPower_ShouldReportWithCorrectSpacing()
     {
-        var b = new Variable(100, Unit.Millimetre, "b");
-        var t = new Variable(10, Unit.Millimetre, "t");
+        var b = new Variable(100, DefinedUnits.Millimetre, "b");
+        var t = new Variable(10, DefinedUnits.Millimetre, "t");
         var sectionModulus = new Variable(b * t.Pow(2) / 4);
         Assert.That(_markdownVariablePrinter.ReportSymbolExpression(sectionModulus), Is.EqualTo(@"= \frac{b t^{2}}{4}"));
     }
@@ -138,9 +138,9 @@ public class MarkdownVariablePrinterTests()
     [Test]
     public void ReportSymbolExpression_OrderOfOperations_ShouldRespectParentheses()
     {
-        var a = new Variable(12, Unit.Metre, "a");
-        var b = new Variable(3, Unit.Metre, "b");
-        var c = new Variable(4, Unit.Metre, "c");
+        var a = new Variable(12, DefinedUnits.Metre, "a");
+        var b = new Variable(3, DefinedUnits.Metre, "b");
+        var c = new Variable(4, DefinedUnits.Metre, "c");
 
         var test1 = new Variable(a + b * c);
         var test2 = new Variable((a + b) * c);
@@ -169,10 +169,10 @@ public class MarkdownVariablePrinterTests()
     {
         // TODO: This is really a quantity test
         MarkdownVariablePrinter markdownVariablePrinter = new();
-        var a = new Variable(100, Unit.Millimetre, "a");
-        var b = new Variable(200, Unit.Millimetre, "b");
-        var c = new Variable(200, Unit.Millimetre, "c");
-        var d = new Variable(300, Unit.Millimetre, "d");
+        var a = new Variable(100, DefinedUnits.Millimetre, "a");
+        var b = new Variable(200, DefinedUnits.Millimetre, "b");
+        var c = new Variable(200, DefinedUnits.Millimetre, "c");
+        var d = new Variable(300, DefinedUnits.Millimetre, "d");
 
         var test1 = new Variable(a / b * c);
         var test2 = new Variable(a * (b / c));

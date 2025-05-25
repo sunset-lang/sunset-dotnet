@@ -7,17 +7,17 @@ public class NamedUnitMultiple : NamedUnit
     ///     multiples.
     ///     Note that the factor must be set as an initialised property.
     /// </summary>
-    /// <param name="namedUnitParent">Parent of this NamedUnitMultiple</param>
+    /// <param name="namedCoherentUnitParent">Parent of this NamedUnitMultiple</param>
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of the unit multiple.</param>
     /// <param name="unitSymbol">New symbol to override the parent unit's symbol.</param>
     /// <param name="latexPrefixSymbol">The prefix of the unit multiple in LaTeX format.
     /// If empty, the prefix symbol is used.</param>
-    public NamedUnitMultiple(NamedUnit namedUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
+    public NamedUnitMultiple(NamedUnit namedCoherentUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
         string latexPrefixSymbol = ""
     ) : base(unitName, prefixSymbol, unitSymbol, latexPrefixSymbol)
     {
-        NamedUnitParent = namedUnitParent;
+        NamedCoherentUnitParent = namedCoherentUnitParent;
         Symbol = prefixSymbol + unitSymbol;
     }
 
@@ -28,36 +28,36 @@ public class NamedUnitMultiple : NamedUnit
     /// </summary>
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of unit multiple.</param>
-    /// <param name="namedUnitParent">Parent of this NamedUnitMultiple.</param>
+    /// <param name="namedCoherentUnitParent">Parent of this NamedUnitMultiple.</param>
     /// <param name="latexPrefixSymbol">The prefix of the unit multiple in LaTeX format.
     /// If empty, the prefix symbol is used.</param>
-    public NamedUnitMultiple(NamedUnit namedUnitParent, UnitName unitName, string prefixSymbol,
+    public NamedUnitMultiple(NamedUnit namedCoherentUnitParent, UnitName unitName, string prefixSymbol,
         string latexPrefixSymbol = ""
-    ) : base(unitName, prefixSymbol, namedUnitParent.UnitSymbol, latexPrefixSymbol)
+    ) : base(unitName, prefixSymbol, namedCoherentUnitParent.UnitSymbol, latexPrefixSymbol)
     {
-        NamedUnitParent = namedUnitParent;
-        Symbol = prefixSymbol + namedUnitParent.UnitSymbol;
+        NamedCoherentUnitParent = namedCoherentUnitParent;
+        Symbol = prefixSymbol + namedCoherentUnitParent.UnitSymbol;
     }
 
     /// <summary>
     ///     Constructs a new NamedUnitMultiple based on a BaseUnit overriding the parent unit's symbol. Used primarily for base
     ///     unit multiples.
     /// </summary>
-    /// <param name="baseUnitParent">Parent of this NamedUnitMultiple.</param>
+    /// <param name="baseCoherentUnitParent">Parent of this NamedUnitMultiple.</param>
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of the unit multiple.</param>
     /// <param name="unitSymbol">New symbol to override the parent unit's symbol.</param>
     /// <param name="factor">Factor to be applied to the unit.</param>
-    public NamedUnitMultiple(BaseUnit baseUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
+    public NamedUnitMultiple(BaseCoherentUnit baseCoherentUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
         double factor)
         : base(unitName, prefixSymbol, unitSymbol)
     {
-        var dimensions = baseUnitParent.UnitDimensions.ToArray();
-        dimensions[(int)baseUnitParent.PrimaryDimension].Power = 1;
-        dimensions[(int)baseUnitParent.PrimaryDimension].Factor = factor;
+        var dimensions = baseCoherentUnitParent.UnitDimensions.ToArray();
+        dimensions[(int)baseCoherentUnitParent.PrimaryDimension].Power = 1;
+        dimensions[(int)baseCoherentUnitParent.PrimaryDimension].Factor = factor;
         UnitDimensions = [..dimensions];
 
-        NamedUnitParent = baseUnitParent;
+        NamedCoherentUnitParent = baseCoherentUnitParent;
         Symbol = prefixSymbol + unitSymbol;
     }
 
@@ -65,13 +65,13 @@ public class NamedUnitMultiple : NamedUnit
     ///     Constructs a new NamedUnitMultiple based on a BaseUnit adopting the parent unit's symbol. Used primarily for base
     ///     unit multiples.
     /// </summary>
-    /// <param name="baseUnitParent">Parent of this NamedUnitMultiple.</param>
+    /// <param name="baseCoherentUnitParent">Parent of this NamedUnitMultiple.</param>
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of the unit multiple.</param>
     /// <param name="factor">Factor to be applied to the unit.</param>
-    public NamedUnitMultiple(BaseUnit baseUnitParent, UnitName unitName, string prefixSymbol,
+    public NamedUnitMultiple(BaseCoherentUnit baseCoherentUnitParent, UnitName unitName, string prefixSymbol,
         double factor)
-        : this(baseUnitParent, unitName, prefixSymbol, baseUnitParent.UnitSymbol, factor)
+        : this(baseCoherentUnitParent, unitName, prefixSymbol, baseCoherentUnitParent.UnitSymbol, factor)
     {
     }
 
@@ -79,5 +79,5 @@ public class NamedUnitMultiple : NamedUnit
     ///     Parent unit of this NamedUnitMultiple that the unit is based on.
     ///     For example, a NamedUnitMultiple for a kilometre would have a parent of a metre.
     /// </summary>
-    public NamedUnit NamedUnitParent { get; }
+    public NamedUnit NamedCoherentUnitParent { get; }
 }

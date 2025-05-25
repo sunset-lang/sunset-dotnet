@@ -15,7 +15,7 @@ public class UnitConstant(Unit unit) : ExpressionBase
     ///     Creates a new instance of <see cref="UnitConstant" /> from a string token.
     /// </summary>
     /// <param name="unitToken">The string token used to generate this unit.</param>
-    public UnitConstant(StringToken unitToken) : this(Unit.NamedCoherentUnitsBySymbol[unitToken.Value.ToString()])
+    public UnitConstant(StringToken unitToken) : this(DefinedUnits.NamedCoherentUnitsBySymbol[unitToken.Value.ToString()])
     {
         // TODO: Handle the case where the unit is not found in NamedCoherentUnitsBySymbol
         Token = unitToken;

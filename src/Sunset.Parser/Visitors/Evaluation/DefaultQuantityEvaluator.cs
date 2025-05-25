@@ -85,7 +85,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity>
 
     public IQuantity Visit(NumberConstant dest)
     {
-        return new Quantity(dest.Value, Unit.Dimensionless);
+        return new Quantity(dest.Value, DefinedUnits.Dimensionless);
     }
 
     public IQuantity Visit(StringConstant dest)

@@ -3,12 +3,12 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser.Test.Quantities;
 
 [TestFixture]
-public class BaseUnitTests
+public class BaseCoherentUnitTests
 {
     [Test]
     public void GetAllUnits()
     {
-        var units = Unit.AllUnits;
+        var units = DefinedUnits.AllUnits;
 
         List<string> keywords = [];
         foreach (NamedUnit unit in units.OfType<NamedUnit>())
@@ -23,8 +23,8 @@ public class BaseUnitTests
     [Test]
     public void Addition_SameDimensions_ShouldReturnCorrectPowersAndLeftFactor()
     {
-        var unit1 = Unit.Millimetre;
-        var unit2 = Unit.Metre;
+        var unit1 = DefinedUnits.Millimetre;
+        var unit2 = DefinedUnits.Metre;
         var unitSum = unit1 + unit2;
 
         Assert.Multiple(() =>
@@ -40,8 +40,8 @@ public class BaseUnitTests
     [Test]
     public void Multiplication_SameDimensions_ShouldReturnCorrectPowersAndLeftFactor()
     {
-        var unit1 = Unit.Millimetre;
-        var unit2 = Unit.Metre;
+        var unit1 = DefinedUnits.Millimetre;
+        var unit2 = DefinedUnits.Metre;
         var unitProduct = unit1 * unit2;
 
         Assert.Multiple(() =>
@@ -57,8 +57,8 @@ public class BaseUnitTests
     [Test]
     public void Multiplication_DifferentDimensions_ShouldReturnCorrectPowersAndLeftFactor()
     {
-        var unit1 = Unit.Gram;
-        var unit2 = Unit.Metre;
+        var unit1 = DefinedUnits.Gram;
+        var unit2 = DefinedUnits.Metre;
         var unitProduct = unit1 * unit2;
 
         Assert.Multiple(() =>
@@ -75,8 +75,8 @@ public class BaseUnitTests
     [Test]
     public void Addition_InvalidUnits_ShouldReturnFalseValidity()
     {
-        var unit1 = Unit.Second;
-        var unit2 = Unit.Metre;
+        var unit1 = DefinedUnits.Second;
+        var unit2 = DefinedUnits.Metre;
         var unitSum = unit1 + unit2;
 
         Assert.That(false, Is.EqualTo(unitSum.Valid));

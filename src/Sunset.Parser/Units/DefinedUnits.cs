@@ -2,8 +2,10 @@ using System.Collections.Immutable;
 
 namespace Sunset.Parser.Units;
 
-// Partial class that implements the Base Unit functionality
-public partial class Unit
+/// <summary>
+/// Contains a collections of predefined units, including base units, derived units, and their multiples.
+/// </summary>
+public static class DefinedUnits
 {
     /// <summary>
     /// Gets the named unit by its symbol (e.g. "m" for metre).
@@ -12,7 +14,7 @@ public partial class Unit
     /// <returns>The NamedUnit corresponding to the symbol, or null if such a unit cannot be found.</returns>
     public static NamedUnit? GetBySymbol(string unitSymbol)
     {
-        return AllUnits.OfType<NamedUnit>().FirstOrDefault(unit => unit.Symbol == unitSymbol);
+        return AllUnits.FirstOrDefault(unit => unit.Symbol == unitSymbol);
     }
 
     #region Base Units
@@ -24,7 +26,7 @@ public partial class Unit
     public static readonly Unit Dimensionless = new();
 
     // Mass units - note: base unit is kilograms
-    public static readonly BaseUnit
+    public static readonly BaseCoherentUnit
         Kilogram = new(DimensionName.Mass, UnitName.Kilogram, "k", "g");
 
     public static readonly NamedUnitMultiple
@@ -37,7 +39,7 @@ public partial class Unit
         Tonne = new(Kilogram, UnitName.Tonne, "", "T", 1e3);
 
     // Length units
-    public static readonly BaseUnit Metre = new(DimensionName.Length, UnitName.Metre, "", "m");
+    public static readonly BaseCoherentUnit Metre = new(DimensionName.Length, UnitName.Metre, "", "m");
 
     public static readonly NamedUnitMultiple Nanometre = new(Metre, UnitName.Nanometre, "n", 1e-9);
 
@@ -49,7 +51,7 @@ public partial class Unit
 
     // Time units
 
-    public static readonly BaseUnit Second = new(DimensionName.Time, UnitName.Second, "", "s");
+    public static readonly BaseCoherentUnit Second = new(DimensionName.Time, UnitName.Second, "", "s");
 
     public static readonly NamedUnitMultiple Millisecond = new(Second, UnitName.Millisecond, "m", 1e-3);
 
@@ -64,7 +66,7 @@ public partial class Unit
     public static readonly NamedUnitMultiple Year = new(Second, UnitName.Year, "", "year", 3.154e7);
 
     // Angle units - note: not technically a base unit, but added as m/m resolves to dimensionless
-    public static readonly BaseUnit Radian = new(DimensionName.Angle, UnitName.Radian, "", "rad");
+    public static readonly BaseCoherentUnit Radian = new(DimensionName.Angle, UnitName.Radian, "", "rad");
 
     public static readonly NamedUnitMultiple Degree = new(Radian, UnitName.Degree, "", "deg", 180 / Math.PI);
 
@@ -134,9 +136,8 @@ public partial class Unit
 
     #region Unit Collections
 
-    public static List<Unit> AllUnits { get; } =
+    public static List<NamedUnit> AllUnits { get; } =
     [
-        Dimensionless,
         Kilogram,
         Milligram,
         Gram,
@@ -165,20 +166,31 @@ public partial class Unit
     ];
 
     /// <summary>
-    ///     All the standard coherent base units (i.e. the units that are not multiples of other units).
+    ///     This list contains all the base units, including the coherent units and multiples of the base units (e.g. metre, millimetres, etc.).
     /// </summary>
-    public static readonly List<BaseUnit> BaseCoherentUnits = AllUnits.OfType<BaseUnit>().ToList();
+    public static readonly List<NamedUnit> BaseUnits =
+        AllUnits.Where(unit => unit is { IsBaseUnit: true })
+            .ToList();
 
     /// <summary>
-    ///     This list contains all the named coherent units that are not base units (e.g. Pascal but not Kilogram).
+    ///     All the standard coherent base coherent units (i.e. the base units that are not multiples of other units), arranged by their primary dimension.
+    /// </summary>
+    public static readonly Dictionary<DimensionName, BaseCoherentUnit> BaseCoherentUnits =
+        AllUnits.OfType<BaseCoherentUnit>()
+            .ToDictionary(unit => unit.PrimaryDimension, unit => unit);
+
+    /// <summary>
+    ///     This list contains all the named derived coherent units (i.e. pascals, newtowns, etc.) 
     /// </summary>
     public static readonly List<NamedUnit> DerivedCoherentUnits =
-        AllUnits.Where(unit => unit.GetType() == typeof(NamedUnit)).Cast<NamedUnit>().ToList();
+        AllUnits.Where(unit => unit is { IsDerivedUnit: true, IsCoherentUnit: true })
+            .ToList();
 
     /// <summary>
-    ///     This list contains all the named coherent units, including the base units (e.g. Pascal and Kilogram).
+    ///     This list contains all the named coherent units, including the base units and derived units (e.g. Pascal and Kilogram).
     /// </summary>
-    public static readonly List<NamedUnit> NamedCoherentUnits = AllUnits.OfType<NamedUnit>().ToList();
+    public static readonly List<NamedUnit> CoherentUnits =
+        AllUnits.Where(unit => unit is { IsCoherentUnit: true }).ToList();
 
     // TODO: Create test to ensure that all units that are defined are included
 
@@ -191,17 +203,17 @@ public partial class Unit
     /// <summary>
     ///     A dictionary that maps the symbol of each named coherent unit to the unit itself.
     /// </summary>
-    public static readonly Dictionary<string, NamedUnit> NamedCoherentUnitsBySymbol = NamedCoherentUnits
+    public static readonly Dictionary<string, NamedUnit> NamedCoherentUnitsBySymbol = CoherentUnits
         .ToDictionary(unit => unit.Symbol, unit => unit);
 
     private static Dictionary<NamedUnit, List<NamedUnitMultiple>> GetNamedUnitMultiples()
     {
         var result = new Dictionary<NamedUnit, List<NamedUnitMultiple>>();
 
-        foreach (var namedUnit in NamedCoherentUnits)
+        foreach (var namedUnit in CoherentUnits)
         {
             var multiples = AllUnits.OfType<NamedUnitMultiple>()
-                .Where(unit => unit.NamedUnitParent == namedUnit)
+                .Where(unit => unit.NamedCoherentUnitParent == namedUnit)
                 .ToList();
 
             result.Add(namedUnit, multiples);

@@ -27,7 +27,7 @@ public partial class Quantity : IQuantity
 
     public double Value { get; private set; }
 
-    public Unit Unit { get; private set; } = Unit.Dimensionless;
+    public Unit Unit { get; private set; } = DefinedUnits.Dimensionless;
 
     public void SimplifyUnits()
     {

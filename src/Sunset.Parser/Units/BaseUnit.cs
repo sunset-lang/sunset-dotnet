@@ -5,7 +5,7 @@ namespace Sunset.Parser.Units;
 /// Base units are defined as the primary units for each dimension in a unit system, and have a power of 1
 /// and a factor of 1 in their respective dimension, and a power of 0 and a factor of 1 in other dimensions.
 /// </summary>
-public class BaseUnit : NamedUnit
+public class BaseCoherentUnit : NamedUnit
 {
     /// <summary>
     /// Create a new BaseUnit.
@@ -14,7 +14,7 @@ public class BaseUnit : NamedUnit
     /// <param name="unitName">The name of the unit.</param>
     /// <param name="prefixSymbol">The symbol used as a prefix to the unit name, typically empty.</param>
     /// <param name="baseUnitSymbol">The symbol of the base unit.</param>
-    public BaseUnit(DimensionName dimensionName, UnitName unitName, string prefixSymbol, string baseUnitSymbol)
+    public BaseCoherentUnit(DimensionName dimensionName, UnitName unitName, string prefixSymbol, string baseUnitSymbol)
         : base(unitName, prefixSymbol, baseUnitSymbol)
     {
         PrimaryDimension = dimensionName;
@@ -28,4 +28,6 @@ public class BaseUnit : NamedUnit
     /// The primary dimension that this base unit represents.
     /// </summary>
     public DimensionName PrimaryDimension { get; }
+
+    public Rational PrimaryDimensionPower => UnitDimensions[(int)PrimaryDimension].Power;
 }

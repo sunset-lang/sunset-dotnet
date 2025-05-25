@@ -6,17 +6,48 @@ namespace Sunset.Parser.Units;
 public partial class Unit
 {
     /// <summary>
-    ///     Get an equivalent simplified unit made up entirely of base units. If provided a value, returns a unit
-    ///     with a multiple that minimises the exponent of the value. If not provided a value, tries to find the base unit
-    ///     multiples.
+    /// Gets a list of the base units that make up the current unit. This includes all base units and does not include
+    /// any multiples or derived units. Also returns the factor and power of each base unit in the unit.
+    /// </summary>
+    public List<(NamedUnit unit, Rational exponent)> GetBaseCoherentUnits()
+    {
+        // Return an empty list if the unit is dimensionless.
+        if (EqualDimensions(this, Units.DefinedUnits.Dimensionless))
+        {
+            return [];
+        }
+
+        // Check if the unit has already been defined as a BaseUnit.
+        if (this is BaseCoherentUnit baseUnitDefined)
+        {
+            return [(baseUnitDefined, 1)];
+        }
+
+        // If there are no simple options, just get the base units from the coherent units list
+        var baseUnits = new List<(NamedUnit unit, Rational power)>();
+        foreach (var dimension in UnitDimensions)
+        {
+            if (dimension.Power.Numerator == 0) continue;
+
+            // Find the base unit for the dimension
+            var baseUnit = Units.DefinedUnits.BaseCoherentUnits[dimension.Name];
+            baseUnits.Add((baseUnit, dimension.Power));
+        }
+
+        return baseUnits;
+    }
+
+    /// <summary>
+    ///     Get an equivalent simplified unit made up entirely of named units. Will attempt to minimise the exponent of the
+    ///     provided value by selecting the best multiple for each named unit in the unit.
     /// </summary>
     /// <returns>An equivalent simplified unit.</returns>
-    public Unit Simplify(double value = 0)
+    public Unit Simplify(double value = 1)
     {
         // If the unit is dimensionless, return the unit as is.
-        if (EqualDimensions(this, Dimensionless))
+        if (EqualDimensions(this, Units.DefinedUnits.Dimensionless))
         {
-            return Dimensionless;
+            return this;
         }
 
         // Attempt to keep named units (e.g. m, N) in the same unit if the value is appropriately small,
@@ -24,20 +55,29 @@ public partial class Unit
         if (this is NamedUnit)
             if (NumberUtilities.Magnitude(value) is >= -1 and <= 2)
             {
-                // Store a list of the single unit and an exponent of 1 for all named units.
-                _baseUnits = [((NamedUnit)this, 1)];
                 return this;
             }
 
-        var workingUnit = Clone(false);
+        // If the unit is a calculated unit, attempt to simplify it with the following algorithm:
+        // 1. Work out the constituent coherent derived units that can "fit" into the current unit.
+        //    Remove this from the current unit.
+        // 2. Work out the remaining coherent base units that can "fit" into the remaining unit.
+        // 3. For each constituent unit, find the best multiple that will minimise the value's exponent.
+        //    Do this starting with the first derived unit (if applicable) and ending with the last base unit
+        //    in order of the unit's dimensions.
+
+        var workingUnit = Clone();
         var simplifiedUnit = new Unit();
+        // Contains the list of constituent coherent units that can fit into the current unit.
         var symbols = new List<(NamedUnit unit, Rational exponent)>();
 
-        // Go through the list of derived units and check whether Unit can contain base unit
-        foreach (var unit in DerivedCoherentUnits)
+        // Go through the list of derived units first and check whether Unit can contain the derived unit.
+        // This forces the simplification algorithm to prioritise derived units over base units, which will tend to
+        // make the unit expression smaller.
+        foreach (var unit in Units.DefinedUnits.DerivedCoherentUnits)
         {
+            // Calculate how many times the current unit can be divided by the derived unit.
             var divisorExponent = workingUnit.WholeUnitDivisorExponent(unit);
-            // If the unit cannot be divided into the current unit, skip it
             if (divisorExponent != 0)
             {
                 simplifiedUnit *= unit.Pow(divisorExponent);
@@ -46,8 +86,10 @@ public partial class Unit
             }
         }
 
-        // Do the same thing but for base units
-        foreach (var unit in BaseCoherentUnits)
+        // TODO: Check whether this can be replaced with the GetBaseCoherentUnits method
+
+        // Now find the base coherent units that fit into the remaining unit.
+        foreach (var unit in Units.DefinedUnits.BaseCoherentUnits.Values)
         {
             // Allow partial unit divisors just for base units to allow for things like m^(1/2) and to ensure that
             // any unit can be simplified to a collection of NamedUnits.
@@ -60,15 +102,10 @@ public partial class Unit
             }
         }
 
-        if (value == 0)
-        {
-            simplifiedUnit._baseUnits = symbols;
-            return simplifiedUnit;
-        }
-
-        // Find the best multiple for each base unit selected
-
         // Make sure that the value provided to the SelectBestMultiple is already scaled
+        // If the value provided is zero, set it to 1. This means that if a value of zero is provided in simplifying just
+        // a unit, the original unit will be returned.
+        if (value == 0) value = 1;
         value *= GetConversionFactor(simplifiedUnit);
 
         // This function returns a list of Unit and Exponent pairs to replace the coherent Unit and Exponent pairs
@@ -80,7 +117,7 @@ public partial class Unit
             for (var i = 1; i < symbols.Count; i++)
                 bestMultipleUnit *= symbols[i].unit.Pow(symbols[i].exponent);
 
-        bestMultipleUnit._baseUnits = symbols;
+        bestMultipleUnit._definedUnits = symbols;
 
         // Do a final check on the dimensions of the best multiple unit and show an error if there is a problem.
         if (!EqualDimensions(bestMultipleUnit, this))
@@ -109,8 +146,8 @@ public partial class Unit
         // TODO: Handle inconsistent units provided
         // TODO: Think about how time and angle units are considered
 
-        foreach ((Unit unit, var exponent) in units)
-            if (unit.IsCalculatedUnit || !unit.IsCoherentUnit)
+        foreach ((Unit unit, _) in units)
+            if (!unit.IsCoherentUnit)
                 throw new Exception(
                     "Best multiple algorithm only works with a list of base and derived units that are all coherent.");
 
@@ -140,7 +177,7 @@ public partial class Unit
             var baseExponent = units[i].exponent;
 
             // Select all the unit multiples relating to this unit
-            var unitMultiples = NamedUnitMultiples[baseUnit];
+            var unitMultiples = Units.DefinedUnits.NamedUnitMultiples[baseUnit];
 
             foreach (var proposedUnit in unitMultiples)
             {
@@ -217,7 +254,7 @@ public partial class Unit
     ///     divide into the current unit. Returns a positive number if the unit divides into unit and a negative number if
     ///     the unit must be inverted.
     /// </returns>
-    public Rational PartialUnitDivisorExponent(BaseUnit divisor)
+    public Rational PartialUnitDivisorExponent(BaseCoherentUnit divisor)
     {
         var divisors = new List<Rational>();
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)

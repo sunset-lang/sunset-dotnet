@@ -39,7 +39,7 @@ public class VariableDeclaration : ExpressionBase
         _descriptionToken = descriptionToken;
 
         Variable = new Variable(_nameToken.ToString(),
-            unitAssignment?.Unit ?? Unit.Dimensionless,
+            unitAssignment?.Unit ?? DefinedUnits.Dimensionless,
             this,
             symbolExpression?.ToString() ?? "",
             _descriptionToken?.ToString() ?? "",

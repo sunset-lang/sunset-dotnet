@@ -9,8 +9,8 @@ public class QuantityTests
     [Test]
     public void Addition_SameDimensionsDifferent_ShouldReturnCorrectValuePowerAndLeftFactor()
     {
-        var leftOperand = new Quantity(3.5, Unit.Metre);
-        var rightOperand = new Quantity(500, Unit.Millimetre);
+        var leftOperand = new Quantity(3.5, DefinedUnits.Metre);
+        var rightOperand = new Quantity(500, DefinedUnits.Millimetre);
 
         var additionResult = leftOperand + rightOperand;
 
@@ -25,11 +25,11 @@ public class QuantityTests
     [Test]
     public void Multiplication_SameDimensions_ShouldReturnCorrectValuePowerAndLeftFactorAndStringRepresentation()
     {
-        var leftOperand = new Quantity(500, Unit.Millimetre);
-        var rightOperand = new Quantity(3.5, Unit.Metre);
+        var leftOperand = new Quantity(500, DefinedUnits.Millimetre);
+        var rightOperand = new Quantity(3.5, DefinedUnits.Metre);
 
         var multiplicationResult = leftOperand * rightOperand;
-        var expectedResult = new Quantity(1.75, Unit.Metre * Unit.Metre);
+        var expectedResult = new Quantity(1.75, DefinedUnits.Metre * DefinedUnits.Metre);
 
         Assert.Multiple(() =>
         {
@@ -50,11 +50,11 @@ public class QuantityTests
     [Test]
     public void Multiplication_SameDimensionWithMultiples_ShouldReturnCorrectValue()
     {
-        var quantity1 = new Quantity(1200, Unit.Millimetre);
-        var quantity2 = new Quantity(3000, Unit.Millimetre);
+        var quantity1 = new Quantity(1200, DefinedUnits.Millimetre);
+        var quantity2 = new Quantity(3000, DefinedUnits.Millimetre);
 
         var multiplicationResult = quantity1 * quantity2;
-        var expectedResult = new Quantity(3.6, Unit.Metre * Unit.Metre);
+        var expectedResult = new Quantity(3.6, DefinedUnits.Metre * DefinedUnits.Metre);
 
         Assert.That(multiplicationResult, Is.EqualTo(expectedResult));
     }
@@ -62,7 +62,7 @@ public class QuantityTests
     [Test]
     public void SimplifyUnits_LargeValueSmallFactor_ShouldSimplifyToImprovedUnit()
     {
-        var largeValueSmallFactorQuantity = new Quantity(5000, Unit.Millimetre);
+        var largeValueSmallFactorQuantity = new Quantity(5000, DefinedUnits.Millimetre);
         Console.Write("Quantity " + largeValueSmallFactorQuantity + " simplified to ");
         largeValueSmallFactorQuantity.SimplifyUnits();
         Console.WriteLine(largeValueSmallFactorQuantity.ToString());
@@ -77,7 +77,7 @@ public class QuantityTests
     [Test]
     public void SimplifyUnits_SmallValueLargeFactor_ShouldSimplifyToImprovedUnit()
     {
-        var smallValueLargeFactorQuantity = new Quantity(0.04, Unit.Metre);
+        var smallValueLargeFactorQuantity = new Quantity(0.04, DefinedUnits.Metre);
         Console.Write("Quantity " + smallValueLargeFactorQuantity + " simplified to ");
         smallValueLargeFactorQuantity.SimplifyUnits();
         Console.WriteLine(smallValueLargeFactorQuantity.ToString());
@@ -92,7 +92,7 @@ public class QuantityTests
     [Test]
     public void SimplifyUnits_NormalValueSmallFactor_ShouldSimplifyToProvidedUnit()
     {
-        var normalValueSmallFactorQuantity = new Quantity(800, Unit.Millimetre);
+        var normalValueSmallFactorQuantity = new Quantity(800, DefinedUnits.Millimetre);
         Console.Write("Quantity " + normalValueSmallFactorQuantity + " simplified to ");
         normalValueSmallFactorQuantity.SimplifyUnits();
         Console.WriteLine(normalValueSmallFactorQuantity.ToString());
@@ -107,7 +107,7 @@ public class QuantityTests
     [Test]
     public void SimplifyUnits_NormalValueLargeFactor_ShouldSimplifyToProvidedUnit()
     {
-        var normalValueLargeFactorQuantity = new Quantity(0.8, Unit.Metre);
+        var normalValueLargeFactorQuantity = new Quantity(0.8, DefinedUnits.Metre);
         Console.Write("Quantity " + normalValueLargeFactorQuantity + " simplified to ");
         normalValueLargeFactorQuantity.SimplifyUnits();
         Console.WriteLine(normalValueLargeFactorQuantity.ToString());
@@ -122,8 +122,8 @@ public class QuantityTests
     [Test]
     public void SimplifyUnits_AfterMultiplication_ShouldReturnBaseUnits()
     {
-        var b = new Quantity(100, Unit.Millimetre);
-        var t = new Quantity(10, Unit.Millimetre);
+        var b = new Quantity(100, DefinedUnits.Millimetre);
+        var t = new Quantity(10, DefinedUnits.Millimetre);
 
         var area = b * t;
         area.SimplifyUnits();
@@ -139,8 +139,8 @@ public class QuantityTests
     [Test]
     public void SimplifyUnits_AfterMultiplication_ShouldReturnBestDerivedUnit()
     {
-        var area = new Quantity(1000, Unit.Millimetre * Unit.Millimetre);
-        var stress = new Quantity(350, Unit.Megapascal);
+        var area = new Quantity(1000, DefinedUnits.Millimetre * DefinedUnits.Millimetre);
+        var stress = new Quantity(350, DefinedUnits.Megapascal);
         var strength = area * stress;
         strength.SimplifyUnits();
         Assert.Multiple(() =>

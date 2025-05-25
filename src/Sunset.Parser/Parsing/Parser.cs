@@ -22,7 +22,7 @@ public partial class Parser
     private IToken? _peekNext;
     private int _position;
 
-    public IExpression? SyntaxTree;
+    public readonly List<IDeclaration> SyntaxTree = [];
 
     /// <summary>
     ///     Generates a parser from a source string.
@@ -70,7 +70,10 @@ public partial class Parser
     public void Parse()
     {
         // TODO: Ongoing update to this function depending on the completion of the parsing rules.
-        SyntaxTree = GetVariableDeclaration();
+        while (_current.Type != TokenType.EndOfFile)
+        {
+            SyntaxTree.Add(GetVariableDeclaration());
+        }
     }
 
     /// <summary>
@@ -178,13 +181,17 @@ public partial class Parser
             var unitExpression = GetExpression();
             var closeBrace = Consume(TokenType.CloseBrace);
 
-            unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
+            if (openBrace != null)
+                unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
         }
 
         Consume(TokenType.Assignment);
 
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression
+
+        // Always end a variable declaration with a new line.
+        Consume(TokenType.Newline);
 
         return new VariableDeclaration(nameToken, expression, unitAssignment, symbolExpression);
     }
@@ -217,12 +224,12 @@ public partial class Parser
     #region Parser controls
 
     /// <summary>
-    ///     Get the token in the array and increment the position.
+    ///     Get the token in the array and increment the position. Stops at the end of the token array.
     /// </summary>
-    /// <returns>The next token in the token array. Return EndOfLine token if at the end of the array.</returns>
+    /// <returns>The next token in the token array. Returns EndOfFile token if at the end of the array.</returns>
     private void Advance()
     {
-        // Skip errors while parsing
+        // Skip errors while parsing, and advance to the next valid token. Stop before the end of the array.
         for (var i = _position + 1; i < _tokens.Length; i++)
             if (_tokens[i].HasErrors == false)
             {

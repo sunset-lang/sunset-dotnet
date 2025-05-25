@@ -140,7 +140,7 @@ public class Lexer
         _line = 0;
         _column = 0;
 
-        _current = _source.Span[_position];
+        if (_source.Length != 0) _current = _source.Span[_position];
         _peek = Peek();
         _peekNext = PeekNext();
 

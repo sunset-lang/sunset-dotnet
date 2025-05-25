@@ -14,7 +14,7 @@ public static class DefinedUnits
     /// <returns>The NamedUnit corresponding to the symbol, or null if such a unit cannot be found.</returns>
     public static NamedUnit? GetBySymbol(string unitSymbol)
     {
-        return AllUnits.FirstOrDefault(unit => unit.Symbol == unitSymbol);
+        return UnitList.FirstOrDefault(unit => unit.Symbol == unitSymbol);
     }
 
     #region Base Units
@@ -136,7 +136,7 @@ public static class DefinedUnits
 
     #region Unit Collections
 
-    public static List<NamedUnit> AllUnits { get; } =
+    public static List<NamedUnit> UnitList { get; } =
     [
         Kilogram,
         Milligram,
@@ -169,28 +169,28 @@ public static class DefinedUnits
     ///     This list contains all the base units, including the coherent units and multiples of the base units (e.g. metre, millimetres, etc.).
     /// </summary>
     public static readonly List<NamedUnit> BaseUnits =
-        AllUnits.Where(unit => unit is { IsBaseUnit: true })
+        UnitList.Where(unit => unit is { IsBaseUnit: true })
             .ToList();
 
     /// <summary>
     ///     All the standard coherent base coherent units (i.e. the base units that are not multiples of other units), arranged by their primary dimension.
     /// </summary>
     public static readonly Dictionary<DimensionName, BaseCoherentUnit> BaseCoherentUnits =
-        AllUnits.OfType<BaseCoherentUnit>()
+        UnitList.OfType<BaseCoherentUnit>()
             .ToDictionary(unit => unit.PrimaryDimension, unit => unit);
 
     /// <summary>
     ///     This list contains all the named derived coherent units (i.e. pascals, newtowns, etc.) 
     /// </summary>
     public static readonly List<NamedUnit> DerivedCoherentUnits =
-        AllUnits.Where(unit => unit is { IsDerivedUnit: true, IsCoherentUnit: true })
+        UnitList.Where(unit => unit is { IsDerivedUnit: true, IsCoherentUnit: true })
             .ToList();
 
     /// <summary>
     ///     This list contains all the named coherent units, including the base units and derived units (e.g. Pascal and Kilogram).
     /// </summary>
     public static readonly List<NamedUnit> CoherentUnits =
-        AllUnits.Where(unit => unit is { IsCoherentUnit: true }).ToList();
+        UnitList.Where(unit => unit is { IsCoherentUnit: true }).ToList();
 
     // TODO: Create test to ensure that all units that are defined are included
 
@@ -203,7 +203,7 @@ public static class DefinedUnits
     /// <summary>
     ///     A dictionary that maps the symbol of each named coherent unit to the unit itself.
     /// </summary>
-    public static readonly Dictionary<string, NamedUnit> NamedCoherentUnitsBySymbol = CoherentUnits
+    public static readonly Dictionary<string, NamedUnit> NamedUnits = UnitList
         .ToDictionary(unit => unit.Symbol, unit => unit);
 
     private static Dictionary<NamedUnit, List<NamedUnitMultiple>> GetNamedUnitMultiples()
@@ -212,7 +212,7 @@ public static class DefinedUnits
 
         foreach (var namedUnit in CoherentUnits)
         {
-            var multiples = AllUnits.OfType<NamedUnitMultiple>()
+            var multiples = UnitList.OfType<NamedUnitMultiple>()
                 .Where(unit => unit.NamedCoherentUnitParent == namedUnit)
                 .ToList();
 

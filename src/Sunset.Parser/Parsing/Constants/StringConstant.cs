@@ -13,7 +13,7 @@ public class StringConstant(StringToken token) : ExpressionBase
     /// <summary>
     ///     The token that the string is generated from.
     /// </summary>
-    public readonly StringToken Value = token;
+    public readonly StringToken Token = token;
 
     /// <inheritdoc />
     public override T Accept<T>(IVisitor<T> visitor)

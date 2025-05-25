@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
@@ -53,6 +54,7 @@ public class UnitEvaluator : IVisitor<Unit>
 
     public Unit Visit(NameExpression dest)
     {
+        dest.AddError(ErrorCode.ExpectedUnit);
         // TODO: Look up units in symbol table
         throw new NotImplementedException();
     }

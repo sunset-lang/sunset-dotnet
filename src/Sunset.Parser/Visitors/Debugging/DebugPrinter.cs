@@ -64,7 +64,7 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(StringConstant dest)
     {
-        return dest.Value.ToString();
+        return dest.Token.ToString();
     }
 
     public string Visit(UnitConstant dest)

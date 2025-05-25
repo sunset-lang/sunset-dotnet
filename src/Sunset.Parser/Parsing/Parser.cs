@@ -69,7 +69,8 @@ public partial class Parser
     /// </summary>
     public void Parse()
     {
-        SyntaxTree = GetExpression();
+        // TODO: Ongoing update to this function depending on the completion of the parsing rules.
+        SyntaxTree = GetVariableDeclaration();
     }
 
     /// <summary>

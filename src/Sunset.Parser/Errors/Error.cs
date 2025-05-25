@@ -20,9 +20,12 @@ public enum ErrorCode
     NumberEndingWithExponent,
 
     // Type checking errors
-    CouldNotResolveTypes,
+    CouldNotResolveUnits,
+    StringInExpression,
+
+    // Units
     UnitMismatch,
-    StringInExpression
+    ExpectedUnit
 }
 
 public class Error
@@ -50,9 +53,12 @@ public class Error
         },
         { ErrorCode.NumberEndingWithExponent, (ErrorType.Syntax, "Numbers cannot end with an exponent.") },
         { ErrorCode.NumberEndingWithDecimalPlace, (ErrorType.Syntax, "Numbers cannot end with a decimal place.") },
-        { ErrorCode.CouldNotResolveTypes, (ErrorType.Semantic, "Could not resolve units.") },
+        { ErrorCode.CouldNotResolveUnits, (ErrorType.Semantic, "Could not resolve units.") },
+        { ErrorCode.StringInExpression, (ErrorType.Semantic, "String in expression.") },
         { ErrorCode.UnitMismatch, (ErrorType.Semantic, "Unit mismatch.") },
-        { ErrorCode.StringInExpression, (ErrorType.Semantic, "String in expression.") }
+        { ErrorCode.ExpectedUnit, (ErrorType.Semantic, "Expected a name of a unit but found a variable instead.") },
+
+        // TODO: Add test to confirm that there are error messages for all error codes
     };
 
     public readonly ErrorCode Code;

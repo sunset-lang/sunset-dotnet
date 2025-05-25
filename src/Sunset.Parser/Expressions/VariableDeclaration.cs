@@ -50,6 +50,10 @@ public class VariableDeclaration : ExpressionBase
     }
 
     public IVariable Variable { get; }
+
+    /// <summary>
+    /// The expression that defines the value of the variable.
+    /// </summary>
     public IExpression Expression { get; }
 
     public Unit? Unit => _unitAssignment?.Unit;

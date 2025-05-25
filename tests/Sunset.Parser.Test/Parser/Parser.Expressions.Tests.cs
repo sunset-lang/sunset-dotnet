@@ -33,20 +33,20 @@ public class ParserExpressionsTests
     public void Parse_ExpressionWithConstants_CorrectTree()
     {
         var stringRepresentation = PrintParsedExpression("a * -b + c + d * 12.5 + 3.14 / 2");
-        Assert.That(stringRepresentation, Is.EqualTo("(+ (* a (- b)) (+ c (+ (* d 12.5) (/ 3.14 2))))"));
+        Assert.That(stringRepresentation, Is.EqualTo("(+ (+ (+ (* a (- b)) c) (* d 12.5)) (/ 3.14 2))"));
     }
 
     [Test]
     public void Parse_ExpressionWithGrouping_CorrectTree()
     {
         var stringRepresentation = PrintParsedExpression("(a + b) / (c + d) * e");
-        Assert.That(stringRepresentation, Is.EqualTo("(/ (+ a b) (* (+ c d) e))"));
+        Assert.That(stringRepresentation, Is.EqualTo("(* (/ (+ a b) (+ c d)) e)"));
     }
 
     [Test]
     public void Parse_UnitAssignment_CorrectTree()
     {
         var stringRepresentation = PrintParsedExpression("12.5 {kg mm / s ^ 2} * 45 {kN m}");
-        Assert.That(stringRepresentation, Is.EqualTo("(* (assign 12.5 (* kg (/ mm (^ s 2)))) (assign 45 (* kN m)))"));
+        Assert.That(stringRepresentation, Is.EqualTo("(* (assign 12.5 (/ (* kg mm) (^ s 2))) (assign 45 (* kN m)))"));
     }
 }

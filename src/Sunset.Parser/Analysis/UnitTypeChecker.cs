@@ -3,8 +3,9 @@ using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
+using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Visitors.Evaluation;
+namespace Sunset.Parser.Analysis;
 
 /// <summary>
 ///     Performs type checking and circular logic checking on the AST.
@@ -21,7 +22,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
             NameExpression nameExpression => Visit(nameExpression),
             IfExpression ifExpression => Visit(ifExpression),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression),
-            VariableDeclaration variableAssignmentExpression => Visit(variableAssignmentExpression),
+            VariableDeclaration variableDeclaration => Visit(variableDeclaration),
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
@@ -36,7 +37,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
         if (leftResult == null || rightResult == null)
         {
-            dest.AddError(ErrorCode.CouldNotResolveTypes);
+            dest.AddError(ErrorCode.CouldNotResolveUnits);
             return null;
         }
 
@@ -97,7 +98,8 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     public Unit? Visit(UnitAssignmentExpression dest)
     {
-        return dest.Unit;
+        // Cache the unit for the unit assignment expression
+        return dest.Unit ??= Visit(dest.UnitExpression);
     }
 
     public Unit Visit(NumberConstant dest)
@@ -118,6 +120,20 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     public Unit? Visit(VariableDeclaration dest)
     {
+        var expressionUnit = Visit(dest.Expression);
+
+        if (dest.Unit == null || expressionUnit == null)
+        {
+            dest.AddError(ErrorCode.CouldNotResolveUnits);
+            return null;
+        }
+
+        if (!Unit.EqualDimensions(dest.Unit, expressionUnit))
+        {
+            dest.AddError(ErrorCode.UnitMismatch);
+            return null;
+        }
+
         return dest.Unit;
     }
 }

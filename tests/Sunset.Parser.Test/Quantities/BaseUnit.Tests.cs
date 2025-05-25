@@ -8,7 +8,7 @@ public class BaseCoherentUnitTests
     [Test]
     public void GetAllUnits()
     {
-        var units = DefinedUnits.AllUnits;
+        var units = DefinedUnits.UnitList;
 
         List<string> keywords = [];
         foreach (NamedUnit unit in units.OfType<NamedUnit>())

@@ -17,4 +17,16 @@ public class ParserVariableDeclarationTests
 
         Assert.That(stringRepresentation, Is.EqualTo("area <A> {mm^2} = (* (assign 100 mm) (assign 200 mm))"));
     }
+
+    [Test]
+    public void GetVariableDeclaration_WithComplexUnit_CorrectDeclaration()
+    {
+        var parser = new Parsing.Parser("force <F> {kN} = 100 {kg} * 200 {m} / (400 {s})^2", false);
+
+        var variable = parser.GetVariableDeclaration();
+        var stringRepresentation = _printer.PrintVariableDeclaration(variable);
+
+        Assert.That(stringRepresentation,
+            Is.EqualTo("force <F> {kN} = (/ (* (assign 100 kg) (assign 200 m)) (^ (assign 400 s) 2))"));
+    }
 }

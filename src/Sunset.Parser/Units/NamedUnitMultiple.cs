@@ -11,6 +11,8 @@ public class NamedUnitMultiple : NamedUnit
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of the unit multiple.</param>
     /// <param name="unitSymbol">New symbol to override the parent unit's symbol.</param>
+    /// <param name="latexPrefixSymbol">The prefix of the unit multiple in LaTeX format.
+    /// If empty, the prefix symbol is used.</param>
     public NamedUnitMultiple(NamedUnit namedUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
         string latexPrefixSymbol = ""
     ) : base(unitName, prefixSymbol, unitSymbol, latexPrefixSymbol)
@@ -27,6 +29,8 @@ public class NamedUnitMultiple : NamedUnit
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of unit multiple.</param>
     /// <param name="namedUnitParent">Parent of this NamedUnitMultiple.</param>
+    /// <param name="latexPrefixSymbol">The prefix of the unit multiple in LaTeX format.
+    /// If empty, the prefix symbol is used.</param>
     public NamedUnitMultiple(NamedUnit namedUnitParent, UnitName unitName, string prefixSymbol,
         string latexPrefixSymbol = ""
     ) : base(unitName, prefixSymbol, namedUnitParent.UnitSymbol, latexPrefixSymbol)
@@ -48,8 +52,10 @@ public class NamedUnitMultiple : NamedUnit
         double factor)
         : base(unitName, prefixSymbol, unitSymbol)
     {
-        UnitDimensions[(int)baseUnitParent.PrimaryDimension].Power = 1;
-        UnitDimensions[(int)baseUnitParent.PrimaryDimension].Factor = factor;
+        var dimensions = baseUnitParent.UnitDimensions.ToArray();
+        dimensions[(int)baseUnitParent.PrimaryDimension].Power = 1;
+        dimensions[(int)baseUnitParent.PrimaryDimension].Factor = factor;
+        UnitDimensions = [..dimensions];
 
         NamedUnitParent = baseUnitParent;
         Symbol = prefixSymbol + unitSymbol;
@@ -65,13 +71,8 @@ public class NamedUnitMultiple : NamedUnit
     /// <param name="factor">Factor to be applied to the unit.</param>
     public NamedUnitMultiple(BaseUnit baseUnitParent, UnitName unitName, string prefixSymbol,
         double factor)
-        : base(unitName, prefixSymbol, baseUnitParent.UnitSymbol)
+        : this(baseUnitParent, unitName, prefixSymbol, baseUnitParent.UnitSymbol, factor)
     {
-        UnitDimensions[(int)baseUnitParent.PrimaryDimension].Power = 1;
-        UnitDimensions[(int)baseUnitParent.PrimaryDimension].Factor = factor;
-
-        NamedUnitParent = baseUnitParent;
-        Symbol = prefixSymbol + baseUnitParent.UnitSymbol;
     }
 
     /// <summary>

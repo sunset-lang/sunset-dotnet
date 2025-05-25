@@ -1,8 +1,15 @@
+using System.Collections.Immutable;
+
 namespace Sunset.Parser.Units;
 
 // Partial class that implements the Base Unit functionality
 public partial class Unit
 {
+    /// <summary>
+    /// Gets the named unit by its symbol (e.g. "m" for metre).
+    /// </summary>
+    /// <param name="unitSymbol">The string representation of the unit's symbol.</param>
+    /// <returns>The NamedUnit corresponding to the symbol, or null if such a unit cannot be found.</returns>
     public static NamedUnit? GetBySymbol(string unitSymbol)
     {
         return AllUnits.OfType<NamedUnit>().FirstOrDefault(unit => unit.Symbol == unitSymbol);
@@ -11,7 +18,9 @@ public partial class Unit
     #region Base Units
 
     // Base units
-    // Dimensionless unit
+    /// <summary>
+    /// The dimensionless unit, which is used for quantities that do not have a physical dimension.
+    /// </summary>
     public static readonly Unit Dimensionless = new();
 
     // Mass units - note: base unit is kilograms
@@ -32,12 +41,9 @@ public partial class Unit
 
     public static readonly NamedUnitMultiple Nanometre = new(Metre, UnitName.Nanometre, "n", 1e-9);
 
-
     public static readonly NamedUnitMultiple Micrometre = new(Metre, UnitName.Micrometre, "u", 1e-6);
 
-
     public static readonly NamedUnitMultiple Millimetre = new(Metre, UnitName.Millimetre, "m", 1e-3);
-
 
     public static readonly NamedUnitMultiple Kilometre = new(Metre, UnitName.Kilometre, "k", 1e3);
 
@@ -68,14 +74,14 @@ public partial class Unit
 
     // Derived units
     // Pressure units
-    private static Dimension[] PressureUnitDimensions(double factor)
+    private static ImmutableArray<Dimension> PressureUnitDimensions(double factor)
     {
         var dimensions = Dimension.DimensionlessSet();
         dimensions[(int)DimensionName.Mass].Power = 1;
         dimensions[(int)DimensionName.Mass].Factor = factor;
         dimensions[(int)DimensionName.Length].Power = -1;
         dimensions[(int)DimensionName.Time].Power = -2;
-        return dimensions;
+        return [..dimensions];
     }
 
     public static readonly NamedUnit Pascal = new(UnitName.Pascal, "", "Pa")
@@ -99,14 +105,14 @@ public partial class Unit
     };
 
     // Force units
-    private static Dimension[] ForceUnitDimensions(double factor)
+    private static ImmutableArray<Dimension> ForceUnitDimensions(double factor)
     {
         var dimensions = Dimension.DimensionlessSet();
         dimensions[(int)DimensionName.Mass].Power = 1;
         dimensions[(int)DimensionName.Mass].Factor = factor;
         dimensions[(int)DimensionName.Length].Power = 1;
         dimensions[(int)DimensionName.Time].Power = -2;
-        return dimensions;
+        return [..dimensions];
     }
 
     public static readonly NamedUnit Newton = new(UnitName.Newton, "", "N")
@@ -177,11 +183,14 @@ public partial class Unit
     // TODO: Create test to ensure that all units that are defined are included
 
     /// <summary>
-    ///     This dictionary contains all of the named units that are multiples of the base named units
+    ///     This dictionary contains all the named units that are multiples of the base named units
     /// </summary>
     public static readonly Dictionary<NamedUnit, List<NamedUnitMultiple>> NamedUnitMultiples =
         GetNamedUnitMultiples();
 
+    /// <summary>
+    ///     A dictionary that maps the symbol of each named coherent unit to the unit itself.
+    /// </summary>
     public static readonly Dictionary<string, NamedUnit> NamedCoherentUnitsBySymbol = NamedCoherentUnits
         .ToDictionary(unit => unit.Symbol, unit => unit);
 

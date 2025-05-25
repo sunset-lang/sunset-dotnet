@@ -33,5 +33,5 @@ public class NamedUnit(
     /// <summary>
     ///     The symbol of the unit, e.g. km for kilometre.
     /// </summary>
-    public string Symbol { get; init; } = unitSymbol;
+    public string Symbol { get; protected init; } = unitSymbol;
 }

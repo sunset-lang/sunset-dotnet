@@ -6,17 +6,17 @@ namespace Sunset.Parser.Units;
 public partial class Unit
 {
     /// <summary>
-    ///     Get an equivalent simplified unit that is made up entirely of base units. If provided a value, returns a unit
-    ///     with a multiple that minimises the exponent of the value.
+    ///     Get an equivalent simplified unit made up entirely of base units. If provided a value, returns a unit
+    ///     with a multiple that minimises the exponent of the value. If not provided a value, tries to find the base unit
+    ///     multiples.
     /// </summary>
     /// <returns>An equivalent simplified unit.</returns>
     public Unit Simplify(double value = 0)
     {
+        // If the unit is dimensionless, return the unit as is.
         if (EqualDimensions(this, Dimensionless))
         {
-            // If the unit is dimensionless, return the unit as is.
-            _baseUnits = [];
-            return this;
+            return Dimensionless;
         }
 
         // Attempt to keep named units (e.g. m, N) in the same unit if the value is appropriately small,
@@ -33,7 +33,7 @@ public partial class Unit
         var simplifiedUnit = new Unit();
         var symbols = new List<(NamedUnit unit, Rational exponent)>();
 
-        // Go through list of derived units and check whether Unit can contain base unit
+        // Go through the list of derived units and check whether Unit can contain base unit
         foreach (var unit in DerivedCoherentUnits)
         {
             var divisorExponent = workingUnit.WholeUnitDivisorExponent(unit);
@@ -87,7 +87,6 @@ public partial class Unit
             return UnitError("The dimensions of the simplified unit do not match the original unit.");
 
         return bestMultipleUnit;
-        // TODO: Check for completeness of unit simplification
     }
 
 

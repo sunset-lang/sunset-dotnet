@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Numerics;
 using Sunset.Parser.Quantities;
 
@@ -12,7 +13,6 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
 {
     private List<(NamedUnit unit, Rational exponent)>? _baseUnits;
     private List<(NamedUnit unit, Rational exponent)>? _denominatorBaseUnits;
-
     private List<(NamedUnit unit, Rational exponent)>? _numeratorBaseUnits;
 
     /// <summary>
@@ -50,7 +50,8 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     {
         get
         {
-            return _denominatorBaseUnits ??= BaseUnits.Where((unitDetails, index) => unitDetails.exponent < 0).ToList();
+            return _denominatorBaseUnits ??= BaseUnits.Where((unitDetails, _)
+                => unitDetails.exponent < 0).ToList();
         }
     }
 
@@ -62,8 +63,9 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
 
     /// <summary>
     ///     The dimensions of the unit. Each dimension has a power and a factor.
+    ///     <seealso cref="Dimension"/>
     /// </summary>
-    public Dimension[] UnitDimensions { get; init; } = Dimension.DimensionlessSet();
+    public ImmutableArray<Dimension> UnitDimensions { get; protected set; } = [..Dimension.DimensionlessSet()];
 
     public bool IsDimensionless => EqualDimensions(this, Dimensionless);
 
@@ -93,6 +95,18 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         };
     }
 
+    /// <summary>
+    /// Creates a clone of a Unit with new dimensions. Clones everything else.
+    /// </summary>
+    /// <param name="dimensions">Dimensions to adopt for the new unit.</param>
+    /// <returns>The cloned Unit with new dimensions.</returns>
+    private Unit Clone(Dimension[] dimensions)
+    {
+        var unit = Clone();
+        unit.UnitDimensions = [..dimensions];
+
+        return unit;
+    }
 
     /// <summary>
     ///     Creates a clone of a Unit. Clones the dimensions and their factors.
@@ -100,12 +114,20 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     /// <returns>The cloned Unit.</returns>
     private Unit Clone(bool cloneFactors = true)
     {
-        var unit = new Unit();
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        var dimensions = UnitDimensions.ToArray();
+        // If we are not cloning the factors, set them all to 1.
+        if (!cloneFactors)
         {
-            unit.UnitDimensions[i].Power = UnitDimensions[i].Power;
-            if (cloneFactors) unit.UnitDimensions[i].Factor = UnitDimensions[i].Factor;
+            for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+            {
+                dimensions[i].Factor = 1;
+            }
         }
+
+        var unit = new Unit
+        {
+            UnitDimensions = [..dimensions]
+        };
 
         return unit;
     }

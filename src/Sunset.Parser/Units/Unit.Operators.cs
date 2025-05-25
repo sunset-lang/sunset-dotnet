@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Sunset.Parser.Units;
 
 // Mathematical operators for the Unit class
@@ -20,12 +22,15 @@ public partial class Unit
     /// </returns>
     public static Unit operator /(Unit left, Unit right)
     {
-        var result = left.Clone();
+        var dimensions = left.UnitDimensions.ToArray();
 
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)
-            result.UnitDimensions[i].Power -= right.UnitDimensions[i].Power;
+            dimensions[i].Power -= right.UnitDimensions[i].Power;
 
-        return result;
+        return new Unit
+        {
+            UnitDimensions = [..dimensions]
+        };
     }
 
     /// <summary>
@@ -37,12 +42,15 @@ public partial class Unit
     /// <returns>Resulting unit, where the dimensions are added together.</returns>
     public static Unit operator *(Unit left, Unit right)
     {
-        var result = left.Clone();
+        var dimensions = left.UnitDimensions.ToArray();
 
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)
-            result.UnitDimensions[i].Power += right.UnitDimensions[i].Power;
+            dimensions[i].Power += right.UnitDimensions[i].Power;
 
-        return result;
+        return new Unit
+        {
+            UnitDimensions = [..dimensions]
+        };
     }
 
     public static Unit operator -(Unit left, Unit right)
@@ -58,22 +66,31 @@ public partial class Unit
     public Unit Pow(double power)
     {
         var rationalPower = (Rational)power;
-        var result = Clone();
+        if (rationalPower == 1) return this;
 
-        if (rationalPower == 1) return result;
+        var dimensions = UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++) result.UnitDimensions[i].Power *= rationalPower;
+        for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power *= rationalPower;
 
-        return result;
+        return new Unit
+        {
+            UnitDimensions = [..dimensions]
+        };
     }
 
+    /// <inheritdoc cref="Pow(double)" />
     public Unit Pow(int power)
     {
-        var result = Clone();
+        if (power == 1) return this;
+        
+        var dimensions = UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++) result.UnitDimensions[i].Power *= power;
+        for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power *= power;
 
-        return result;
+        return new Unit
+        {
+            UnitDimensions = [..dimensions]
+        };
     }
 
     /// <summary>
@@ -81,10 +98,13 @@ public partial class Unit
     /// </summary>
     public Unit Sqrt()
     {
-        var result = Clone();
+        var dimensions = UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++) result.UnitDimensions[i].Power /= 2;
+        for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power /= 2;
 
-        return result;
+        return new Unit
+        {
+            UnitDimensions = [..dimensions]
+        };
     }
 }

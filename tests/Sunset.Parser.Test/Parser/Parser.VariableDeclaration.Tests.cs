@@ -15,7 +15,6 @@ public class ParserVariableDeclarationTests
         var variable = parser.GetVariableDeclaration();
         var stringRepresentation = _printer.PrintVariableDeclaration(variable);
 
-        // TODO: This appears to be printing the units in a simplified form rather than sticking with what came in from the parser.
         Assert.That(stringRepresentation, Is.EqualTo("area <A> {mm^2} = (* (assign 100 mm) (assign 200 mm))"));
     }
 }

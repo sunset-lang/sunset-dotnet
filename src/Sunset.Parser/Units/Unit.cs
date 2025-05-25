@@ -96,19 +96,6 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     }
 
     /// <summary>
-    /// Creates a clone of a Unit with new dimensions. Clones everything else.
-    /// </summary>
-    /// <param name="dimensions">Dimensions to adopt for the new unit.</param>
-    /// <returns>The cloned Unit with new dimensions.</returns>
-    private Unit Clone(Dimension[] dimensions)
-    {
-        var unit = Clone();
-        unit.UnitDimensions = [..dimensions];
-
-        return unit;
-    }
-
-    /// <summary>
     ///     Creates a clone of a Unit. Clones the dimensions and their factors.
     /// </summary>
     /// <returns>The cloned Unit.</returns>

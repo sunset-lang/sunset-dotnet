@@ -134,7 +134,7 @@ public partial class Parser
             if (infixParsingRule.infixParse == null)
                 throw new Exception("Error parsing expression, expected an infix parse rule");
 
-            if (infixParsingRule.infixPrecedence < minPrecedence) break;
+            if (infixParsingRule.infixPrecedence <= minPrecedence) break;
 
             leftExpression = infixParsingRule.infixParse(this, leftExpression);
         }

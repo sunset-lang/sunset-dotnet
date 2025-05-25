@@ -24,7 +24,6 @@ public class ParserTests
                     x {mm} = 35 {mm} + 13 {mm}
                     y {kg} = 14 {kg} + 12 {kg}
                     """;
-        // Getting bogged down on the newline token handling in the parser.
         var parser = new Parsing.Parser(input);
 
         Assert.That(parser.SyntaxTree, Is.Not.Empty, "Expected non-empty syntax tree for multiple lines.");

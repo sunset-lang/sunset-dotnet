@@ -29,4 +29,5 @@ public class ParserVariableDeclarationTests
         Assert.That(stringRepresentation,
             Is.EqualTo("force <F> {kN} = (/ (* (assign 100 kg) (assign 200 m)) (^ (assign 400 s) 2))"));
     }
+    
 }

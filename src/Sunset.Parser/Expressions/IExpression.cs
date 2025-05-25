@@ -1,13 +1,13 @@
 ﻿using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Variables;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
-public interface IExpression
+public interface IExpression : IDeclaration
 {
-    public T Accept<T>(IVisitor<T> visitor);
 
     public static IExpression operator +(IExpression left, IExpression right)
     {

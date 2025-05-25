@@ -7,6 +7,9 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// </summary>
 public interface IDeclaration
 {
+    /// <summary>
+    /// Name of the declaration, which is used to find references to it.
+    /// </summary>
     public string Name { get; }
 
     /// <summary>

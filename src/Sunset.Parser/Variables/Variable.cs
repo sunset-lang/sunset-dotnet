@@ -9,7 +9,7 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser.Variables;
 
 /// <summary>
-///     A variable is a named container for a value. The value may or may not have been assigned a value.
+///     A variable is a named container for a function. It may be part of an element or standaone in it's own source.
 /// </summary>
 public class Variable : IVariable,
     IAdditionOperators<Variable, Variable, IExpression?>,
@@ -17,6 +17,16 @@ public class Variable : IVariable,
     IMultiplyOperators<Variable, Variable, IExpression?>,
     IDivisionOperators<Variable, Variable, IExpression?>
 {
+    public IQuantity? DefaultValue { get; set; }
+    public Unit Unit { get; } = DefinedUnits.Dimensionless;
+    public string Symbol { get; private set; } = "";
+    public string Name { get; private set; } = "";
+    public string Description { get; private set; } = "";
+    public string Reference { get; private set; } = "";
+    public string Label { get; private set; } = "";
+    public IExpression Expression => Declaration;
+    public VariableDeclaration Declaration { get; }
+
     public Variable(double value, Unit unit, string symbol = "", string name = "",
         string description = "",
         string reference = "",
@@ -81,15 +91,6 @@ public class Variable : IVariable,
         return left.Expression - right.Expression;
     }
 
-    public IQuantity? DefaultValue { get; set; }
-    public Unit Unit { get; } = DefinedUnits.Dimensionless;
-    public string Symbol { get; private set; } = "";
-    public string Name { get; private set; } = "";
-    public string Description { get; private set; } = "";
-    public string Reference { get; private set; } = "";
-    public string Label { get; private set; } = "";
-    public IExpression Expression => Declaration;
-    public VariableDeclaration Declaration { get; }
 
     public IVariable AssignSymbol(string symbol)
     {

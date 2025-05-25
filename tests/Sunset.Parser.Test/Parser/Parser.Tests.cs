@@ -27,6 +27,6 @@ public class ParserTests
         var parser = new Parsing.Parser(input);
 
         Assert.That(parser.SyntaxTree, Is.Not.Empty, "Expected non-empty syntax tree for multiple lines.");
-        Assert.That(parser.SyntaxTree.Count, Is.EqualTo(2), "Expected three declarations in the syntax tree.");
+        Assert.That(parser.SyntaxTree.Count, Is.EqualTo(2), "Expected two declarations in the syntax tree.");
     }
 }

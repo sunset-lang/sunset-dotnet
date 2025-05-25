@@ -5,13 +5,45 @@
 /// </summary>
 public class Environment
 {
-    public List<Scope> Scopes { get; } = [];
+    /// <summary>
+    /// The source files that are part of the environment.
+    /// </summary>
+    public List<SourceFile> SourceFiles { get; } = [];
 
-    public void AddFile(string fileName)
+    /// <summary>
+    /// The scopes defined in the source files.
+    /// </summary>
+    public List<Scope> Scopes { get; } = [];
+    // TODO: Turn this into a dictionary by scope name.
+
+    /// <summary>
+    /// Adds a source file to the environment.
+    /// </summary>
+    /// <param name="file"><see cref="SourceFile"/> to be added to the environment.</param>
+    public void AddFile(SourceFile file)
     {
+        SourceFiles.Add(file);
+        // TODO: Handle the case where the file or scopes have already been added.
+        Scopes.AddRange(file.Scopes);
     }
 
+    /// <summary>
+    /// Adds a source file to the environment by its file path.
+    /// </summary>
+    /// <param name="filePath">Path to the file containing the source code.</param>
+    public void AddFile(string filePath)
+    {
+        var sourceFile = new SourceFile(filePath);
+        AddFile(sourceFile);
+    }
+
+    /// <summary>
+    /// Adds source code directly to the environment without a file path.
+    /// </summary>
+    /// <param name="source">Source code to add to the environment.</param>
     public void AddSource(string source)
     {
+        var sourceFile = SourceFile.CreateFromSource(source);
+        AddFile(sourceFile);
     }
 }

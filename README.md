@@ -8,6 +8,10 @@ It is made up of the following projects:
 - `Sunset.Analyzer`: Static code analysis of the resulting syntax tree.
 - `Sunset.Interpreter`: Evaluation of the syntax tree.
 
+# Documentation
+
+This repository also contains the [documentation site](https://sunset-lang.github.io/sunset-docs) of the Sunset Language.
+
 ## Dependencies
 
 - .NET 8+

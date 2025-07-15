@@ -1,18 +1,14 @@
 # Repository structure
 
-The language, description and tooling are contained in a number of repositories in the Sunset organisation.
+The language, description and tooling are mostly within a single monorepository to keep the code and documentation as
+close together as possible.
 
 These are specified in the below categories.
 
-## Specification and documentation
-
-- **sunset-docs**: Documentation and specification for the language.
-
 ## Execution
 
-- **sunset-dotnet**: .NET implementation of the Sunset Language.
+- `sunset-dotnet`: .NET implementation of the Sunset Language. Also contains this documentation.
 
 ## Development tools
 
-- sunset-tree-sitter: Tree sitter grammar for the Sunset Language.
-- sunset-lsp: Language Server
+- `treesitter-sunset`: Tree sitter grammar for the Sunset Language.

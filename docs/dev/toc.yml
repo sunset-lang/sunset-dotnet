@@ -1,8 +1,2 @@
-- href: fundamentals.md
-- href: variables.md
-- href: conditionals.md
-- href: options.md
-- href: reporting.md
-- href: elements.md
-- href: element-inheritance.md
-- href: syntax-highlighting.md
+- href: architecture.md
+- href: repositories.md

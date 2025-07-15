@@ -33,20 +33,11 @@ public class SourceFile
     }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="SourceFile"/> class with the specified file path.
-    /// </summary>
-    public SourceFile(string filePath)
-    {
-        FilePath = filePath;
-        Load();
-    }
-
-    /// <summary>
     /// Creates a new instance of the <see cref="SourceFile"/> class from a string containing source code.
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static SourceFile CreateFromSource(string source)
+    public static SourceFile CreateFromString(string source)
     {
         var sourceFile = new SourceFile
         {
@@ -57,19 +48,11 @@ public class SourceFile
     }
 
     /// <summary>
-    /// Loads source code from the file specified in <see cref="FilePath"/>.
-    /// </summary>
-    public void Load()
-    {
-        Load(FilePath);
-    }
-
-    /// <summary>
     /// Loads the source code from the specified file path.
     /// </summary>
     /// <param name="path">File path containing source to be loaded.</param>
     /// <exception cref="FileNotFoundException">Thrown if the file cannot be found.</exception>
-    public void Load(string path)
+    public static SourceFile Load(string path)
     {
         // Check whether the file exists
         if (!File.Exists(path))
@@ -77,8 +60,11 @@ public class SourceFile
             throw new FileNotFoundException($"The file '{path}' does not exist.");
         }
 
-        // Read the file content
-        Source = File.ReadAllText(path);
-        _parser = new Parsing.Parser(Source);
+        var fileContents = File.ReadAllText(path);
+        return new SourceFile()
+        {
+            Source = fileContents,
+            _parser = new Parsing.Parser(fileContents)
+        };
     }
 }

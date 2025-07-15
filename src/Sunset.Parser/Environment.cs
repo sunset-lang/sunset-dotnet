@@ -33,7 +33,7 @@ public class Environment
     /// <param name="filePath">Path to the file containing the source code.</param>
     public void AddFile(string filePath)
     {
-        var sourceFile = new SourceFile(filePath);
+        var sourceFile = SourceFile.Load(filePath);
         AddFile(sourceFile);
     }
 
@@ -43,7 +43,7 @@ public class Environment
     /// <param name="source">Source code to add to the environment.</param>
     public void AddSource(string source)
     {
-        var sourceFile = SourceFile.CreateFromSource(source);
+        var sourceFile = SourceFile.CreateFromString(source);
         AddFile(sourceFile);
     }
 }

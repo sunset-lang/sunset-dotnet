@@ -1,6 +1,5 @@
 ﻿using Sunset.Parser.Quantities;
 using Sunset.Parser.Units;
-using Sunset.Parser.Variables;
 
 namespace Sunset.Parser.Design;
 

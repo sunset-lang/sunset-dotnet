@@ -1,7 +1,7 @@
-﻿using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
-using Sunset.Parser.Variables;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;

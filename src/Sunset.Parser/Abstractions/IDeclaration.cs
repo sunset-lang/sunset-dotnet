@@ -1,21 +1,16 @@
 ﻿using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Parsing.Declarations;
+namespace Sunset.Parser.Abstractions;
 
 /// <summary>
-///     Declarations assign a name to a value.
+/// A node in the syntax tree that declares a new name
 /// </summary>
-public interface IDeclaration
+public interface IDeclaration : INamed
 {
-    /// <summary>
-    /// Name of the declaration, which is used to find references to it.
-    /// </summary>
-    public string Name { get; }
-
     /// <summary>
     ///     Accepts a visitor to process the declaration.
     /// </summary>
-    /// <param name="visitor">The <see cref="IVisitor" /> that is being accepted.</param>
+    /// <param name="visitor">The <see cref="IVisitor{T}" /> that is being accepted.</param>
     /// <typeparam name="T">The type that is being returned by the <see cref="IVisitor" />.</typeparam>
     /// <returns>A value calculated by the <see cref="IVisitor" /></returns>
     public T Accept<T>(IVisitor<T> visitor);

@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Parsing.Statements;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Parsing.Statements;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Parsing.Declarations;

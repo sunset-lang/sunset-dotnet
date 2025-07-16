@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser;
+﻿using Sunset.Parser.Abstractions;
+
+namespace Sunset.Parser;
 
 /// <summary>
 /// An individual element.
@@ -6,7 +8,6 @@
 /// - Input variables with default values
 /// - Calculation functions
 /// </summary>
-public class Element
+public class Element : IScope
 {
-    
 }

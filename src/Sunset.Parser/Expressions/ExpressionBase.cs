@@ -13,6 +13,7 @@ public abstract class ExpressionBase : IExpression, IErrorContainer
     /// </summary>
     public string Name => string.Empty;
 
+
     /// <inheritdoc />
     public List<Error> Errors { get; } = [];
 

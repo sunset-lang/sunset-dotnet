@@ -3,7 +3,7 @@ using Sunset.Parser.Quantities;
 using Sunset.Parser.Reporting;
 using Sunset.Parser.Units;
 
-namespace Sunset.Parser.Variables;
+namespace Sunset.Parser.Abstractions;
 
 public interface IVariable : IReportItem
 {

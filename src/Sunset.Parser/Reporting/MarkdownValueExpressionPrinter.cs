@@ -2,7 +2,6 @@
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Variables;
 using Sunset.Parser.Visitors.Evaluation;
 
 namespace Sunset.Parser.Reporting;

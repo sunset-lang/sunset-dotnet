@@ -1,14 +1,11 @@
-﻿using Sunset.Parser.Parsing.Constants;
-using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Variables;
-using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
 public interface IExpression : IDeclaration
 {
-
     public static IExpression operator +(IExpression left, IExpression right)
     {
         return new BinaryExpression(TokenType.Plus, left, right);

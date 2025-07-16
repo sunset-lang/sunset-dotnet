@@ -2,6 +2,7 @@
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
+using IDeclaration = Sunset.Parser.Abstractions.IDeclaration;
 using Range = System.Range;
 
 namespace Sunset.Parser.Parsing;

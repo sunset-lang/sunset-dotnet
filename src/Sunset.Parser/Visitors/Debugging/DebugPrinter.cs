@@ -9,9 +9,9 @@ namespace Sunset.Parser.Visitors.Debugging;
 /// </summary>
 public class DebugPrinter : IVisitor<string>
 {
-    public string Visit(IExpression expression)
+    public string Visit(IVisitable dest)
     {
-        return expression switch
+        return dest switch
         {
             BinaryExpression binary => Visit(binary),
             UnaryExpression unary => Visit(unary),
@@ -75,6 +75,16 @@ public class DebugPrinter : IVisitor<string>
     public string Visit(VariableDeclaration dest)
     {
         return $"{dest.Variable.Name}";
+    }
+
+    public string Visit(FileScope dest)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string Visit(Element dest)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>

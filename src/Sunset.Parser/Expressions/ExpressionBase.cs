@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
@@ -8,12 +9,6 @@ namespace Sunset.Parser.Expressions;
 /// </summary>
 public abstract class ExpressionBase : IExpression, IErrorContainer
 {
-    /// <summary>
-    /// An empty name for the expression.
-    /// </summary>
-    public string Name => string.Empty;
-
-
     /// <inheritdoc />
     public List<Error> Errors { get; } = [];
 
@@ -26,6 +21,5 @@ public abstract class ExpressionBase : IExpression, IErrorContainer
         Errors.Add(Error.Create(code));
     }
 
-    /// <inheritdoc />
     public abstract T Accept<T>(IVisitor<T> visitor);
 }

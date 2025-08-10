@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Statements;
 using Sunset.Parser.Visitors;
 
@@ -24,10 +25,20 @@ public class ElementDeclaration : IDeclaration
     /// </summary>
     public string Name { get; }
 
+    public IScope ParentScope { get; }
+
     /// <inheritdoc />
     public T Accept<T>(IVisitor<T> visitor)
     {
         throw new NotImplementedException();
         // visitor.Visit(this);
+    }
+
+    public List<Error> Errors { get; }
+    public bool HasErrors { get; }
+
+    public void AddError(ErrorCode code)
+    {
+        throw new NotImplementedException();
     }
 }

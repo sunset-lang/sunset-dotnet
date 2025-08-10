@@ -1,12 +1,13 @@
 ﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Errors;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
 using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Expressions;
+namespace Sunset.Parser.Parsing.Declarations;
 
-public class VariableDeclaration : ExpressionBase
+public class VariableDeclaration : IDeclaration, IExpression
 {
     private readonly StringToken? _descriptionToken;
     private readonly StringToken? _labelToken;
@@ -15,6 +16,8 @@ public class VariableDeclaration : ExpressionBase
     private readonly SymbolName? _symbolExpression;
 
     private readonly VariableUnitAssignment? _unitAssignment;
+
+    public string Name => Variable.Name;
 
     public VariableDeclaration(IVariable variable, IExpression expression)
     {
@@ -38,6 +41,11 @@ public class VariableDeclaration : ExpressionBase
         _labelToken = labelToken;
         _descriptionToken = descriptionToken;
 
+        // The declaration contains the expression (or calculation) for the variable value.
+        // The variable itself points to the declaration for this value.
+        // This is to keep the behaviour of the variable separate from its implementation in Sunset code.
+        Expression = expression;
+
         Variable = new Variable(_nameToken.ToString(),
             unitAssignment?.Unit ?? DefinedUnits.Dimensionless,
             this,
@@ -45,8 +53,6 @@ public class VariableDeclaration : ExpressionBase
             _descriptionToken?.ToString() ?? "",
             _referenceToken?.ToString() ?? "",
             _labelToken?.ToString() ?? "");
-
-        Expression = expression;
     }
 
     public IVariable Variable { get; }
@@ -58,8 +64,22 @@ public class VariableDeclaration : ExpressionBase
 
     public Unit? Unit => _unitAssignment?.Unit;
 
-    public override T Accept<T>(IVisitor<T> visitor)
+    public IScope? ParentScope { get; }
+
+    public T Accept<T>(IVisitor<T> visitor)
     {
         return visitor.Visit(this);
+    }
+
+    /// <inheritdoc />
+    public List<Error> Errors { get; } = [];
+
+    /// <inheritdoc />
+    public bool HasErrors => Errors.Count > 0;
+
+    /// <inheritdoc />
+    public void AddError(ErrorCode code)
+    {
+        Errors.Add(Error.Create(code));
     }
 }

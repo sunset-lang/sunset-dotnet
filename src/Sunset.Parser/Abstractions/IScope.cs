@@ -12,13 +12,16 @@ public interface IScope : IDeclaration
     /// </summary>
     string ScopePath { get; }
 
-    /// <summary>
-    /// The parent scope to this scope.
-    /// </summary>
-    IScope ParentScope { get; }
 
     /// <summary>
     /// The children to this scope.
     /// </summary>
-    Dictionary<string, IScope> ChildScopes { get; }
+    Dictionary<string, IDeclaration> Children { get; }
+
+    /// <summary>
+    /// Retrieves a declaration from a scope, if it exists.
+    /// </summary>
+    /// <param name="name">Name of the child scope.</param>
+    /// <returns>An IScope with a matching name, or null if no such scope exists.</returns>
+    public IDeclaration? TryGetDeclaration(string name);
 }

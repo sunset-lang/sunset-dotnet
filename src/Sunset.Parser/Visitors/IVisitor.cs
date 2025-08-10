@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Visitors;
 
@@ -8,7 +9,7 @@ namespace Sunset.Parser.Visitors;
 /// </summary>
 public interface IVisitor<out T>
 {
-    T Visit(IExpression expression);
+    T Visit(IVisitable dest);
     T Visit(BinaryExpression dest);
     T Visit(UnaryExpression dest);
     T Visit(GroupingExpression dest);
@@ -19,4 +20,6 @@ public interface IVisitor<out T>
     T Visit(StringConstant dest);
     T Visit(UnitConstant dest);
     T Visit(VariableDeclaration dest);
+    T Visit(FileScope dest);
+    T Visit(Element dest);
 }

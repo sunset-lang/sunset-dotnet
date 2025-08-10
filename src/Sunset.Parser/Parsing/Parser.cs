@@ -34,7 +34,7 @@ public partial class Parser
     /// <param name="parse">
     ///     <inheritdoc cref="Parser(Lexer, bool)" />
     /// </param>
-    public Parser(string source, bool parse = true) : this(source.AsMemory(), parse)
+    public Parser(string source, bool parse = false) : this(source.AsMemory(), parse)
     {
     }
 
@@ -46,7 +46,7 @@ public partial class Parser
     /// <param name="parse">
     ///     <inheritdoc cref="Parser(Lexer, bool)" />
     /// </param>
-    public Parser(ReadOnlyMemory<char> source, bool parse = true) : this(new Lexer(source), parse)
+    public Parser(ReadOnlyMemory<char> source, bool parse = false) : this(new Lexer(source), parse)
     {
         _source = source;
     }
@@ -56,7 +56,7 @@ public partial class Parser
     /// </summary>
     /// <param name="lexer">Lexer to use in the parser. The Lexer contains the source code.</param>
     /// <param name="parse">True if parsing upon creation, false to parse manually using <see cref="Parse" />.</param>
-    public Parser(Lexer lexer, bool parse = true)
+    public Parser(Lexer lexer, bool parse = false)
     {
         _tokens = lexer.Tokens.ToArray();
         _current = _tokens[0];
@@ -68,13 +68,15 @@ public partial class Parser
     /// <summary>
     ///     Turns the list of tokens in the provided source code into an expression tree.
     /// </summary>
-    public void Parse()
+    public List<IDeclaration> Parse()
     {
-        // TODO: Ongoing update to this function depending on the completion of the parsing rules.
+        SyntaxTree.Clear();
         while (_current.Type != TokenType.EndOfFile)
         {
             SyntaxTree.Add(GetVariableDeclaration());
         }
+
+        return SyntaxTree;
     }
 
     /// <summary>

@@ -1,10 +1,15 @@
 ﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
-public interface IExpression : IDeclaration
+/// <summary>
+/// An expression that can be evaluated.
+/// </summary>
+public interface IExpression : IVisitable, IErrorContainer
 {
     public static IExpression operator +(IExpression left, IExpression right)
     {

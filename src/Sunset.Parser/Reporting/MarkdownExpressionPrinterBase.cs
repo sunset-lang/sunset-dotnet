@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Reporting;
@@ -11,9 +12,9 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
     /// </summary>
     public PrinterSettings Settings { get; set; } = PrinterSettings.Default;
 
-    public string Visit(IExpression expression)
+    public string Visit(IVisitable dest)
     {
-        return expression switch
+        return dest switch
         {
             BinaryExpression binaryExpression => Visit(binaryExpression),
             UnaryExpression unaryExpression => Visit(unaryExpression),
@@ -37,6 +38,16 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
     public abstract string Visit(StringConstant dest);
     public abstract string Visit(UnitConstant dest);
     public abstract string Visit(VariableDeclaration dest);
+
+    public string Visit(FileScope dest)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string Visit(Element dest)
+    {
+        throw new NotImplementedException();
+    }
 
 
     public string Visit(NameExpression dest)

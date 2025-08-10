@@ -24,7 +24,7 @@ public class ParserTests
                     x {mm} = 35 {mm} + 13 {mm}
                     y {kg} = 14 {kg} + 12 {kg}
                     """;
-        var parser = new Parsing.Parser(input);
+        var parser = new Parsing.Parser(input, true);
 
         Assert.That(parser.SyntaxTree, Is.Not.Empty, "Expected non-empty syntax tree for multiple lines.");
         Assert.That(parser.SyntaxTree.Count, Is.EqualTo(2), "Expected two declarations in the syntax tree.");

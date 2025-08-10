@@ -2,6 +2,7 @@
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Quantities;
 using Sunset.Parser.Reporting;
@@ -10,7 +11,7 @@ using Sunset.Parser.Units;
 namespace Sunset.Parser;
 
 /// <summary>
-///     A variable is a named container for a function. It may be part of an element or standaone in it's own source.
+///     A variable is a named container for a function. It may be part of an element or standalone in its own source.
 /// </summary>
 public class Variable : IVariable,
     IAdditionOperators<Variable, Variable, IExpression?>,

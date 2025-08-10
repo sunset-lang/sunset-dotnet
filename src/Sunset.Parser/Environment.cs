@@ -1,5 +1,7 @@
 ﻿using Serilog;
 using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis;
+using Sunset.Parser.Visitors.Evaluation;
 
 namespace Sunset.Parser;
 
@@ -20,20 +22,33 @@ public class Environment
     public Dictionary<string, IScope> ChildScopes { get; } = [];
 
     /// <summary>
+    /// Represents an execution environment for evaluating declarations and their associated values.
+    /// </summary>
+    public Environment(SourceFile entryPoint)
+    {
+        AddSource(entryPoint);
+    }
+
+    /// <summary>
     /// Adds a source file to the environment.
     /// </summary>
     /// <param name="source"><see cref="SourceFile"/> to be added to the environment.</param>
     public void AddSource(SourceFile source)
     {
-        if (!ChildScopes.ContainsKey(source.FilePath))
+        if (!ChildScopes.ContainsKey(source.Name))
         {
-            Log.Verbose("Added file {SourceFilePath} to environment.", source.FilePath);
             source.Environment = this;
-            ChildScopes.Add(source.FilePath, source);
+
+            var sourceScope = source.Parse();
+            if (sourceScope == null) throw new Exception($"Could not parse source file {source.FilePath}");
+
+            ChildScopes.Add(source.Name, sourceScope);
+
+            Log.Verbose("Added file {SourceFilePath} to environment.", source.Name);
         }
         else
         {
-            Log.Warning("File {SourceFilePath} already exists in environment. File not added.", source.FilePath);
+            Log.Warning("File {SourceFilePath} already exists in environment. File not added.", source.Name);
         }
     }
 
@@ -45,5 +60,25 @@ public class Environment
     {
         var source = SourceFile.FromFile(filePath);
         AddSource(source);
+    }
+
+    /// <summary>
+    /// Performs static analysis on the source. This includes checking of all types and default quantity evaluation.
+    /// </summary>
+    public void Analyse()
+    {
+        // Type checking
+        var typeChecker = new UnitTypeChecker();
+        foreach (var scope in ChildScopes.Values)
+        {
+            typeChecker.Visit(scope);
+        }
+
+        // Default evaluation
+        var quantityEvaluator = new DefaultQuantityEvaluator();
+        foreach (var scope in ChildScopes.Values)
+        {
+            quantityEvaluator.Visit(scope);
+        }
     }
 }

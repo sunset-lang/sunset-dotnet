@@ -1,5 +1,4 @@
 ﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Parsing;
 
 namespace Sunset.Parser;
 
@@ -9,9 +8,6 @@ namespace Sunset.Parser;
 /// </summary>
 public class SourceFile
 {
-    // TODO: Question - is the SourceFile a scope, or does it parse the contained source code and return a scope?
-    // The latter would seemingly make more sense
-
     /// <summary>
     /// The name of the file.
     /// </summary>
@@ -29,16 +25,9 @@ public class SourceFile
 
     private Parsing.Parser? _parser;
 
-    /// <inheritdoc />
     public Environment Environment { get; set; }
-
-    /// <inheritdoc />
     public string ScopePath { get; }
-
-    /// <inheritdoc />
     public IScope? ParentScope { get; set; }
-
-    public Dictionary<string, IScope> ChildScopes { get; private set; } = [];
 
     private SourceFile(string name, string source)
     {
@@ -86,13 +75,19 @@ public class SourceFile
     /// <returns>A new environment which can be used to evaluate results.</returns>
     public Environment CreateEnvironment()
     {
-        var environment = new Environment();
-        environment.AddSource(this);
+        var environment = new Environment(this);
         return environment;
     }
 
-    public IScope Parse()
+    public FileScope? Parse()
     {
-        return _parser!.Parse();
+        if (_parser == null) return null;
+
+        var fileScope = new FileScope(Name, ParentScope)
+        {
+            Children = _parser.Parse().ToDictionary(declaration => declaration.Name)
+        };
+
+        return fileScope;
     }
 }

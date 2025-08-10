@@ -167,10 +167,10 @@ public class Lexer
             Advance();
 
             // Return the next two characters as a token, incrementing the position and column
-            // This assumes that a two character token cannot cross a new line
+            // This assumes that a two-character token cannot cross a new line
             return new Token(doubleCharacterTokenType,
                 _position,
-                _position++,
+                _position + 1,
                 _line,
                 _column);
         }

@@ -4,30 +4,37 @@
 
 The following components make up an entire runtime. Each component contains represents an individual lexical scope.
 
-- `Module`: A module comprising a number of logically grouped together `File`s. These are representated as folders
+- `Environment`: An environment is the current runtime and acts as the root of the compiled tree. It contains zero or
+  more `Library` nodes and up to one entry point source `File`s.
+- `Library`: A collection of modules that is collected within a folder containing a `LibraryName.slib` file.
+- `Module`: A module comprising a number of logically grouped together `File`s. These are represented as folders
   containing the files.
-- `Libraries`: A collection of modules that is collected within a folder containing a `LibraryName.slib` folder.
-- `File`: An individual file, which may contain a group of elements. Does not have a name, although if an element exists
-  in the file the name should match the element name. Source files have the extension `.sun`.
+- `File`: An individual file, which may contain a group of elements. Source files have the extension `.sunset`.
 - `Element`: A collection of related variables and functions, often representing a physical element.
-- `Inputs`: A named variable that can be altered upon execution but has a single default value and unit.
-- `Calculations`: A function that is evaluated at runtime and makes reference to any number of other inputs or
+- `Variable`: A variable is a named function.
+- `Calculation`: A `Variable` that is evaluated at runtime and makes reference to any number of other inputs or
   calculations.
-- `Environment`: An environment contains variable values and may be passed into any executable node to commence
+- `Input`: A `Calculation` with a value that can be altered upon execution by passing in an `Instance` but has a single
+  default value.
+- `Instance`: An instance contains `Input` values and may be passed into any executable node to commence
   evaluation of that node.
 
 When compiling a program, the entry point to compilation may be:
 
 - `Library`: A library is compiled but not executed.
-- `File`: A collection of source code is entered as the root. All referenced libraries are fully compiled if not
-  executed.
+- `File`: A collection of source code is entered as the root. All referenced libraries are fully compiled.
 
 > Question: Why can't Modules or Elements or even calculations be used as compilation entry points? Should we allow any
 > node in the tree to be used as a compilation entry point (for testing purposes), and just provide warnings when the
 > entire tree is compiled in the tooling?
+>
+> Answer: This makes it tricky from a name resolution point of view. Let's just say that there are two points of
+> compilation: a library and a single source file. However, execution can occur using a particular environment (or an
+> empty environment) at all levels.
 
 ```mermaid
 flowchart TD
+    Environment --> States
     Environment --> Modules
     Environment --> Libraries
     Libraries --> Modules
@@ -91,3 +98,19 @@ flowchart TD
     NR --> TC[Type checker]
     TC --> Evaluator 
 ```
+
+# Name resolution strategy
+
+If not preceded by the access modifier `.`, names are checked by each `Scope`. The `Scope` does a breadth first search
+starting with itself then moving upwards to its parent `Scope`. If it can't find the name in any parent the `Scope`
+looks at the `Library` elements that are available in the `Environment`.
+
+## Access modifiers
+
+The access modifier is an operator with left precedence. The right operand of the access operator is found by looking at
+the names that are available in the `Scope` that is defined by the left operand.
+
+# Scoping responsibilities
+
+A parent scope is always responsible for setting the name and parent reference in the child scope when the scope is
+created.

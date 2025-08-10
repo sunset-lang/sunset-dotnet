@@ -1,6 +1,7 @@
 ﻿using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
 using Sunset.Parser.Visitors;
@@ -8,13 +9,13 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Analysis;
 
 /// <summary>
-///     Performs type checking and circular logic checking on the AST.
+///     Checks that the units defined in the sunset code are valid.
 /// </summary>
 public class UnitTypeChecker : IVisitor<Unit?>
 {
-    public Unit? Visit(IExpression expression)
+    public Unit? Visit(IVisitable dest)
     {
-        return expression switch
+        return dest switch
         {
             BinaryExpression binaryExpression => Visit(binaryExpression),
             UnaryExpression unaryExpression => Visit(unaryExpression),
@@ -26,6 +27,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
+            FileScope fileScope => Visit(fileScope),
             _ => throw new NotImplementedException()
         };
     }
@@ -53,7 +55,8 @@ public class UnitTypeChecker : IVisitor<Unit?>
             var additionResult = dest.Operator switch
             {
                 TokenType.Plus => leftResult + rightResult,
-                TokenType.Minus => leftResult - rightResult
+                TokenType.Minus => leftResult - rightResult,
+                _ => throw new NotImplementedException()
             };
 
             if (!additionResult.Valid)
@@ -135,5 +138,20 @@ public class UnitTypeChecker : IVisitor<Unit?>
         }
 
         return dest.Unit;
+    }
+
+    public Unit? Visit(FileScope dest)
+    {
+        foreach (var declaration in dest.Children.Values)
+        {
+            Visit(declaration);
+        }
+
+        return null;
+    }
+
+    public Unit Visit(Element dest)
+    {
+        throw new NotImplementedException();
     }
 }

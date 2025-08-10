@@ -1,6 +1,7 @@
 ﻿using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
 
@@ -10,9 +11,9 @@ public class UnitEvaluator : IVisitor<Unit>
 {
     private static readonly UnitEvaluator Singleton = new();
 
-    public Unit Visit(IExpression expression)
+    public Unit Visit(IVisitable dest)
     {
-        return expression switch
+        return dest switch
         {
             BinaryExpression binaryExpression => Visit(binaryExpression),
             UnaryExpression unaryExpression => Visit(unaryExpression),
@@ -87,6 +88,16 @@ public class UnitEvaluator : IVisitor<Unit>
     public Unit Visit(VariableDeclaration dest)
     {
         return dest.Variable.Unit;
+    }
+
+    public Unit Visit(FileScope dest)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Unit Visit(Element dest)
+    {
+        throw new NotImplementedException();
     }
 
     public static Unit Evaluate(IExpression expression)

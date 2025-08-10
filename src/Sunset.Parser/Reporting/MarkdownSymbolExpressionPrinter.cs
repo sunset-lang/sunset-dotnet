@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
 
 namespace Sunset.Parser.Reporting;

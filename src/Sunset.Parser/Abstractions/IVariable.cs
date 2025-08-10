@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Expressions;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Quantities;
 using Sunset.Parser.Reporting;
 using Sunset.Parser.Units;

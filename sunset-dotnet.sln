@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sunset.TestHelpers", "tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sunset.Parser.Test", "tests\Sunset.Parser.Test\Sunset.Parser.Test.csproj", "{726AE4F4-924D-492B-B32E-D8DD89A6E1BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sunset.Docsite", "src\Sunset.Docsite\Sunset.Docsite.csproj", "{42178A56-7EE9-4DEA-AD1C-52EE9C78E992}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,5 +27,9 @@ Global
 		{726AE4F4-924D-492B-B32E-D8DD89A6E1BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{726AE4F4-924D-492B-B32E-D8DD89A6E1BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{726AE4F4-924D-492B-B32E-D8DD89A6E1BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42178A56-7EE9-4DEA-AD1C-52EE9C78E992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42178A56-7EE9-4DEA-AD1C-52EE9C78E992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42178A56-7EE9-4DEA-AD1C-52EE9C78E992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42178A56-7EE9-4DEA-AD1C-52EE9C78E992}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

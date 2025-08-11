@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using System.ComponentModel;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -88,10 +89,19 @@ public class UnitTypeChecker : IVisitor<Unit?>
         return Visit(dest.InnerExpression);
     }
 
-    public Unit Visit(NameExpression dest)
+    public Unit? Visit(NameExpression dest)
     {
-        // TODO: Look up the variable in the symbol table
-        throw new NotImplementedException();
+        switch (dest.Declaration)
+        {
+            // TODO: Look up the variable in the symbol table
+            case null:
+                dest.AddError(ErrorCode.CouldNotFindName);
+                return null;
+            case VariableDeclaration variableDeclaration:
+                return variableDeclaration.Unit;
+            default:
+                throw new NotImplementedException();
+        }
     }
 
     public Unit Visit(IfExpression dest)

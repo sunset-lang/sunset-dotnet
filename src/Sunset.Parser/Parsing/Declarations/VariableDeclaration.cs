@@ -64,7 +64,7 @@ public class VariableDeclaration : IDeclaration, IExpression
 
     public Unit? Unit => _unitAssignment?.Unit;
 
-    public IScope? ParentScope { get; }
+    public IScope? ParentScope { get; init; }
 
     public T Accept<T>(IVisitor<T> visitor)
     {

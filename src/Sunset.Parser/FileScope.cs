@@ -19,7 +19,7 @@ public class FileScope(string name, IScope? parentScope) : IScope
     }
 
     public string ScopePath { get; } = $"{parentScope?.Name ?? "$"}.{name}";
-    public required Dictionary<string, IDeclaration> Children { get; init; }
+    public Dictionary<string, IDeclaration> Children { get; set; } = [];
     public IScope? ParentScope { get; } = parentScope;
 
     public IDeclaration? TryGetDeclaration(string name)
@@ -29,6 +29,7 @@ public class FileScope(string name, IScope? parentScope) : IScope
 
     public List<Error> Errors { get; }
     public bool HasErrors { get; }
+
     public void AddError(ErrorCode code)
     {
         throw new NotImplementedException();

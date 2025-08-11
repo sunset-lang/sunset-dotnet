@@ -83,10 +83,10 @@ public class SourceFile
     {
         if (_parser == null) return null;
 
-        var fileScope = new FileScope(Name, ParentScope)
-        {
-            Children = _parser.Parse().ToDictionary(declaration => declaration.Name)
-        };
+        var fileScope = new FileScope(Name, ParentScope);
+        var children = _parser.Parse(fileScope).ToDictionary(declaration => declaration.Name);
+        // TODO: Think about removing this mutability or abstracting it somewhere else.
+        fileScope.Children = children;
 
         return fileScope;
     }

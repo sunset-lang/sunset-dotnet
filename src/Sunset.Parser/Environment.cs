@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis;
+using Sunset.Parser.Visitors;
 using Sunset.Parser.Visitors.Evaluation;
 
 namespace Sunset.Parser;
@@ -65,8 +66,28 @@ public class Environment
     /// <summary>
     /// Performs static analysis on the source. This includes checking of all types and default quantity evaluation.
     /// </summary>
-    public void Analyse()
+    public void Parse()
     {
+        // Parsing
+        // TODO: Move parsing here
+
+        // Name resolution
+        var nameResolver = new NameResolver();
+        foreach (var scope in ChildScopes.Values)
+        {
+            // If the child scope of the environment is a file scope, the scope's parent will be null.
+            // In this case, treat the scope as an entry point.
+            // TODO: Can there be multiple entry points?
+            if (scope.ParentScope == null && scope is FileScope fileScope)
+            {
+                nameResolver.VisitEntryPoint(fileScope);
+                continue;
+            }
+
+            nameResolver.Visit(scope, scope.ParentScope);
+        }
+        // TODO: Implement name resolution
+
         // Type checking
         var typeChecker = new UnitTypeChecker();
         foreach (var scope in ChildScopes.Values)

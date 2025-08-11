@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
@@ -74,9 +75,15 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         return Visit(dest.InnerExpression);
     }
 
-    public IQuantity Visit(NameExpression dest)
+    public IQuantity? Visit(NameExpression dest)
     {
-        throw new NotImplementedException();
+        if (dest.Declaration == null)
+        {
+            dest.AddError(ErrorCode.CouldNotFindName);
+            return null;
+        }
+
+        return Visit(dest.Declaration);
     }
 
     public IQuantity Visit(IfExpression dest)

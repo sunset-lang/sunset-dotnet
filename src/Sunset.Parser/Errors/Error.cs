@@ -25,7 +25,10 @@ public enum ErrorCode
 
     // Units
     UnitMismatch,
-    ExpectedUnit
+    ExpectedUnit,
+
+    // Name resolution errors
+    CouldNotFindName
 }
 
 public class Error

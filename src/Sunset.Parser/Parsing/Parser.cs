@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
@@ -62,18 +63,19 @@ public partial class Parser
         _current = _tokens[0];
 
         Reset();
-        if (parse) Parse();
+        if (parse) Parse(new FileScope("$", null));
     }
 
     /// <summary>
     ///     Turns the list of tokens in the provided source code into an expression tree.
     /// </summary>
-    public List<IDeclaration> Parse()
+    /// <param name="parentScope">The parent scope to inject into each root declaration being parsed.</param>
+    public List<IDeclaration> Parse(IScope parentScope)
     {
         SyntaxTree.Clear();
         while (_current.Type != TokenType.EndOfFile)
         {
-            SyntaxTree.Add(GetVariableDeclaration());
+            SyntaxTree.Add(GetVariableDeclaration(parentScope));
         }
 
         return SyntaxTree;
@@ -148,7 +150,8 @@ public partial class Parser
         return leftExpression;
     }
 
-    public VariableDeclaration GetVariableDeclaration()
+
+    public VariableDeclaration GetVariableDeclaration(IScope parentScope)
     {
         // Grammar:
         // (IDENTIFIER symbolAssignment? | IDENTIFIER_SYMBOL) unitAssignment? "=" expression
@@ -196,7 +199,10 @@ public partial class Parser
         // Always end a variable declaration with a new line.
         Consume(TokenType.Newline);
 
-        return new VariableDeclaration(nameToken, expression, unitAssignment, symbolExpression);
+        return new VariableDeclaration(nameToken, expression, unitAssignment, symbolExpression)
+        {
+            ParentScope = parentScope
+        };
     }
 
     /// <summary>

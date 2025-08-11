@@ -28,31 +28,31 @@ public class MarkdownVariablePrinterTests()
     public void ReportValue_BaseUnit_ShouldReportCorrectValue()
     {
         var mass = new Variable(20, DefinedUnits.Kilogram, "m");
-        Assert.That(_markdownVariablePrinter.ReportValue(mass), Is.EqualTo("20 \\text{ kg}"));
+        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(mass), Is.EqualTo("20 \\text{ kg}"));
 
-        Console.WriteLine("Mass: " + _markdownVariablePrinter.ReportValue(mass));
+        Console.WriteLine("Mass: " + MarkdownVariablePrinter.ReportDefaultValue(mass));
     }
 
     [Test]
     public void ReportValue_Dimensionless_ShouldReportCorrectSignificantFigures()
     {
         var quantity = new Variable(0.9, DefinedUnits.Dimensionless, "\\phi");
-        Assert.That(_markdownVariablePrinter.ReportValue(quantity), Is.EqualTo("0.9"));
-        Console.WriteLine("Dimensionless: " + _markdownVariablePrinter.ReportValue(quantity));
+        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(quantity), Is.EqualTo("0.9"));
+        Console.WriteLine("Dimensionless: " + MarkdownVariablePrinter.ReportDefaultValue(quantity));
     }
 
     [Test]
     public void ReportValue_FirstMultiplication_ShouldReportCorrectValue()
     {
-        Console.WriteLine("Volume: " + _markdownVariablePrinter.ReportValue(_volume!));
-        Assert.That(_markdownVariablePrinter.ReportValue(_volume!), Is.EqualTo("6 \\times 10^{-3} \\text{ m}^{3}"));
+        Console.WriteLine("Volume: " + MarkdownVariablePrinter.ReportDefaultValue(_volume!));
+        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(_volume!), Is.EqualTo("6 \\times 10^{-3} \\text{ m}^{3}"));
     }
 
     [Test]
     public void ReportValue_SecondMultiplication_ShouldReportCorrectValue()
     {
-        Console.WriteLine("Density: " + _markdownVariablePrinter.ReportValue(_density!));
-        Assert.That(_markdownVariablePrinter.ReportValue(_density!), Is.EqualTo("3,333.3 \\text{ kg m}^{-3}"));
+        Console.WriteLine("Density: " + MarkdownVariablePrinter.ReportDefaultValue(_density!));
+        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(_density!), Is.EqualTo("3,333.3 \\text{ kg m}^{-3}"));
     }
 
     [Test]
@@ -70,12 +70,12 @@ public class MarkdownVariablePrinterTests()
 
         Assert.Multiple(() =>
         {
-            Assert.That(markdownVariablePrinter.ReportValue(volume), Is.EqualTo(@"6 \times 10^{-3} \text{ km}^{3}"));
-            Assert.That(markdownVariablePrinter.ReportValue(density), Is.EqualTo(@"3.333 \times 10^{-6} \text{ kg m}^{-3}"));
+            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(volume), Is.EqualTo(@"6 \times 10^{-3} \text{ km}^{3}"));
+            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(density), Is.EqualTo(@"3.333 \times 10^{-6} \text{ kg m}^{-3}"));
         });
 
-        Console.WriteLine("Volume: " + markdownVariablePrinter.ReportValue(volume));
-        Console.WriteLine("Density: " + markdownVariablePrinter.ReportValue(density));
+        Console.WriteLine("Volume: " + MarkdownVariablePrinter.ReportDefaultValue(volume));
+        Console.WriteLine("Density: " + MarkdownVariablePrinter.ReportDefaultValue(density));
     }
 
     [Test]

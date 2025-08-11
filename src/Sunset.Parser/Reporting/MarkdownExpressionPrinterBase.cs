@@ -5,6 +5,9 @@ using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Reporting;
 
+/// <summary>
+/// Base class for printing expressions in Markdown.
+/// </summary>
 public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
 {
     /// <summary>
@@ -22,7 +25,7 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
             NameExpression nameExpression => Visit(nameExpression),
             IfExpression ifExpression => Visit(ifExpression),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression),
-            VariableDeclaration variableAssignmentExpression => Visit(variableAssignmentExpression),
+            VariableDeclaration variableDeclaration => Visit(variableDeclaration),
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
@@ -38,25 +41,8 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
     public abstract string Visit(StringConstant dest);
     public abstract string Visit(UnitConstant dest);
     public abstract string Visit(VariableDeclaration dest);
-
-    public string Visit(FileScope dest)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string Visit(Element dest)
-    {
-        throw new NotImplementedException();
-    }
-
-
-    public string Visit(NameExpression dest)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string Visit(IfExpression dest)
-    {
-        throw new NotImplementedException();
-    }
+    public abstract string Visit(FileScope dest);
+    public abstract string Visit(Element dest);
+    public abstract string Visit(NameExpression dest);
+    public abstract string Visit(IfExpression dest);
 }

@@ -1,5 +1,8 @@
-﻿using Sunset.Parser.Abstractions;
+﻿using System.Text;
+using Sunset.Parser.Abstractions;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Reporting;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser;
@@ -27,11 +30,29 @@ public class FileScope(string name, IScope? parentScope) : IScope
         return Children.GetValueOrDefault(name);
     }
 
-    public List<Error> Errors { get; }
-    public bool HasErrors { get; }
+    public List<Error> Errors { get; } = [];
+    public bool HasErrors { get; } = false;
 
     public void AddError(ErrorCode code)
     {
         throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Prints all variables within a FileScope showing the evaluated default values.
+    /// </summary>
+    public string PrintDefaultValues()
+    {
+        var resultBuilder = new StringBuilder();
+
+        foreach (var declaration in Children.Values)
+        {
+            if (declaration is VariableDeclaration variable)
+            {
+                resultBuilder.AppendLine(MarkdownVariablePrinter.Report(variable.Variable));
+            }
+        }
+
+        return resultBuilder.ToString();
     }
 }

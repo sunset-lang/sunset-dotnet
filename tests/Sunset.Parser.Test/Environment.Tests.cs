@@ -1,7 +1,4 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Expressions;
-using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Quantities;
+﻿using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Units;
 
 namespace Sunset.Parser.Test;
@@ -12,16 +9,15 @@ public class EnvironmentTests
     [Test]
     public void Analyse_SingleVariableDimensionless_CorrectResult()
     {
-        var sourceFile = SourceFile.FromString("""
-                                               x = 35 + 12
-                                               """);
+        var sourceFile = SourceFile.FromString("x = 35 + 12");
         var environment = new Environment(sourceFile);
         environment.Parse();
-        var result = environment.ChildScopes["$"].Children["x"];
-        if (result is VariableDeclaration variableDeclaration)
+
+        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
+        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration xDeclaration)
         {
-            var defaultValue = variableDeclaration.Variable.DefaultValue?.Value;
-            var defaultUnit = variableDeclaration.Variable.Unit;
+            var defaultValue = xDeclaration.Variable.DefaultValue?.Value;
+            var defaultUnit = xDeclaration.Variable.Unit;
 
             Assert.That(defaultValue, Is.Not.Null);
             Assert.That(defaultValue, Is.EqualTo(47));
@@ -36,16 +32,14 @@ public class EnvironmentTests
     [Test]
     public void Analyse_SingleVariableWithUnits_CorrectResult()
     {
-        var sourceFile = SourceFile.FromString("""
-                                               x {m} = 35 {m} + 12 {m}
-                                               """);
+        var sourceFile = SourceFile.FromString("x {m} = 35 {m} + 12 {m}");
         var environment = new Environment(sourceFile);
         environment.Parse();
-        var result = environment.ChildScopes["$"].Children["x"];
-        if (result is VariableDeclaration variableDeclaration)
+        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
+        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration xDeclaration)
         {
-            var defaultValue = variableDeclaration.Variable.DefaultValue?.Value;
-            var defaultUnit = variableDeclaration.Variable.Unit;
+            var defaultValue = xDeclaration.Variable.DefaultValue?.Value;
+            var defaultUnit = xDeclaration.Variable.Unit;
 
             Assert.That(defaultValue, Is.Not.Null);
             Assert.That(defaultValue, Is.EqualTo(47));
@@ -69,6 +63,7 @@ public class EnvironmentTests
         var result1 = environment.ChildScopes["$"].Children["x"];
         var result2 = environment.ChildScopes["$"].Children["y"];
 
+        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
         if (result1 is VariableDeclaration declaration1)
         {
             var defaultValue = declaration1.Variable.DefaultValue?.Value;
@@ -80,7 +75,7 @@ public class EnvironmentTests
         }
         else
         {
-            Assert.Fail("Expected variable to be declared.");
+            Assert.Fail("Expected variable x to be declared.");
         }
 
         if (result2 is VariableDeclaration declaration2)
@@ -94,7 +89,7 @@ public class EnvironmentTests
         }
         else
         {
-            Assert.Fail("Expected variable to be declared.");
+            Assert.Fail("Expected variable y to be declared.");
         }
     }
 
@@ -108,11 +103,9 @@ public class EnvironmentTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Parse();
-        var result1 = environment.ChildScopes["$"].Children["x"];
-        var result2 = environment.ChildScopes["$"].Children["y"];
-        var result3 = environment.ChildScopes["$"].Children["z"];
+        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
 
-        if (result1 is VariableDeclaration declaration1)
+        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration declaration1)
         {
             var defaultValue = declaration1.Variable.DefaultValue?.Value;
             var defaultUnit = declaration1.Variable.Unit;
@@ -123,13 +116,13 @@ public class EnvironmentTests
         }
         else
         {
-            Assert.Fail("Expected variable to be declared.");
+            Assert.Fail("Expected variable x to be declared.");
         }
 
-        if (result2 is VariableDeclaration declaration2)
+        if (environment.ChildScopes["$"].Children["y"] is VariableDeclaration yDeclaration)
         {
-            var defaultValue = declaration2.Variable.DefaultValue?.Value;
-            var defaultUnit = declaration2.Variable.Unit;
+            var defaultValue = yDeclaration.Variable.DefaultValue?.Value;
+            var defaultUnit = yDeclaration.Variable.Unit;
 
             Assert.That(defaultValue, Is.Not.Null);
             Assert.That(defaultValue, Is.EqualTo(94));
@@ -137,13 +130,13 @@ public class EnvironmentTests
         }
         else
         {
-            Assert.Fail("Expected variable to be declared.");
+            Assert.Fail("Expected variable y to be declared.");
         }
 
-        if (result3 is VariableDeclaration declaration3)
+        if (environment.ChildScopes["$"].Children["z"] is VariableDeclaration zDeclaration)
         {
-            var defaultValue = declaration3.Variable.DefaultValue?.Value;
-            var defaultUnit = declaration3.Variable.Unit;
+            var defaultValue = zDeclaration.Variable.DefaultValue?.Value;
+            var defaultUnit = zDeclaration.Variable.Unit;
 
             Assert.That(defaultValue, Is.Not.Null);
             Assert.That(defaultValue, Is.EqualTo(-47));
@@ -151,7 +144,62 @@ public class EnvironmentTests
         }
         else
         {
-            Assert.Fail("Expected variable to be declared.");
+            Assert.Fail("Expected variable z to be declared.");
+        }
+    }
+
+    [Test]
+    public void Analyse_CalculationOutOfOrder_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               z = x - y
+                                               y = x * 2
+                                               x = 35 + 12
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Parse();
+        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
+
+        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration declaration1)
+        {
+            var defaultValue = declaration1.Variable.DefaultValue?.Value;
+            var defaultUnit = declaration1.Variable.Unit;
+
+            Assert.That(defaultValue, Is.Not.Null);
+            Assert.That(defaultValue, Is.EqualTo(47));
+            Assert.That(defaultUnit.IsDimensionless, Is.True);
+        }
+        else
+        {
+            Assert.Fail("Expected variable x to be declared.");
+        }
+
+        if (environment.ChildScopes["$"].Children["y"] is VariableDeclaration yDeclaration)
+        {
+            var defaultValue = yDeclaration.Variable.DefaultValue?.Value;
+            var defaultUnit = yDeclaration.Variable.Unit;
+
+            Assert.That(defaultValue, Is.Not.Null);
+            Assert.That(defaultValue, Is.EqualTo(94));
+            Assert.That(defaultUnit.IsDimensionless, Is.True);
+        }
+        else
+        {
+            Assert.Fail("Expected variable y to be declared.");
+        }
+
+        if (environment.ChildScopes["$"].Children["z"] is VariableDeclaration zDeclaration)
+        {
+            var defaultValue = zDeclaration.Variable.DefaultValue?.Value;
+            var defaultUnit = zDeclaration.Variable.Unit;
+
+            Assert.That(defaultValue, Is.Not.Null);
+            Assert.That(defaultValue, Is.EqualTo(-47));
+            Assert.That(defaultUnit.IsDimensionless, Is.True);
+        }
+        else
+        {
+            Assert.Fail("Expected variable z to be declared.");
         }
     }
 }

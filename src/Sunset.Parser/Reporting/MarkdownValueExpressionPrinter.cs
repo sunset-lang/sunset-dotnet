@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Design;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Design;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -7,6 +8,9 @@ using Sunset.Parser.Visitors.Evaluation;
 
 namespace Sunset.Parser.Reporting;
 
+/// <summary>
+/// Prints the result of expressions with the numeric values included.
+/// </summary>
 public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
 {
     private static readonly MarkdownValueExpressionPrinter Singleton = new();
@@ -54,8 +58,28 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
         return Visit(dest.InnerExpression);
     }
 
+    public override string Visit(NameExpression dest)
+    {
+        switch (dest.Declaration)
+        {
+            case VariableDeclaration variableDeclaration:
+                if (variableDeclaration.Variable.DefaultValue != null)
+                    return MarkdownHelpers.ReportQuantity(variableDeclaration.Variable.DefaultValue);
+                throw new Exception("Default value not evaluated");
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public override string Visit(IfExpression dest)
+    {
+        throw new NotImplementedException();
+    }
+
     public override string Visit(UnitAssignmentExpression dest)
     {
+        // TODO: Don't do any evaluation here - just print the result.
+
         // If the expression is a constant, report it now
         if (dest.Value is NumberConstant numberConstant)
             return MarkdownHelpers.ReportQuantity(DefaultQuantityEvaluator.Evaluate(dest));
@@ -95,5 +119,15 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
             };
 
         return Visit(dest.Expression);
+    }
+
+    public override string Visit(FileScope dest)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string Visit(Element dest)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -8,14 +8,14 @@ namespace Sunset.Parser.Expressions;
 /// A name that can be resolved to point to a declaration.
 /// </summary>
 /// <param name="nameToken">Token containing the name.</param>
-public class NameExpression(StringToken nameToken) : ExpressionBase
+public class NameExpression(StringToken nameToken) : ExpressionBase, INamed
 {
     public StringToken Token { get; } = nameToken;
 
     /// <summary>
     /// The name to be resolved.
     /// </summary>
-    public string Name = nameToken.Value.ToString();
+    public string Name { get; } = nameToken.Value.ToString();
 
     /// <summary>
     /// The declaration that the name points to.

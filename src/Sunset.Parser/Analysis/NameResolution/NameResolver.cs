@@ -97,24 +97,40 @@ public class NameResolver : INameResolver
         Visit(dest.InnerExpression, parentScope);
     }
 
-    /// <summary>
-    ///  Resolves an expression within a particular parent scope.
-    /// Used mainly for the access operator.
-    /// </summary>
-    /// <param name="dest">The expression to be evaluated.</param>
-    /// <param name="parentScope">The declaration used as a parent to the destination name expression being evaluated.</param>
     public void Visit(NameExpression dest, IScope parentScope)
     {
-        var declaration = parentScope.TryGetDeclaration(dest.Name);
+        var declaration = SearchParentsForName(dest.Name, parentScope);
 
-        // If the declaration cannot be found in the parent scope, log this as an error.
-        if (declaration == null)
+        if (declaration != null)
         {
-            dest.AddError(ErrorCode.CouldNotFindName);
+            dest.Declaration = declaration;
             return;
         }
 
-        dest.Declaration = declaration;
+        // TODO: Search for libraries in the root Environment.
+        dest.AddError(ErrorCode.CouldNotFindName);
+    }
+
+    /// <summary>
+    /// Recursively search a scope and all of its parents for a name.
+    /// </summary>
+    /// <param name="name">Name to search for in the scope.</param>
+    /// <param name="scope">Scope to search through.</param>
+    /// <returns>Returns a declaration if one is found, otherwise returns null if no declaration is found.</returns>
+    private IDeclaration? SearchParentsForName(string name, IScope scope)
+    {
+        var declaration = scope.TryGetDeclaration(name);
+
+        // If found, just return the declaration.
+        if (declaration != null) return declaration;
+
+        // If the declaration cannot be found in the parent scope, start ascending the tree until the name is found.
+        if (scope.ParentScope != null)
+        {
+            return SearchParentsForName(name, scope.ParentScope);
+        }
+
+        return null;
     }
 
     public void Visit(IfExpression dest, IScope parentScope)

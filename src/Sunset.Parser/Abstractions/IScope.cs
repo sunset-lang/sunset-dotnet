@@ -7,16 +7,9 @@
 public interface IScope : IDeclaration
 {
     /// <summary>
-    /// The full path to the scope, which includes the names of all parent scopes and the name of the current scope.
-    /// If empty, this scope is at the top level of the environment.
-    /// </summary>
-    string ScopePath { get; }
-
-
-    /// <summary>
     /// The children to this scope.
     /// </summary>
-    Dictionary<string, IDeclaration> Children { get; }
+    Dictionary<string, IDeclaration> ChildDeclarations { get; }
 
     /// <summary>
     /// Retrieves a declaration from a scope, if it exists.

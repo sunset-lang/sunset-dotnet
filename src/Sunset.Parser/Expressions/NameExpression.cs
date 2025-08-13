@@ -12,18 +12,12 @@ public class NameExpression(StringToken nameToken) : ExpressionBase, INamed
 {
     public StringToken Token { get; } = nameToken;
 
-    /// <summary>
-    /// The name to be resolved.
-    /// </summary>
     public string Name { get; } = nameToken.Value.ToString();
+
+    public string Path { get; }
 
     /// <summary>
     /// The declaration that the name points to.
     /// </summary>
     public IDeclaration? Declaration { get; set; }
-
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
 }

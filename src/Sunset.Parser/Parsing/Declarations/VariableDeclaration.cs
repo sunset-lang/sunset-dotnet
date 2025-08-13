@@ -7,20 +7,23 @@ using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Parsing.Declarations;
 
+/// <summary>
+/// Declares a new variable assigned with a calculation expression.
+/// </summary>
 public class VariableDeclaration : IDeclaration, IExpression
 {
-    private readonly StringToken? _descriptionToken;
-    private readonly StringToken? _labelToken;
-    private readonly StringToken? _nameToken;
-    private readonly StringToken? _referenceToken;
+    // TODO: Add symbolic expression at compile/parse time
     private readonly SymbolName? _symbolExpression;
 
-    private readonly VariableUnitAssignment? _unitAssignment;
+    public string Name { get; }
+    public string FullPath { get; }
 
-    public string Name => Variable.Name;
-
-    public VariableDeclaration(IVariable variable, IExpression expression)
+    public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
     {
+        ParentScope = parentScope;
+        Name = variable.Name;
+        FullPath = $"{parentScope?.FullPath ?? "$"}.{variable.Name}";
+
         Variable = variable;
         Expression = expression;
     }
@@ -28,33 +31,36 @@ public class VariableDeclaration : IDeclaration, IExpression
     public VariableDeclaration(
         StringToken nameToken,
         IExpression expression,
+        IScope parentScope,
         VariableUnitAssignment? unitAssignment = null,
         SymbolName? symbolExpression = null,
         StringToken? descriptionToken = null,
         StringToken? referenceToken = null,
         StringToken? labelToken = null)
     {
-        _unitAssignment = unitAssignment;
-        _nameToken = nameToken;
         _symbolExpression = symbolExpression;
-        _referenceToken = referenceToken;
-        _labelToken = labelToken;
-        _descriptionToken = descriptionToken;
+
+        ParentScope = parentScope;
+        Name = nameToken.Value.ToString();
+        FullPath = parentScope.FullPath + "." + nameToken.Value;
 
         // The declaration contains the expression (or calculation) for the variable value.
         // The variable itself points to the declaration for this value.
         // This is to keep the behaviour of the variable separate from its implementation in Sunset code.
         Expression = expression;
 
-        Variable = new Variable(_nameToken.ToString(),
+        Variable = new Variable(nameToken.ToString(),
             unitAssignment?.Unit ?? DefinedUnits.Dimensionless,
             this,
             symbolExpression?.ToString() ?? "",
-            _descriptionToken?.ToString() ?? "",
-            _referenceToken?.ToString() ?? "",
-            _labelToken?.ToString() ?? "");
+            descriptionToken?.ToString() ?? "",
+            referenceToken?.ToString() ?? "",
+            labelToken?.ToString() ?? "");
     }
 
+    /// <summary>
+    /// The variable defined in this declaration. Contains all the relevant metadata.
+    /// </summary>
     public IVariable Variable { get; }
 
     /// <summary>
@@ -62,7 +68,10 @@ public class VariableDeclaration : IDeclaration, IExpression
     /// </summary>
     public IExpression Expression { get; }
 
-    public Unit? Unit => _unitAssignment?.Unit;
+    /// <summary>
+    /// The units associated with this declared variable.
+    /// </summary>
+    public Unit? Unit => Variable.Unit;
 
     public IScope? ParentScope { get; init; }
 

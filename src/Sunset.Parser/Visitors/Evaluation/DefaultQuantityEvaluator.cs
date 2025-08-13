@@ -106,7 +106,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
 
     public IQuantity? Visit(FileScope dest)
     {
-        foreach (var declaration in dest.Children.Values)
+        foreach (var declaration in dest.ChildDeclarations.Values)
         {
             Visit(declaration);
         }

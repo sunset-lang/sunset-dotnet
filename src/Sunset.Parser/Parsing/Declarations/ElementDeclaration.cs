@@ -6,9 +6,9 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
-///     Represents the declaration of a new element.
+///     Represents the declaration of a new element type.
 /// </summary>
-public class ElementDeclaration : IDeclaration
+public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
 {
     /// <summary>
     ///     The group of inputs for the element.
@@ -23,9 +23,11 @@ public class ElementDeclaration : IDeclaration
     /// <summary>
     ///     The name of the new element being declared.
     /// </summary>
-    public string Name { get; }
+    public string Name { get; } = name;
 
-    public IScope ParentScope { get; }
+    public string FullPath { get; } = parentScope.FullPath + "." + name;
+
+    public required IScope? ParentScope { get; init; } = parentScope;
 
     /// <inheritdoc />
     public T Accept<T>(IVisitor<T> visitor)

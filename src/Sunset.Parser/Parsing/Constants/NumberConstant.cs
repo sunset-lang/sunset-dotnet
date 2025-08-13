@@ -36,9 +36,4 @@ public class NumberConstant(INumberToken token) : ExpressionBase
             _ => null
         };
     }
-
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
 }

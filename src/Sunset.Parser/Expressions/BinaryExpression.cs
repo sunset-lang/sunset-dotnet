@@ -17,9 +17,4 @@ public class BinaryExpression(Token op, IExpression left, IExpression right) : E
     public IExpression Right { get; } = right;
 
     public TokenType? ParentBinaryOperator { get; set; }
-
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
 }

@@ -14,10 +14,4 @@ public class StringConstant(StringToken token) : ExpressionBase
     ///     The token that the string is generated from.
     /// </summary>
     public readonly StringToken Token = token;
-
-    /// <inheritdoc />
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
 }

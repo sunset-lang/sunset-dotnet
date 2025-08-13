@@ -30,9 +30,4 @@ public class UnitConstant(Unit unit) : ExpressionBase
     ///     The unit of measurement generated for this constant.
     /// </summary>
     public Unit Unit { get; } = unit;
-
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
 }

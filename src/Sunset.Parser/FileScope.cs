@@ -16,18 +16,13 @@ public class FileScope(string name, IScope? parentScope) : IScope
 {
     public string Name { get; } = name;
 
-    public T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
-
-    public string ScopePath { get; } = $"{parentScope?.Name ?? "$"}.{name}";
-    public Dictionary<string, IDeclaration> Children { get; set; } = [];
-    public IScope? ParentScope { get; } = parentScope;
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; set; } = [];
+    public IScope? ParentScope { get; init; } = parentScope;
+    public string FullPath { get; } = $"{parentScope?.Name ?? "$"}.{name}";
 
     public IDeclaration? TryGetDeclaration(string name)
     {
-        return Children.GetValueOrDefault(name);
+        return ChildDeclarations.GetValueOrDefault(name);
     }
 
     public List<Error> Errors { get; } = [];
@@ -45,7 +40,7 @@ public class FileScope(string name, IScope? parentScope) : IScope
     {
         var resultBuilder = new StringBuilder();
 
-        foreach (var declaration in Children.Values)
+        foreach (var declaration in ChildDeclarations.Values)
         {
             if (declaration is VariableDeclaration variable)
             {

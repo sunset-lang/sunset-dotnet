@@ -5,5 +5,9 @@
 /// </summary>
 public interface INamed
 {
+    /// <summary>
+    /// The name of the declared node.
+    /// </summary>
     public string Name { get; }
+
 }

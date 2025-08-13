@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Visitors;
 using Sunset.Parser.Visitors.Evaluation;
 
@@ -12,15 +13,17 @@ namespace Sunset.Parser;
 /// contained functions. Any IDeclaration can be evaluated by passing in an Environment, at which point it will be evaluated using
 /// the values within the Environment.
 ///
-/// If not found the default values of the IDeclaration will be used in the evaluation. This allows the parallel execution
+/// If not found, the default values of the IDeclaration will be used in the evaluation. This allows the parallel execution
 /// of multiple environments.
 /// </summary>
-public class Environment
+public class Environment : IScope
 {
     /// <summary>
     /// The scopes contained within this environment.
     /// </summary>
     public Dictionary<string, IScope> ChildScopes { get; } = [];
+
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
 
     /// <summary>
     /// Represents an execution environment for evaluating declarations and their associated values.
@@ -38,9 +41,8 @@ public class Environment
     {
         if (!ChildScopes.ContainsKey(source.Name))
         {
-            source.Environment = this;
+            var sourceScope = source.Parse(this);
 
-            var sourceScope = source.Parse();
             if (sourceScope == null) throw new Exception($"Could not parse source file {source.FilePath}");
 
             ChildScopes.Add(source.Name, sourceScope);
@@ -101,5 +103,23 @@ public class Environment
         {
             quantityEvaluator.Visit(scope);
         }
+    }
+
+    public string Name => "$env";
+    public IScope? ParentScope { get; init; } = null;
+    public string FullPath => "$env";
+
+    public List<Error> Errors { get; } = [];
+    public bool HasErrors { get; }
+
+    public void AddError(ErrorCode code)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IDeclaration? TryGetDeclaration(string name)
+    {
+        // The environment scope does not contain any declarations, only child scopes.
+        return null;
     }
 }

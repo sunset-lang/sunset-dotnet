@@ -172,7 +172,7 @@ public class NameResolver : INameResolver
 
     public void Visit(FileScope dest, IScope parentScope)
     {
-        foreach (var children in dest.Children.Values)
+        foreach (var children in dest.ChildDeclarations.Values)
         {
             Visit(children, dest);
         }
@@ -184,7 +184,7 @@ public class NameResolver : INameResolver
     /// <param name="dest"></param>
     public void VisitEntryPoint(FileScope dest)
     {
-        foreach (var children in dest.Children.Values)
+        foreach (var children in dest.ChildDeclarations.Values)
         {
             Visit(children, dest);
         }
@@ -192,7 +192,7 @@ public class NameResolver : INameResolver
 
     public void Visit(Element dest, IScope parentScope)
     {
-        foreach (var children in dest.Children.Values)
+        foreach (var children in dest.ChildDeclarations.Values)
         {
             Visit(children, dest);
         }

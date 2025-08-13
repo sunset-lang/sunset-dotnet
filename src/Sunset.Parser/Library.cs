@@ -4,26 +4,35 @@ using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser;
 
-public class Library : IScope
+public class Library(string name) : IScope
 {
-    public string Name { get; }
-    public string ScopePath { get; }
-    public Dictionary<string, IDeclaration> Children { get; }
+    public string Name { get; } = name;
+
+    /// <summary>
+    /// The full path of a library is the name of the library, as it is its own root scope.
+    /// </summary>
+    public string FullPath { get; } = name;
+
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
 
     public IDeclaration? TryGetDeclaration(string name)
     {
         throw new NotImplementedException();
     }
 
-    public IScope ParentScope { get; }
+    /// <summary>
+    /// Libraries are a root scope.
+    /// </summary>
+    public IScope? ParentScope { get; init; } = null;
 
     public T Accept<T>(IVisitor<T> visitor)
     {
-        throw new NotImplementedException();
+        return visitor.Visit(this);
     }
 
-    public List<Error> Errors { get; }
+    public List<Error> Errors { get; } = [];
     public bool HasErrors { get; }
+
     public void AddError(ErrorCode code)
     {
         throw new NotImplementedException();

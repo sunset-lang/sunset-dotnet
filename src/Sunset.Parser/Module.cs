@@ -11,6 +11,8 @@ public class Module : IScope
     /// </summary>
     public string Name { get; }
 
+    public string FullPath { get; }
+
     /// <summary>
     /// The source files that are part of this module.
     /// </summary>
@@ -21,11 +23,7 @@ public class Module : IScope
     /// </summary>
     public Library Library { get; }
 
-    // IScope implementation
-    /// <inheritdoc />
-    public string ScopePath { get; }
-
-    public Dictionary<string, IDeclaration> Children { get; }
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
 
     public IDeclaration? TryGetDeclaration(string name)
     {
@@ -33,10 +31,24 @@ public class Module : IScope
     }
 
     /// <inheritdoc />
-    public required IScope ParentScope { get; init; }
+    public required IScope? ParentScope { get; init; }
 
     public T Accept<T>(IVisitor<T> visitor)
     {
+        throw new NotImplementedException();
+    }
+
+    public Module(string name, IScope parentScope, Library library)
+    {
+        Name = name;
+        Library = library;
+        FullPath = $"{parentScope.Name}.{name}";
+    }
+
+    public Module(string name, IScope parentScope, List<SourceFile> files, Library library) : this(name, parentScope,
+        library)
+    {
+        Files = files;
         throw new NotImplementedException();
     }
 
@@ -53,14 +65,9 @@ public class Module : IScope
         throw new NotImplementedException();
     }
 
-    public Module(List<SourceFile> files)
-    {
-        Files = files;
-        throw new NotImplementedException();
-    }
-
-    public List<Error> Errors { get; }
+    public List<Error> Errors { get; } = [];
     public bool HasErrors { get; }
+
     public void AddError(ErrorCode code)
     {
         throw new NotImplementedException();

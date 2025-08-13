@@ -7,7 +7,7 @@ namespace Sunset.Parser.Expressions;
 /// <summary>
 /// Base class for IExpressions, which contain error handling and IVisitor acceptance.
 /// </summary>
-public abstract class ExpressionBase : IExpression, IErrorContainer
+public abstract class ExpressionBase : IExpression
 {
     /// <inheritdoc />
     public List<Error> Errors { get; } = [];
@@ -20,6 +20,4 @@ public abstract class ExpressionBase : IExpression, IErrorContainer
     {
         Errors.Add(Error.Create(code));
     }
-
-    public abstract T Accept<T>(IVisitor<T> visitor);
 }

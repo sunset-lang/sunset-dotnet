@@ -13,21 +13,15 @@ namespace Sunset.Parser;
 public class Element(string name, IScope parentScope) : IScope
 {
     public string Name { get; } = name;
-    public IScope ParentScope { get; } = parentScope;
-
-    public T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
-
-    public string ScopePath { get; } = $"{parentScope.Name}.{name}";
+    public IScope? ParentScope { get; init; } = parentScope;
+    public string FullPath { get; } = $"{parentScope.Name}.{name}";
 
     // TODO: Should this really be public?
-    public Dictionary<string, IDeclaration> Children { get; } = [];
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
 
     public IDeclaration? TryGetDeclaration(string name)
     {
-        return Children.GetValueOrDefault(name);
+        return ChildDeclarations.GetValueOrDefault(name);
     }
 
     public List<Error> Errors { get; }

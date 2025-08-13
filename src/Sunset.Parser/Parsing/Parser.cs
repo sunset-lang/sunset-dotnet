@@ -199,10 +199,7 @@ public partial class Parser
         // Always end a variable declaration with a new line.
         Consume(TokenType.Newline);
 
-        return new VariableDeclaration(nameToken, expression, unitAssignment, symbolExpression)
-        {
-            ParentScope = parentScope
-        };
+        return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression);
     }
 
     /// <summary>

@@ -46,7 +46,7 @@ public class Variable : IVariable,
         var unitExpression = new UnitConstant(unit);
 
         var unitAssignment = new UnitAssignmentExpression(valueExpression, unitExpression);
-        var variableAssignment = new VariableDeclaration(this, unitAssignment);
+        var variableAssignment = new VariableDeclaration(this, unitAssignment, null);
         Declaration = variableAssignment;
     }
 
@@ -155,7 +155,7 @@ public class Variable : IVariable,
             return variableDeclaration;
 
         // It not, wrap the expression in a new VariableDeclaration to allow for printing.
-        return new VariableDeclaration(this, expression);
+        return new VariableDeclaration(this, expression, null);
     }
 
     public static IExpression FromIVariable(IVariable variable)

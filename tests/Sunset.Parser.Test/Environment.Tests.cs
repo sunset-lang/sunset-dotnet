@@ -13,8 +13,8 @@ public class EnvironmentTests
         var environment = new Environment(sourceFile);
         environment.Parse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
-        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration xDeclaration)
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration xDeclaration)
         {
             var defaultValue = xDeclaration.Variable.DefaultValue?.Value;
             var defaultUnit = xDeclaration.Variable.Unit;
@@ -35,8 +35,8 @@ public class EnvironmentTests
         var sourceFile = SourceFile.FromString("x {m} = 35 {m} + 12 {m}");
         var environment = new Environment(sourceFile);
         environment.Parse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
-        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration xDeclaration)
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration xDeclaration)
         {
             var defaultValue = xDeclaration.Variable.DefaultValue?.Value;
             var defaultUnit = xDeclaration.Variable.Unit;
@@ -60,10 +60,10 @@ public class EnvironmentTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Parse();
-        var result1 = environment.ChildScopes["$"].Children["x"];
-        var result2 = environment.ChildScopes["$"].Children["y"];
+        var result1 = environment.ChildScopes["$file"].ChildDeclarations["x"];
+        var result2 = environment.ChildScopes["$file"].ChildDeclarations["y"];
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         if (result1 is VariableDeclaration declaration1)
         {
             var defaultValue = declaration1.Variable.DefaultValue?.Value;
@@ -103,9 +103,9 @@ public class EnvironmentTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Parse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
 
-        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration declaration1)
+        if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration declaration1)
         {
             var defaultValue = declaration1.Variable.DefaultValue?.Value;
             var defaultUnit = declaration1.Variable.Unit;
@@ -119,7 +119,7 @@ public class EnvironmentTests
             Assert.Fail("Expected variable x to be declared.");
         }
 
-        if (environment.ChildScopes["$"].Children["y"] is VariableDeclaration yDeclaration)
+        if (environment.ChildScopes["$file"].ChildDeclarations["y"] is VariableDeclaration yDeclaration)
         {
             var defaultValue = yDeclaration.Variable.DefaultValue?.Value;
             var defaultUnit = yDeclaration.Variable.Unit;
@@ -133,7 +133,7 @@ public class EnvironmentTests
             Assert.Fail("Expected variable y to be declared.");
         }
 
-        if (environment.ChildScopes["$"].Children["z"] is VariableDeclaration zDeclaration)
+        if (environment.ChildScopes["$file"].ChildDeclarations["z"] is VariableDeclaration zDeclaration)
         {
             var defaultValue = zDeclaration.Variable.DefaultValue?.Value;
             var defaultUnit = zDeclaration.Variable.Unit;
@@ -158,9 +158,9 @@ public class EnvironmentTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Parse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
 
-        if (environment.ChildScopes["$"].Children["x"] is VariableDeclaration declaration1)
+        if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration declaration1)
         {
             var defaultValue = declaration1.Variable.DefaultValue?.Value;
             var defaultUnit = declaration1.Variable.Unit;
@@ -174,7 +174,7 @@ public class EnvironmentTests
             Assert.Fail("Expected variable x to be declared.");
         }
 
-        if (environment.ChildScopes["$"].Children["y"] is VariableDeclaration yDeclaration)
+        if (environment.ChildScopes["$file"].ChildDeclarations["y"] is VariableDeclaration yDeclaration)
         {
             var defaultValue = yDeclaration.Variable.DefaultValue?.Value;
             var defaultUnit = yDeclaration.Variable.Unit;
@@ -188,7 +188,7 @@ public class EnvironmentTests
             Assert.Fail("Expected variable y to be declared.");
         }
 
-        if (environment.ChildScopes["$"].Children["z"] is VariableDeclaration zDeclaration)
+        if (environment.ChildScopes["$file"].ChildDeclarations["z"] is VariableDeclaration zDeclaration)
         {
             var defaultValue = zDeclaration.Variable.DefaultValue?.Value;
             var defaultUnit = zDeclaration.Variable.Unit;

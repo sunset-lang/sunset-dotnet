@@ -152,7 +152,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     public Unit? Visit(FileScope dest)
     {
-        foreach (var declaration in dest.Children.Values)
+        foreach (var declaration in dest.ChildDeclarations.Values)
         {
             Visit(declaration);
         }

@@ -25,8 +25,6 @@ public class SourceFile
 
     private Parsing.Parser? _parser;
 
-    public Environment Environment { get; set; }
-    public string ScopePath { get; }
     public IScope? ParentScope { get; set; }
 
     private SourceFile(string name, string source)
@@ -42,14 +40,14 @@ public class SourceFile
     /// <param name="source">The source code that is to be contained in the virtual file.</param>
     public static SourceFile FromString(string source)
     {
-        // The file's name and the name of its scope is given as the general "$".
-        return new SourceFile("$", source);
+        // The file's name and the name of its scope is given as the general "$file".
+        return new SourceFile("$file", source);
     }
 
     /// <summary>
     /// Loads the source code from the specified file path.
     /// </summary>
-    /// <param name="path">File path containing source to be loaded.</param>
+    /// <param name="path">File path containing source code to be loaded.</param>
     /// <exception cref="FileNotFoundException">Thrown if the file cannot be found.</exception>
     public static SourceFile FromFile(string path)
     {
@@ -79,14 +77,14 @@ public class SourceFile
         return environment;
     }
 
-    public FileScope? Parse()
+    public FileScope? Parse(Environment environment)
     {
         if (_parser == null) return null;
 
         var fileScope = new FileScope(Name, ParentScope);
         var children = _parser.Parse(fileScope).ToDictionary(declaration => declaration.Name);
         // TODO: Think about removing this mutability or abstracting it somewhere else.
-        fileScope.Children = children;
+        fileScope.ChildDeclarations = children;
 
         return fileScope;
     }

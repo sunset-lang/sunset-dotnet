@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Expressions;
+﻿using System.Text;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 
@@ -23,6 +24,8 @@ public class DebugPrinter : IVisitor<string>
             StringConstant str => Visit(str),
             UnitConstant unit => Visit(unit),
             VariableDeclaration variable => Visit(variable),
+            FileScope fileScope => Visit(fileScope),
+            Environment environment => Visit(environment),
             _ => throw new NotImplementedException()
         };
     }
@@ -44,7 +47,7 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(NameExpression dest)
     {
-        return dest.Token.ToString();
+        return dest.Declaration?.FullPath ?? $"{dest.Name}!";
     }
 
     public string Visit(IfExpression dest)
@@ -74,17 +77,42 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(VariableDeclaration dest)
     {
-        return $"{dest.Variable.Name}";
+        return $"""
+                    {dest.FullPath}:
+                        Unit: {dest.Unit}
+                        Symbol: {dest.Variable.Symbol}
+                        Expression: {Visit(dest.Expression)}
+                        
+                """;
     }
 
     public string Visit(FileScope dest)
     {
-        throw new NotImplementedException();
+        var builder = new StringBuilder();
+        builder.AppendLine($"{dest.FullPath}:");
+        foreach (var declaration in dest.ChildDeclarations.Values)
+        {
+            builder.AppendLine(Visit(declaration));
+        }
+
+        return builder.ToString();
     }
 
     public string Visit(Element dest)
     {
         throw new NotImplementedException();
+    }
+
+    public string Visit(Environment environment)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"{environment.FullPath}:");
+        foreach (var scope in environment.ChildScopes.Values)
+        {
+            builder.AppendLine(Visit(scope));
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>

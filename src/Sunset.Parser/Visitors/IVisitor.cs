@@ -22,4 +22,5 @@ public interface IVisitor<out T>
     T Visit(VariableDeclaration dest);
     T Visit(FileScope dest);
     T Visit(Element dest);
+    T Visit(Environment environment);
 }

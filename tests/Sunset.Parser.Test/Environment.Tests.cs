@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Units;
+using Sunset.Parser.Visitors.Debugging;
 
 namespace Sunset.Parser.Test;
 
@@ -14,6 +15,8 @@ public class EnvironmentTests
         environment.Parse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
         if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration xDeclaration)
         {
             var defaultValue = xDeclaration.Variable.DefaultValue?.Value;
@@ -36,6 +39,8 @@ public class EnvironmentTests
         var environment = new Environment(sourceFile);
         environment.Parse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
         if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration xDeclaration)
         {
             var defaultValue = xDeclaration.Variable.DefaultValue?.Value;
@@ -64,6 +69,8 @@ public class EnvironmentTests
         var result2 = environment.ChildScopes["$file"].ChildDeclarations["y"];
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
         if (result1 is VariableDeclaration declaration1)
         {
             var defaultValue = declaration1.Variable.DefaultValue?.Value;
@@ -104,6 +111,8 @@ public class EnvironmentTests
         var environment = new Environment(sourceFile);
         environment.Parse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
 
         if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration declaration1)
         {
@@ -159,6 +168,8 @@ public class EnvironmentTests
         var environment = new Environment(sourceFile);
         environment.Parse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
 
         if (environment.ChildScopes["$file"].ChildDeclarations["x"] is VariableDeclaration declaration1)
         {

@@ -43,6 +43,11 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
     public abstract string Visit(VariableDeclaration dest);
     public abstract string Visit(FileScope dest);
     public abstract string Visit(Element dest);
+    public string Visit(Environment environment)
+    {
+        throw new NotImplementedException();
+    }
+
     public abstract string Visit(NameExpression dest);
     public abstract string Visit(IfExpression dest);
 }

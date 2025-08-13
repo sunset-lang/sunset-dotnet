@@ -164,4 +164,9 @@ public class UnitTypeChecker : IVisitor<Unit?>
     {
         throw new NotImplementedException();
     }
+
+    public Unit? Visit(Environment environment)
+    {
+        throw new NotImplementedException();
+    }
 }

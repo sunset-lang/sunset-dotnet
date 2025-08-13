@@ -101,6 +101,11 @@ public class UnitEvaluator : IVisitor<Unit>
         throw new NotImplementedException();
     }
 
+    public Unit Visit(Environment environment)
+    {
+        throw new NotImplementedException();
+    }
+
     public static Unit Evaluate(IExpression expression)
     {
         return Singleton.Visit(expression);

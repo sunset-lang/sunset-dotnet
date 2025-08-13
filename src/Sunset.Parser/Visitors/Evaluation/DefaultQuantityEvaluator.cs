@@ -120,6 +120,11 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         throw new NotImplementedException();
     }
 
+    public IQuantity? Visit(Environment environment)
+    {
+        throw new NotImplementedException();
+    }
+
 
     public IQuantity Visit(NumberConstant dest)
     {

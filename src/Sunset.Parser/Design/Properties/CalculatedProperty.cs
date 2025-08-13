@@ -1,7 +1,7 @@
-﻿using Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Quantities;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Properties;
 
 /// <summary>
 ///     Calculates a property based on other properties with an ElementPropertiesBase set of properties.

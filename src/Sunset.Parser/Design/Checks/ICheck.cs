@@ -1,6 +1,6 @@
 using Sunset.Parser.Reporting;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Checks;
 
 /// <summary>
 ///     Interface for a design check that is performed on an IElement, which compares an ICapacity value to one or more

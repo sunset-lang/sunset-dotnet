@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Sunset.Parser.Reporting;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Properties;
 
 public abstract class ElementPropertiesBase<T> where T : ElementPropertiesBase<T>
 {

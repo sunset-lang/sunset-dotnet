@@ -24,11 +24,5 @@ public class Element(string name, IScope parentScope) : IScope
         return ChildDeclarations.GetValueOrDefault(name);
     }
 
-    public List<Error> Errors { get; }
-    public bool HasErrors { get; }
-
-    public void AddError(ErrorCode code)
-    {
-        throw new NotImplementedException();
-    }
+    public List<Error> Errors { get; } = [];
 }

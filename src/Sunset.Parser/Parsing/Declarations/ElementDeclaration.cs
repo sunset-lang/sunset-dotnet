@@ -36,11 +36,5 @@ public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
         // visitor.Visit(this);
     }
 
-    public List<Error> Errors { get; }
-    public bool HasErrors { get; }
-
-    public void AddError(ErrorCode code)
-    {
-        throw new NotImplementedException();
-    }
+    public List<Error> Errors { get; } = [];
 }

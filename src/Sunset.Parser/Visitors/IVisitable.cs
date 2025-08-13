@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Visitors;
+﻿using Sunset.Parser.Analysis.NameResolution;
+
+namespace Sunset.Parser.Visitors;
 
 /// <summary>
 /// A visitable node within the syntax tree.

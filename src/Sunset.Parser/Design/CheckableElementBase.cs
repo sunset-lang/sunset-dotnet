@@ -1,3 +1,5 @@
+using Sunset.Parser.Design.Checks;
+using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Quantities;
 using Sunset.Parser.Reporting;
 

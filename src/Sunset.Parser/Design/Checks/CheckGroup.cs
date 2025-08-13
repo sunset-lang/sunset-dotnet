@@ -1,4 +1,4 @@
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Checks;
 
 // TODO: Not implemented yet
 /*

@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Design;
+using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;

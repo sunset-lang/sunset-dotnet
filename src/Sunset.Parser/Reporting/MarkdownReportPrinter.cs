@@ -3,6 +3,7 @@ using Markdig;
 using Markdig.Renderers;
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Design;
+using Sunset.Parser.Design.Checks;
 
 namespace Sunset.Parser.Reporting;
 

@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;

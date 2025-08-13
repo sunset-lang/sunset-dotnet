@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Checks;
 
 public struct CapacityCheckResult<T>(IDemand<T> demand) where T : IElement
 {

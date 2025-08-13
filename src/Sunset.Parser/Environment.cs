@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Visitors;
 using Sunset.Parser.Visitors.Evaluation;
@@ -112,10 +113,6 @@ public class Environment : IScope
     public List<Error> Errors { get; } = [];
     public bool HasErrors { get; }
 
-    public void AddError(ErrorCode code)
-    {
-        throw new NotImplementedException();
-    }
 
     public IDeclaration? TryGetDeclaration(string name)
     {

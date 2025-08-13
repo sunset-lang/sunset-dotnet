@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Visitors;
 
@@ -13,8 +14,6 @@ public class NameExpression(StringToken nameToken) : ExpressionBase, INamed
     public StringToken Token { get; } = nameToken;
 
     public string Name { get; } = nameToken.Value.ToString();
-
-    public string Path { get; }
 
     /// <summary>
     /// The declaration that the name points to.

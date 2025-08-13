@@ -1,12 +1,12 @@
-﻿using System.Net.NetworkInformation;
-using Sunset.Parser.Abstractions;
+﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Visitors;
+namespace Sunset.Parser.Analysis.NameResolution;
 
 // TODO: Does this make sense or do I want to do this as a separate step and not as a visitor?
 public class NameResolver : INameResolver

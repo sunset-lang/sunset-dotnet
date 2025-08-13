@@ -13,11 +13,14 @@ public interface IErrorContainer
     /// <summary>
     /// True if errors exist, false otherwise.
     /// </summary>
-    bool HasErrors { get; }
+    bool HasErrors => Errors.Count > 0;
 
     /// <summary>
     /// Adds an error based on a provided <see cref="ErrorCode" />.
     /// </summary>
     /// <param name="code">Code representing the error.</param>
-    void AddError(ErrorCode code);
+    void AddError(ErrorCode code)
+    {
+        Errors.Add(Error.Create(code));
+    }
 }

@@ -12,10 +12,6 @@ public abstract class ExpressionBase : IExpression
     /// <inheritdoc />
     public List<Error> Errors { get; } = [];
 
-    /// <inheritdoc />
-    public bool HasErrors => Errors.Count > 0;
-
-    /// <inheritdoc />
     public void AddError(ErrorCode code)
     {
         Errors.Add(Error.Create(code));

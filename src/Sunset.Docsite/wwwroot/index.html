@@ -4,9 +4,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sunset.Docsite</title>
+    <title>The Sunset Language</title>
     <base href="/"/>
-    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="css/app.css"/>
     <link rel="icon" type="image/png" href="favicon.png"/>
     <link href="Sunset.Docsite.styles.css" rel="stylesheet"/>
@@ -14,6 +13,11 @@
     <!-- Load KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.css"
           integrity="sha384-o3WH+1yEhq+grOgz1BVYTZPyTlMXrDxnjN1By9/ba94JqJhva6wFm2Hb+URQX53v" crossorigin="anonymous">
+
+    <!-- Load MudBlazor -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+    <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
+    <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet"/>
 </head>
 
 <body>
@@ -34,21 +38,8 @@
 <script src="_content/BlazorMonaco/jsInterop.js"></script>
 <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
 <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
-<script type="module">
-    export function helloWorld() {
-        console.log("Hello World");
-    }
-
-    /*import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.mjs';
-
-    function renderOutput() {
-        console.log("Rendering output");
-        katex.render("x^2 + y^2 = z^2", document.getElementById("output"));
-        console.log("Rendered output");
-    }
-   
-     */
-</script>
+<!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
+<script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
 </body>
 
 </html>

@@ -1,68 +1,149 @@
 ﻿@page "/"
+@using BlazorMonaco
 @using BlazorMonaco.Editor
 @using Sunset.Parser
-@using MathJaxBlazor
+@inject IJSRuntime JS
 
-<PageTitle>Playground</PageTitle>
+@implements IAsyncDisposable
+
+<PageTitle>The Sunset Language playground</PageTitle>
 
 <h1>The Sunset Language</h1>
 <h2>Live playground</h2>
-<MathJaxContentComponent>
-    $$ x = y^2 $$
-</MathJaxContentComponent>
 <div class="row">
     <!-- Code editor -->
     <div class="col-md-6">
-        <button class="btn btn-primary" @onclick="RunCode">Run</button>
         <StandaloneCodeEditor @ref="_editor" Id="editor" CssClass="editor"
-                              ConstructionOptions="EditorConstructionOptions"/>
+                              ConstructionOptions="EditorConstructionOptions"
+                              OnKeyUp="EditorKeyUp"/>
     </div>
     <!-- Output -->
     <div class="col-md-6">
-        <MathJaxContentComponent @ref="_outputWindow">
-            
-            <textarea
-                class="form-control border rounded p-3"
-                style="min-height: 400px;"
-                @bind="_outputText"
-                readonly>$$x^2$$</textarea>
-        </MathJaxContentComponent>
+        <!-- Rendered output -->
+        <div @ref="_renderedOutputElement"></div>
+
+        <!-- Raw  output -->
+        <textarea
+            class="form-control border rounded p-3"
+            style="min-height: 400px;"
+            @bind="_outputText"
+            readonly></textarea>
     </div>
 </div>
 
-@inject IJSRuntime JSRuntime
 
 @code{
-    private StandaloneCodeEditor _editor = new();
-    private string _outputText = string.Empty;
-    private MathJaxContentComponent _outputWindow = new();
 
+    /// <summary>
+    /// The code editor
+    /// </summary>
+    private StandaloneCodeEditor _editor = new();
+
+    /// <summary>
+    /// The output text
+    /// </summary>
+    private string _outputText = string.Empty;
+
+    /// <summary>
+    /// The interop module containing the KaTeX rendering code.
+    /// </summary>
+    private IJSObjectReference? _module;
+
+    /// <summary>
+    /// The element to which KaTeX renders the equations.
+    /// </summary>
+    private ElementReference? _renderedOutputElement;
+
+    /// <summary>
+    /// Loads the rendering interop module.
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./scripts.js");
+        }
+
+        await RunCode();
+    }
+
+    /// <summary>
+    /// Assemble editor options.
+    /// </summary>
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
         return new StandaloneEditorConstructionOptions
         {
             AutomaticLayout = true,
-            Language = "javascript",
             Value = "x = 12",
         };
     }
 
+    /// <summary>
+    /// Compiles and executes the code in the editor.
+    /// </summary>
     private async Task RunCode()
     {
-        var code = await _editor.GetValue();
+        try
+        {
+            var code = await _editor.GetValue();
 
-        var sourceFile = SourceFile.FromString(code);
-        var environment = sourceFile.CreateEnvironment();
-        environment.Parse();
-        var output = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
-        //await RenderOutput(output);
-        _outputWindow.ChildContent.
+            var sourceFile = SourceFile.FromString(code);
+            var environment = sourceFile.CreateEnvironment();
+            environment.Parse();
+
+            // Render output wrapped in LaTeX align block
+            var output = "\\begin{aligned}\r\n" + ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues() + @"\end{aligned}";
+
+            await RenderRawOutput(output);
+
+            // Render using KaTeX and JS interop
+            if (_module != null)
+            {
+                await _module.InvokeVoidAsync("renderLatexOutput", output, _renderedOutputElement);
+            }
+        }
+        catch
+        {
+            // Do nothing with errors for now
+        }
     }
 
-    private Task RenderOutput(string text)
+    /// <summary>
+    /// Clean up imported module.
+    /// </summary>
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        _outputText = text;
+        if (_module != null)
+        {
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// Render the raw output to the screen.
+    /// </summary>
+    /// <param name="text">Raw output to be rendered.</param>
+    /// <returns></returns>
+    private Task RenderRawOutput(string output)
+    {
+        _outputText = output;
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Re-run the code and display the output whenever there is a keypress in the editor.
+    /// </summary>
+    private async Task EditorKeyUp(KeyboardEvent arg)
+    {
+        await RunCode();
     }
 
 }

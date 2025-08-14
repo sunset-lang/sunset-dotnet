@@ -66,12 +66,12 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // Example output for density calculation
         // \rho &= \frac{m}{V} \\
         // &= \frac{20 \text{ kg}}{10 \text{ m}^{3}} \\
-        // &= 2 \text{ kg m}^{-3}
+        // &= 2 \text{ kg m}^{-3} \\
         var result = variableDisplayName + " &" + ReportSymbolExpression(variable);
 
         if (variable.Reference != "") result += " &\\quad\\text{(" + variable.Reference + ")}";
 
-        result += $" \\\\\n&{ReportValueExpression(variable)} \\\\\n&= {ReportDefaultValue(variable)}";
+        result += $" \\\\\n&{ReportValueExpression(variable)} \\\\\n&= {ReportDefaultValue(variable)} \\\\";
 
         return result;
     }

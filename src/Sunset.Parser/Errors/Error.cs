@@ -28,7 +28,8 @@ public enum ErrorCode
     ExpectedUnit,
 
     // Name resolution errors
-    CouldNotFindName
+    CouldNotFindName,
+    UnitInExpression
 }
 
 public class Error

@@ -1,6 +1,9 @@
-﻿namespace Sunset.Parser.Analysis.TypeChecking;
+﻿using Sunset.Parser.Units;
+using Sunset.Parser.Visitors;
 
-public class UnitTypeCheckPassData
+namespace Sunset.Parser.Analysis.TypeChecking;
+
+public class UnitTypeCheckPassData : IPassData
 {
-    
+    public Unit? EvaluatedUnit { get; set; }
 }

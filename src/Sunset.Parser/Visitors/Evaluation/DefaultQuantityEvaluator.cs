@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
@@ -31,12 +32,12 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
-            FileScope fileScope => Visit(fileScope),
+            IScope scope => Visit(scope),
             _ => throw new NotImplementedException()
         };
     }
 
-    public IQuantity? Visit(BinaryExpression dest)
+    private IQuantity? Visit(BinaryExpression dest)
     {
         var leftResult = Visit(dest.Left);
         var rightResult = Visit(dest.Right);
@@ -57,7 +58,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         };
     }
 
-    public IQuantity? Visit(UnaryExpression dest)
+    private IQuantity? Visit(UnaryExpression dest)
     {
         var operandValue = Visit(dest.Operand);
         if (operandValue == null)
@@ -72,12 +73,12 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         };
     }
 
-    public IQuantity? Visit(GroupingExpression dest)
+    private IQuantity? Visit(GroupingExpression dest)
     {
         return Visit(dest.InnerExpression);
     }
 
-    public IQuantity? Visit(NameExpression dest)
+    private IQuantity? Visit(NameExpression dest)
     {
         var declaration = dest.GetResolvedDeclaration();
         if (declaration != null) return Visit(declaration);
@@ -86,25 +87,28 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         return null;
     }
 
-    public IQuantity Visit(IfExpression dest)
+    private IQuantity Visit(IfExpression dest)
     {
         throw new NotImplementedException();
     }
 
-    public IQuantity? Visit(UnitAssignmentExpression dest)
+    private IQuantity? Visit(UnitAssignmentExpression dest)
     {
-        var value = Visit(dest.Value)?.SetUnits(UnitEvaluator.Evaluate(dest.UnitExpression));
+        // Evaluate the units of the expression before return the quantity with units included
+        var unit = UnitTypeChecker.EvaluateExpressionUnits(dest.UnitExpression);
+        if (unit == null) return null;
+        var value = Visit(dest.Value)?.SetUnits(unit);
         return value;
     }
 
-    public IQuantity? Visit(VariableDeclaration dest)
+    private IQuantity? Visit(VariableDeclaration dest)
     {
         var value = Visit(dest.Expression);
         dest.Variable.DefaultValue = value;
         return value;
     }
 
-    public IQuantity? Visit(FileScope dest)
+    private IQuantity? Visit(IScope dest)
     {
         foreach (var declaration in dest.ChildDeclarations.Values)
         {
@@ -114,33 +118,24 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         return null;
     }
 
-    public IQuantity Visit(Element dest)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IQuantity? Visit(Environment environment)
-    {
-        throw new NotImplementedException();
-    }
-
-
-    public IQuantity Visit(NumberConstant dest)
+    private IQuantity Visit(NumberConstant dest)
     {
         return new Quantity(dest.Value, DefinedUnits.Dimensionless);
     }
 
-    public IQuantity Visit(StringConstant dest)
+    private IQuantity? Visit(StringConstant dest)
     {
-        throw new NotImplementedException();
+        dest.AddError(ErrorCode.StringInExpression);
+        return null;
     }
 
-    public IQuantity Visit(UnitConstant dest)
+    private IQuantity? Visit(UnitConstant dest)
     {
-        throw new NotImplementedException();
+        dest.AddError(ErrorCode.UnitInExpression);
+        return null;
     }
 
-    public static IQuantity? Evaluate(IExpression expression)
+    public static IQuantity? EvaluateExpression(IExpression expression)
     {
         return Singleton.Visit(expression);
     }

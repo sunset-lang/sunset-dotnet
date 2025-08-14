@@ -1,4 +1,5 @@
 using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -55,7 +56,8 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
             })
         {
             // If the unit hasn't already been evaluated, evaluate it first before printing
-            if (unitAssignmentExpression.Unit == null) UnitEvaluator.Evaluate(unitAssignmentExpression);
+            if (unitAssignmentExpression.Unit == null)
+                UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpression);
 
             return variableDisplayName + " &= " + numberConstant.Value +
                    unitAssignmentExpression.Unit?.ToLatexString();
@@ -134,7 +136,7 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
             return MarkdownHelpers.ReportQuantity(variable.DefaultValue);
         }
 
-        var result = DefaultQuantityEvaluator.Evaluate(variable.Expression);
+        var result = DefaultQuantityEvaluator.EvaluateExpression(variable.Expression);
         if (result == null)
         {
             throw new Exception("Could not evaluate default value for variable " + variable.Name);

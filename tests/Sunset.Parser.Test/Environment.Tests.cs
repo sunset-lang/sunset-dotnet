@@ -101,6 +101,22 @@ public class EnvironmentTests
     }
 
     [Test]
+    public void Analyse_ComplexCalculation_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               length <l> = 30 {mm}
+                                               width <w> = 0.4 {m}
+                                               area <A> = length * width
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Parse();
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
+        Assert.Fail();
+    }
+
+    [Test]
     public void Analyse_Calculation_CorrectResult()
     {
         var sourceFile = SourceFile.FromString("""

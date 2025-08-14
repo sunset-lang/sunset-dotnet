@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.Design;
-using Sunset.Parser.Abstractions;
+﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;

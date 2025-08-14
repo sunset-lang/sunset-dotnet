@@ -16,7 +16,6 @@ public class Element(string name, IScope parentScope) : IScope
     public IScope? ParentScope { get; init; } = parentScope;
     public string FullPath { get; } = $"{parentScope.Name}.{name}";
 
-    // TODO: Should this really be public?
     public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
 
     public IDeclaration? TryGetDeclaration(string name)
@@ -25,4 +24,5 @@ public class Element(string name, IScope parentScope) : IScope
     }
 
     public List<Error> Errors { get; } = [];
+    public Dictionary<string, IPassData> PassData { get; } = [];
 }

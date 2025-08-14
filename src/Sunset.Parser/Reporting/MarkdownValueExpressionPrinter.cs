@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Design;
 using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Expressions;
@@ -20,6 +21,7 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
     {
         return Singleton.Visit(expression);
     }
+
 
     public override string Visit(BinaryExpression dest)
     {
@@ -61,7 +63,7 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
 
     public override string Visit(NameExpression dest)
     {
-        switch (dest.Declaration)
+        switch (dest.GetResolvedDeclaration())
         {
             case VariableDeclaration variableDeclaration:
                 if (variableDeclaration.Variable.DefaultValue != null)

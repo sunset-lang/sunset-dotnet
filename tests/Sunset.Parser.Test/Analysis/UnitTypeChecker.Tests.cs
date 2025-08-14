@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Analysis;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Declarations;
 

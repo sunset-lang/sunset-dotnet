@@ -17,6 +17,8 @@ public class InstanceDeclaration(string name, IScope parentScope) : IDeclaration
     /// </summary>
     public Element Element { get; }
 
+    public Dictionary<string, IPassData> PassData { get; } = [];
+
     public T Accept<T>(IVisitor<T> visitor)
     {
         throw new NotImplementedException();

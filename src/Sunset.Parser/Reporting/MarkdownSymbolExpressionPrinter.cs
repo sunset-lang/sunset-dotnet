@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -14,6 +15,7 @@ public class MarkdownSymbolExpressionPrinter : MarkdownExpressionPrinterBase
     {
         return Singleton.Visit(expression);
     }
+
 
     public override string Visit(BinaryExpression dest)
     {
@@ -75,7 +77,7 @@ public class MarkdownSymbolExpressionPrinter : MarkdownExpressionPrinterBase
 
     public override string Visit(NameExpression dest)
     {
-        return dest.Declaration switch
+        return dest.GetResolvedDeclaration() switch
         {
             // If there is no symbol associated with a variable, just use its name as text.
             VariableDeclaration variableDeclaration => variableDeclaration.Variable.Symbol != string.Empty

@@ -2,6 +2,7 @@
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Visitors;
 using Sunset.Parser.Visitors.Evaluation;
@@ -111,12 +112,12 @@ public class Environment : IScope
     public string FullPath => "$env";
 
     public List<Error> Errors { get; } = [];
-    public bool HasErrors { get; }
-
 
     public IDeclaration? TryGetDeclaration(string name)
     {
         // The environment scope does not contain any declarations, only child scopes.
         return null;
     }
+
+    public Dictionary<string, IPassData> PassData { get; } = [];
 }

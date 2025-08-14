@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -10,6 +11,8 @@ namespace Sunset.Parser.Visitors.Debugging;
 /// </summary>
 public class DebugPrinter : IVisitor<string>
 {
+    public string PassDataKey => "DebugPrinter";
+
     public string Visit(IVisitable dest)
     {
         return dest switch
@@ -47,7 +50,7 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(NameExpression dest)
     {
-        return dest.Declaration?.FullPath ?? $"{dest.Name}!";
+        return dest.GetResolvedDeclaration()?.FullPath ?? $"{dest.Name}!";
     }
 
     public string Visit(IfExpression dest)

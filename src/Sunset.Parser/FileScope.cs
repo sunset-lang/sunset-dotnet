@@ -50,4 +50,6 @@ public class FileScope(string name, IScope? parentScope) : IScope
 
         return resultBuilder.ToString();
     }
+
+    public Dictionary<string, IPassData> PassData { get; } = [];
 }

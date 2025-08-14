@@ -8,6 +8,11 @@ namespace Sunset.Parser.Visitors;
 public interface IVisitable
 {
     /// <summary>
+    /// Dictionary of metadata that is stored within each node for each compiler or execution pass.
+    /// </summary>
+    public Dictionary<string, IPassData> PassData { get; }
+
+    /// <summary>
     ///     Accepts a visitor to process the declaration.
     /// </summary>
     /// <param name="visitor">The <see cref="IVisitor{T}" /> that is being accepted.</param>

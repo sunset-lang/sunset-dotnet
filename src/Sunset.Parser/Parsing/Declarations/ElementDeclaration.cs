@@ -29,6 +29,8 @@ public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
 
     public required IScope? ParentScope { get; init; } = parentScope;
 
+    public Dictionary<string, IPassData> PassData { get; } = [];
+
     /// <inheritdoc />
     public T Accept<T>(IVisitor<T> visitor)
     {

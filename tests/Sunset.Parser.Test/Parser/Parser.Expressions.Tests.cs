@@ -19,28 +19,28 @@ public class ParserExpressionsTests
     public void Parse_BinaryExpression_CorrectTree()
     {
         var stringRepresentation = PrintParsedExpression("a * b + c");
-        Assert.That(stringRepresentation, Is.EqualTo("(+ (* a b) c)"));
+        Assert.That(stringRepresentation, Is.EqualTo("(+ (* a! b!) c!)"));
     }
 
     [Test]
     public void Parse_UnaryExpression_CorrectTree()
     {
         var stringRepresentation = PrintParsedExpression("a * -b + c");
-        Assert.That(stringRepresentation, Is.EqualTo("(+ (* a (- b)) c)"));
+        Assert.That(stringRepresentation, Is.EqualTo("(+ (* a! (- b!)) c!)"));
     }
 
     [Test]
     public void Parse_ExpressionWithConstants_CorrectTree()
     {
         var stringRepresentation = PrintParsedExpression("a * -b + c + d * 12.5 + 3.14 / 2");
-        Assert.That(stringRepresentation, Is.EqualTo("(+ (+ (+ (* a (- b)) c) (* d 12.5)) (/ 3.14 2))"));
+        Assert.That(stringRepresentation, Is.EqualTo("(+ (+ (+ (* a! (- b!)) c!) (* d! 12.5)) (/ 3.14 2))"));
     }
 
     [Test]
     public void Parse_ExpressionWithGrouping_CorrectTree()
     {
-        var stringRepresentation = PrintParsedExpression("(a + b) / (c + d) * e");
-        Assert.That(stringRepresentation, Is.EqualTo("(* (/ (+ a b) (+ c d)) e)"));
+        var stringRepresentation = PrintParsedExpression("(a! + b!) / (c! + d!) * e!");
+        Assert.That(stringRepresentation, Is.EqualTo("(* (/ (+ a! b!) (+ c! d!)) e!)"));
     }
 
     [Test]

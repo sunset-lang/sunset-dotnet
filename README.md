@@ -31,4 +31,4 @@ The below is based on the SI system of units.
 
 ## Currently working on
 
-- Unit type checking
+- Refactoring metadata storage for Visitor pattern implementation to clean up node code.

@@ -8,7 +8,6 @@ using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.NameResolution;
 
-// TODO: Does this make sense or do I want to do this as a separate step and not as a visitor?
 public class NameResolver : INameResolver
 {
     public void Visit(IVisitable dest, IScope parentScope)
@@ -61,7 +60,7 @@ public class NameResolver : INameResolver
             // TODO: Consider other possible uses of the access operator
             if (dest.Left is NameExpression leftNameExpression)
             {
-                var leftScope = leftNameExpression.Declaration?.ParentScope;
+                var leftScope = leftNameExpression.GetResolvedDeclaration()?.ParentScope;
                 if (leftScope == null)
                 {
                     throw new Exception("Parent scope not found for the left name expression.");
@@ -103,7 +102,7 @@ public class NameResolver : INameResolver
 
         if (declaration != null)
         {
-            dest.Declaration = declaration;
+            dest.SetResolvedDeclaration(declaration);
             return;
         }
 

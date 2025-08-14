@@ -25,6 +25,8 @@ public class Library(string name) : IScope
     /// </summary>
     public IScope? ParentScope { get; init; } = null;
 
+    public Dictionary<string, IPassData> PassData { get; } = [];
+
     public T Accept<T>(IVisitor<T> visitor)
     {
         return visitor.Visit(this);

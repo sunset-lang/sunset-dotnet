@@ -16,4 +16,6 @@ public abstract class ExpressionBase : IExpression
     {
         Errors.Add(Error.Create(code));
     }
+
+    public Dictionary<string, IPassData> PassData { get; } = [];
 }

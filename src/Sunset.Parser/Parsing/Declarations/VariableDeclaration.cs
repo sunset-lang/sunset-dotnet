@@ -75,6 +75,8 @@ public class VariableDeclaration : IDeclaration, IExpression
 
     public IScope? ParentScope { get; init; }
 
+    public Dictionary<string, IPassData> PassData { get; } = [];
+
     public T Accept<T>(IVisitor<T> visitor)
     {
         return visitor.Visit(this);

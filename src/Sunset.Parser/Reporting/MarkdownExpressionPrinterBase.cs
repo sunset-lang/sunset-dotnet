@@ -15,6 +15,7 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
     /// </summary>
     public PrinterSettings Settings { get; set; } = PrinterSettings.Default;
 
+
     public string Visit(IVisitable dest)
     {
         return dest switch
@@ -43,6 +44,7 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
     public abstract string Visit(VariableDeclaration dest);
     public abstract string Visit(FileScope dest);
     public abstract string Visit(Element dest);
+
     public string Visit(Environment environment)
     {
         throw new NotImplementedException();

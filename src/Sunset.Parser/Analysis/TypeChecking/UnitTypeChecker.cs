@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
@@ -7,7 +7,7 @@ using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
 using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Analysis;
+namespace Sunset.Parser.Analysis.TypeChecking;
 
 /// <summary>
 ///     Checks that the units defined in the sunset code are valid.
@@ -91,7 +91,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     public Unit? Visit(NameExpression dest)
     {
-        switch (dest.Declaration)
+        switch (dest.GetResolvedDeclaration())
         {
             // TODO: Look up the variable in the symbol table
             case null:

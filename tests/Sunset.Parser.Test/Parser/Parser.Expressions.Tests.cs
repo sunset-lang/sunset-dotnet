@@ -39,7 +39,7 @@ public class ParserExpressionsTests
     [Test]
     public void Parse_ExpressionWithGrouping_CorrectTree()
     {
-        var stringRepresentation = PrintParsedExpression("(a! + b!) / (c! + d!) * e!");
+        var stringRepresentation = PrintParsedExpression("(a + b) / (c + d) * e");
         Assert.That(stringRepresentation, Is.EqualTo("(* (/ (+ a! b!) (+ c! d!)) e!)"));
     }
 

@@ -85,10 +85,10 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
 
         // If the expression is a constant, report it now
         if (dest.Value is NumberConstant numberConstant)
-            return MarkdownHelpers.ReportQuantity(DefaultQuantityEvaluator.Evaluate(dest));
+            return MarkdownHelpers.ReportQuantity(DefaultQuantityEvaluator.EvaluateExpression(dest));
 
         // Otherwise, show the conversion factor to the target unit
-        var sourceUnit = DefaultQuantityEvaluator.Evaluate(dest).Unit;
+        var sourceUnit = DefaultQuantityEvaluator.EvaluateExpression(dest).Unit;
         if (dest.Unit == null) return Visit(dest.Value);
         return Visit(dest) + " \\times " +
                NumberUtilities.ToNumberString(sourceUnit.GetConversionFactor(dest.Unit));

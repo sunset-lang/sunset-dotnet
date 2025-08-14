@@ -12,16 +12,4 @@ namespace Sunset.Parser.Analysis.NameResolution;
 public interface INameResolver
 {
     void Visit(IVisitable dest, IScope parentScope);
-    void Visit(BinaryExpression dest, IScope parentScope);
-    void Visit(UnaryExpression dest, IScope parentScope);
-    void Visit(GroupingExpression dest, IScope parentScope);
-    void Visit(NameExpression dest, IScope parentScope);
-    void Visit(IfExpression dest, IScope parentScope);
-    void Visit(UnitAssignmentExpression dest, IScope parentScope);
-    void Visit(NumberConstant dest, IScope parentScope);
-    void Visit(StringConstant dest, IScope parentScope);
-    void Visit(UnitConstant dest, IScope parentScope);
-    void Visit(VariableDeclaration dest, IScope parentScope);
-    void Visit(FileScope dest, IScope parentScope);
-    void Visit(Element dest, IScope parentScope);
 }

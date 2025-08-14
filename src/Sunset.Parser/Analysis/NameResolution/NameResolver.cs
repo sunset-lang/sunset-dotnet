@@ -29,27 +29,28 @@ public class NameResolver : INameResolver
             case IfExpression ifExpression:
                 Visit(ifExpression, parentScope);
                 break;
-            case UnitAssignmentExpression unitAssignmentExpression:
-                Visit(unitAssignmentExpression, parentScope);
+            case VariableDeclaration variableAssignmentExpression:
+                Visit(variableAssignmentExpression, parentScope);
                 break;
-            case NumberConstant numberConstant:
-                Visit(numberConstant, parentScope);
-                break;
-            case StringConstant stringConstant:
-                Visit(stringConstant, parentScope);
+            case IScope scope:
+                Visit(scope, parentScope);
                 break;
             case UnitConstant unitConstant:
                 Visit(unitConstant, parentScope);
                 break;
-            case VariableDeclaration variableAssignmentExpression:
-                Visit(variableAssignmentExpression, parentScope);
+            case UnitAssignmentExpression unitAssignmentExpression:
+                Visit(unitAssignmentExpression, parentScope);
+                break;
+            // Ignore constants in the name resolver as they are terminal nodes and don't have names.
+            case NumberConstant:
+            case StringConstant:
                 break;
             default:
-                throw new NotImplementedException();
+                throw new ArgumentException($"Name resolver cannot visit the node of type {dest.GetType()}");
         }
     }
 
-    public void Visit(BinaryExpression dest, IScope parentScope)
+    private void Visit(BinaryExpression dest, IScope parentScope)
     {
         // If the access operator is used, resolve the left operand first, then pass in its context to the right operand.
         if (dest.Operator == TokenType.Dot)
@@ -86,17 +87,17 @@ public class NameResolver : INameResolver
         Visit(dest.Right, parentScope);
     }
 
-    public void Visit(UnaryExpression dest, IScope parentScope)
+    private void Visit(UnaryExpression dest, IScope parentScope)
     {
         Visit(dest.Operand, parentScope);
     }
 
-    public void Visit(GroupingExpression dest, IScope parentScope)
+    private void Visit(GroupingExpression dest, IScope parentScope)
     {
         Visit(dest.InnerExpression, parentScope);
     }
 
-    public void Visit(NameExpression dest, IScope parentScope)
+    private void Visit(NameExpression dest, IScope parentScope)
     {
         var declaration = SearchParentsForName(dest.Name, parentScope);
 
@@ -108,6 +109,18 @@ public class NameResolver : INameResolver
 
         // TODO: Search for libraries in the root Environment.
         dest.AddError(ErrorCode.CouldNotFindName);
+    }
+
+    private void Visit(UnitAssignmentExpression dest, IScope parentScope)
+    {
+        // TODO: Resolve names of units here, currently resolved for named units only in the UnitConstant itself
+        // This is to allow custom named units.
+    }
+
+    private void Visit(UnitConstant dest, IScope parentScope)
+    {
+        // TODO: Resolve names of units here, currently resolved for named units only in the UnitAssignmentExpression
+        // This is to allow custom named units.
     }
 
     /// <summary>
@@ -132,33 +145,12 @@ public class NameResolver : INameResolver
         return null;
     }
 
-    public void Visit(IfExpression dest, IScope parentScope)
+    private void Visit(IfExpression dest, IScope parentScope)
     {
         throw new NotImplementedException();
     }
 
-    public void Visit(UnitAssignmentExpression dest, IScope parentScope)
-    {
-        // Do nothing - not a name
-    }
-
-    public void Visit(NumberConstant dest, IScope parentScope)
-    {
-        // Do nothing - not a name
-    }
-
-    public void Visit(StringConstant dest, IScope parentScope)
-    {
-        // Do nothing - not a name
-    }
-
-    public void Visit(UnitConstant dest, IScope parentScope)
-    {
-        // Do nothing - this is resolved in the UnitConstant itself
-        // TODO: Consider whether unit resolution should be handled by the name resolver or similar
-    }
-
-    public void Visit(VariableDeclaration dest, IScope parentScope)
+    private void Visit(VariableDeclaration dest, IScope parentScope)
     {
         if (dest.ParentScope == null)
         {
@@ -167,14 +159,6 @@ public class NameResolver : INameResolver
 
         // Resolve all names within the expression.
         Visit(dest.Expression, dest.ParentScope);
-    }
-
-    public void Visit(FileScope dest, IScope parentScope)
-    {
-        foreach (var children in dest.ChildDeclarations.Values)
-        {
-            Visit(children, dest);
-        }
     }
 
     /// <summary>
@@ -189,7 +173,7 @@ public class NameResolver : INameResolver
         }
     }
 
-    public void Visit(Element dest, IScope parentScope)
+    public void Visit(IScope dest, IScope parentScope)
     {
         foreach (var children in dest.ChildDeclarations.Values)
         {

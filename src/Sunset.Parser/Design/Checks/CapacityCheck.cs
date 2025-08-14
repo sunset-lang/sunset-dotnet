@@ -1,8 +1,9 @@
 using System.Text;
+using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Reporting;
 using Sunset.Parser.Units;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Checks;
 
 /// <summary>
 ///     Abstract base class for checks of a capacity against a demand.

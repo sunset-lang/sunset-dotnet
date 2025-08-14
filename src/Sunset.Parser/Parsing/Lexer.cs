@@ -140,7 +140,7 @@ public class Lexer
         _line = 0;
         _column = 0;
 
-        _current = _source.Span[_position];
+        if (_source.Length != 0) _current = _source.Span[_position];
         _peek = Peek();
         _peekNext = PeekNext();
 
@@ -167,10 +167,10 @@ public class Lexer
             Advance();
 
             // Return the next two characters as a token, incrementing the position and column
-            // This assumes that a two character token cannot cross a new line
+            // This assumes that a two-character token cannot cross a new line
             return new Token(doubleCharacterTokenType,
                 _position,
-                _position++,
+                _position + 1,
                 _line,
                 _column);
         }

@@ -1,5 +1,7 @@
 ﻿using Sunset.Parser.Analysis;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Test.Analysis;
 
@@ -10,14 +12,14 @@ public class UnitTypeCheckerTests
 
     public VariableDeclaration GetVariableDeclaration(string input)
     {
-        var parser = new Parsing.Parser(input);
-        var expression = parser.SyntaxTree;
-        if (expression is null)
+        var parser = new Parsing.Parser(input, true);
+        var declaration = parser.SyntaxTree.FirstOrDefault();
+        if (declaration is null)
         {
             throw new Exception("Expression not parsed.");
         }
 
-        if (expression is VariableDeclaration variableDeclaration)
+        if (declaration is VariableDeclaration variableDeclaration)
         {
             return variableDeclaration;
         }

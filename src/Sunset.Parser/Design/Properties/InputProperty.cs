@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Sunset.Parser.Quantities;
 using Sunset.Parser.Units;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Properties;
 
 /// <summary>
 ///     An InputProperty is a Variable owned by an Element that has a default value but may also have different values

@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Visitors;
 
@@ -8,15 +9,13 @@ namespace Sunset.Parser.Visitors;
 /// </summary>
 public interface IVisitor<out T>
 {
-    T Visit(IExpression expression);
-    T Visit(BinaryExpression dest);
-    T Visit(UnaryExpression dest);
-    T Visit(GroupingExpression dest);
-    T Visit(NameExpression dest);
-    T Visit(IfExpression dest);
-    T Visit(UnitAssignmentExpression dest);
-    T Visit(NumberConstant dest);
-    T Visit(StringConstant dest);
-    T Visit(UnitConstant dest);
-    T Visit(VariableDeclaration dest);
+    T Visit(IVisitable dest);
+}
+
+/// <summary>
+///     Interface for visitors that don't return a value.
+/// </summary>
+public interface IVisitor
+{
+    void Visit(IVisitable dest);
 }

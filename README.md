@@ -2,11 +2,18 @@
 
 This repository contains the .NET version of the Sunset compiler and runtime.
 
-It is made up of the following projects:
+It is currently made up of a single project which contains everything, but will eventually be refactored into a number
+of individual projects:
 
+- `Sunset.Quantities`: Deals with the units and quantities handling
 - `Sunset.Parser`: Lexing and parsing of Sunset code.
 - `Sunset.Analyzer`: Static code analysis of the resulting syntax tree.
 - `Sunset.Interpreter`: Evaluation of the syntax tree.
+
+# Documentation
+
+This repository also contains the [documentation site](https://sunset-lang.github.io/sunset-docs) of the Sunset
+Language.
 
 ## Dependencies
 
@@ -24,4 +31,4 @@ The below is based on the SI system of units.
 
 ## Currently working on
 
-- Unit type checking
+- Refactoring metadata storage for Visitor pattern implementation to clean up node code.

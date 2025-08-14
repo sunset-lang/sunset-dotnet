@@ -1,4 +1,4 @@
-using Sunset.Parser.Variables;
+using Sunset.Parser.Abstractions;
 
 namespace Sunset.Parser.Reporting;
 

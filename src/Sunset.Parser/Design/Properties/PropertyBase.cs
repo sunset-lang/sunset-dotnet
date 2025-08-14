@@ -1,8 +1,7 @@
 ﻿using Sunset.Parser.Quantities;
 using Sunset.Parser.Units;
-using Sunset.Parser.Variables;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Properties;
 
 /// <summary>
 ///     A base class for Properties, which are Variables that are owned by an Element.

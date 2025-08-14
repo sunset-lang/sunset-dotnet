@@ -1,8 +1,9 @@
 using System.Text;
+using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Quantities;
 using Sunset.Parser.Reporting;
 
-namespace Sunset.Parser.Design;
+namespace Sunset.Parser.Design.Checks;
 
 /// <summary>
 ///     Checks a property of an element to see if it is within a specified range.

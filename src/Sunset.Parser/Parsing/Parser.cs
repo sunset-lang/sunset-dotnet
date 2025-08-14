@@ -1,7 +1,9 @@
-﻿using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
+using IDeclaration = Sunset.Parser.Abstractions.IDeclaration;
 using Range = System.Range;
 
 namespace Sunset.Parser.Parsing;
@@ -22,7 +24,7 @@ public partial class Parser
     private IToken? _peekNext;
     private int _position;
 
-    public IExpression? SyntaxTree;
+    public readonly List<IDeclaration> SyntaxTree = [];
 
     /// <summary>
     ///     Generates a parser from a source string.
@@ -33,7 +35,7 @@ public partial class Parser
     /// <param name="parse">
     ///     <inheritdoc cref="Parser(Lexer, bool)" />
     /// </param>
-    public Parser(string source, bool parse = true) : this(source.AsMemory(), parse)
+    public Parser(string source, bool parse = false) : this(source.AsMemory(), parse)
     {
     }
 
@@ -45,7 +47,7 @@ public partial class Parser
     /// <param name="parse">
     ///     <inheritdoc cref="Parser(Lexer, bool)" />
     /// </param>
-    public Parser(ReadOnlyMemory<char> source, bool parse = true) : this(new Lexer(source), parse)
+    public Parser(ReadOnlyMemory<char> source, bool parse = false) : this(new Lexer(source), parse)
     {
         _source = source;
     }
@@ -55,22 +57,28 @@ public partial class Parser
     /// </summary>
     /// <param name="lexer">Lexer to use in the parser. The Lexer contains the source code.</param>
     /// <param name="parse">True if parsing upon creation, false to parse manually using <see cref="Parse" />.</param>
-    public Parser(Lexer lexer, bool parse = true)
+    public Parser(Lexer lexer, bool parse = false)
     {
         _tokens = lexer.Tokens.ToArray();
         _current = _tokens[0];
 
         Reset();
-        if (parse) Parse();
+        if (parse) Parse(new FileScope("$", null));
     }
 
     /// <summary>
     ///     Turns the list of tokens in the provided source code into an expression tree.
     /// </summary>
-    public void Parse()
+    /// <param name="parentScope">The parent scope to inject into each root declaration being parsed.</param>
+    public List<IDeclaration> Parse(IScope parentScope)
     {
-        // TODO: Ongoing update to this function depending on the completion of the parsing rules.
-        SyntaxTree = GetVariableDeclaration();
+        SyntaxTree.Clear();
+        while (_current.Type != TokenType.EndOfFile)
+        {
+            SyntaxTree.Add(GetVariableDeclaration(parentScope));
+        }
+
+        return SyntaxTree;
     }
 
     /// <summary>
@@ -142,7 +150,8 @@ public partial class Parser
         return leftExpression;
     }
 
-    public VariableDeclaration GetVariableDeclaration()
+
+    public VariableDeclaration GetVariableDeclaration(IScope parentScope)
     {
         // Grammar:
         // (IDENTIFIER symbolAssignment? | IDENTIFIER_SYMBOL) unitAssignment? "=" expression
@@ -178,7 +187,8 @@ public partial class Parser
             var unitExpression = GetExpression();
             var closeBrace = Consume(TokenType.CloseBrace);
 
-            unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
+            if (openBrace != null)
+                unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
         }
 
         Consume(TokenType.Assignment);
@@ -186,7 +196,10 @@ public partial class Parser
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression
 
-        return new VariableDeclaration(nameToken, expression, unitAssignment, symbolExpression);
+        // Always end a variable declaration with a new line.
+        Consume(TokenType.Newline);
+
+        return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression);
     }
 
     /// <summary>
@@ -217,12 +230,12 @@ public partial class Parser
     #region Parser controls
 
     /// <summary>
-    ///     Get the token in the array and increment the position.
+    ///     Get the token in the array and increment the position. Stops at the end of the token array.
     /// </summary>
-    /// <returns>The next token in the token array. Return EndOfLine token if at the end of the array.</returns>
+    /// <returns>The next token in the token array. Returns EndOfFile token if at the end of the array.</returns>
     private void Advance()
     {
-        // Skip errors while parsing
+        // Skip errors while parsing, and advance to the next valid token. Stop before the end of the array.
         for (var i = _position + 1; i < _tokens.Length; i++)
             if (_tokens[i].HasErrors == false)
             {

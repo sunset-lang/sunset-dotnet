@@ -1,6 +1,5 @@
 using Sunset.Parser.Reporting;
 using Sunset.Parser.Units;
-using Sunset.Parser.Variables;
 
 namespace Sunset.Parser.Test.Reporting;
 
@@ -16,7 +15,8 @@ public class MarkdownReportPrinterTests
         var yield = new Variable(350, DefinedUnits.Megapascal, "f_y", "Yield strength",
             "The yield strength of the steel plate.");
         var width = new Variable(100, DefinedUnits.Millimetre, "b", "Width", "The width of the steel plate.");
-        var thickness = new Variable(10, DefinedUnits.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
+        var thickness = new Variable(10, DefinedUnits.Millimetre, "t", "Thickness",
+            "The thickness of the steel plate.");
         var area = new Variable(width * thickness).AssignSymbol("A").Report(report);
         area.AssignName("Area");
         area.AssignDescription("The cross-sectional area of the steel plate.");
@@ -40,7 +40,8 @@ public class MarkdownReportPrinterTests
         var yield = new Variable(350, DefinedUnits.Megapascal, "f_y", "Yield strength",
             "The yield strength of the steel plate.");
         var width = new Variable(100, DefinedUnits.Millimetre, "b", "Width", "The width of the steel plate.");
-        var thickness = new Variable(10, DefinedUnits.Millimetre, "t", "Thickness", "The thickness of the steel plate.");
+        var thickness = new Variable(10, DefinedUnits.Millimetre, "t", "Thickness",
+            "The thickness of the steel plate.");
         var sectionModulus = new Variable(width * thickness.Pow(2) / 4).AssignSymbol("Z_p").Report(report);
         sectionModulus.AssignDescription("The plastic section modulus of the plate.");
         var capacityFactor = new Variable(0.9, DefinedUnits.Dimensionless, "\\phi", "Capacity Factor", "",
@@ -53,8 +54,6 @@ public class MarkdownReportPrinterTests
         capacity.AssignReference("AS 4100-1998 Clause 5.2.4");
 
         return report;
-
-        // TODO: No assertions
     }
 
 
@@ -81,8 +80,8 @@ public class MarkdownReportPrinterTests
                        \end{alignedat}
                        $$
                        """;
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected),
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport));
+        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport),
+            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -108,8 +107,8 @@ public class MarkdownReportPrinterTests
                        \end{alignedat}
                        $$
                        """;
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected),
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport));
+        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport),
+            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -176,8 +175,8 @@ public class MarkdownReportPrinterTests
                        - $f_y$ The yield strength of the steel plate.
                        - $\phi M_s$ The bending capacity of the steel plate. (AS 4100-1998 Clause 5.2.4)
                        """;
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected),
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport));
+        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport),
+            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -205,7 +204,7 @@ public class MarkdownReportPrinterTests
                          - [1.2 Bending section capacity](#1.2)
                        """;
 
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected),
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedTableOfContents));
+        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedTableOfContents),
+            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 }

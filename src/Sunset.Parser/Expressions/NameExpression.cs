@@ -1,14 +1,17 @@
-﻿using Sunset.Parser.Parsing.Tokens;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
+using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
-public class NameExpression(StringToken nameToken) : ExpressionBase
+/// <summary>
+/// A name that can be resolved to point to a declaration.
+/// </summary>
+/// <param name="nameToken">Token containing the name.</param>
+public class NameExpression(StringToken nameToken) : ExpressionBase, INamed
 {
     public StringToken Token { get; } = nameToken;
 
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
+    public string Name { get; } = nameToken.Value.ToString();
 }

@@ -1,12 +1,18 @@
-﻿using Sunset.Parser.Design;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Design;
+using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Variables;
 using Sunset.Parser.Visitors.Evaluation;
 
 namespace Sunset.Parser.Reporting;
 
+/// <summary>
+/// Prints the result of expressions with the numeric values included.
+/// </summary>
 public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
 {
     private static readonly MarkdownValueExpressionPrinter Singleton = new();
@@ -15,6 +21,7 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
     {
         return Singleton.Visit(expression);
     }
+
 
     public override string Visit(BinaryExpression dest)
     {
@@ -54,14 +61,34 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
         return Visit(dest.InnerExpression);
     }
 
+    public override string Visit(NameExpression dest)
+    {
+        switch (dest.GetResolvedDeclaration())
+        {
+            case VariableDeclaration variableDeclaration:
+                if (variableDeclaration.Variable.DefaultValue != null)
+                    return MarkdownHelpers.ReportQuantity(variableDeclaration.Variable.DefaultValue);
+                throw new Exception("Default value not evaluated");
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public override string Visit(IfExpression dest)
+    {
+        throw new NotImplementedException();
+    }
+
     public override string Visit(UnitAssignmentExpression dest)
     {
+        // TODO: Don't do any evaluation here - just print the result.
+
         // If the expression is a constant, report it now
         if (dest.Value is NumberConstant numberConstant)
-            return MarkdownHelpers.ReportQuantity(DefaultQuantityEvaluator.Evaluate(dest));
+            return MarkdownHelpers.ReportQuantity(DefaultQuantityEvaluator.EvaluateExpression(dest));
 
         // Otherwise, show the conversion factor to the target unit
-        var sourceUnit = DefaultQuantityEvaluator.Evaluate(dest).Unit;
+        var sourceUnit = DefaultQuantityEvaluator.EvaluateExpression(dest).Unit;
         if (dest.Unit == null) return Visit(dest.Value);
         return Visit(dest) + " \\times " +
                NumberUtilities.ToNumberString(sourceUnit.GetConversionFactor(dest.Unit));
@@ -95,5 +122,15 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
             };
 
         return Visit(dest.Expression);
+    }
+
+    public override string Visit(FileScope dest)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string Visit(Element dest)
+    {
+        throw new NotImplementedException();
     }
 }

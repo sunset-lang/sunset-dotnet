@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Parsing.Tokens;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Units;
 using Sunset.Parser.Visitors;
 
@@ -26,9 +27,4 @@ public class UnitAssignmentExpression : ExpressionBase
     public IExpression UnitExpression { get; }
 
     public Unit? Unit { get; set; }
-
-    public override T Accept<T>(IVisitor<T> visitor)
-    {
-        return visitor.Visit(this);
-    }
 }

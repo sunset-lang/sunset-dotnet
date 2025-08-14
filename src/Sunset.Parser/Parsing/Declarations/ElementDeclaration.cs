@@ -1,12 +1,14 @@
-﻿using Sunset.Parser.Parsing.Statements;
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Errors;
+using Sunset.Parser.Parsing.Statements;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
-///     Represents the declaration of a new element.
+///     Represents the declaration of a new element type.
 /// </summary>
-public class ElementDeclaration : IDeclaration
+public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
 {
     /// <summary>
     ///     The group of inputs for the element.
@@ -21,7 +23,13 @@ public class ElementDeclaration : IDeclaration
     /// <summary>
     ///     The name of the new element being declared.
     /// </summary>
-    public string Name { get; }
+    public string Name { get; } = name;
+
+    public string FullPath { get; } = parentScope.FullPath + "." + name;
+
+    public required IScope? ParentScope { get; init; } = parentScope;
+
+    public Dictionary<string, IPassData> PassData { get; } = [];
 
     /// <inheritdoc />
     public T Accept<T>(IVisitor<T> visitor)
@@ -29,4 +37,6 @@ public class ElementDeclaration : IDeclaration
         throw new NotImplementedException();
         // visitor.Visit(this);
     }
+
+    public List<Error> Errors { get; } = [];
 }

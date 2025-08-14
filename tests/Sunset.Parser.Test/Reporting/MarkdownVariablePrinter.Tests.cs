@@ -45,7 +45,8 @@ public class MarkdownVariablePrinterTests()
     public void ReportValue_FirstMultiplication_ShouldReportCorrectValue()
     {
         Console.WriteLine("Volume: " + MarkdownVariablePrinter.ReportDefaultValue(_volume!));
-        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(_volume!), Is.EqualTo("6 \\times 10^{-3} \\text{ m}^{3}"));
+        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(_volume!),
+            Is.EqualTo("6 \\times 10^{-3} \\text{ m}^{3}"));
     }
 
     [Test]
@@ -70,8 +71,10 @@ public class MarkdownVariablePrinterTests()
 
         Assert.Multiple(() =>
         {
-            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(volume), Is.EqualTo(@"6 \times 10^{-3} \text{ km}^{3}"));
-            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(density), Is.EqualTo(@"3.333 \times 10^{-6} \text{ kg m}^{-3}"));
+            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(volume),
+                Is.EqualTo(@"6 \times 10^{-3} \text{ km}^{3}"));
+            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(density),
+                Is.EqualTo(@"3.333 \times 10^{-6} \text{ kg m}^{-3}"));
         });
 
         Console.WriteLine("Volume: " + MarkdownVariablePrinter.ReportDefaultValue(volume));
@@ -82,7 +85,8 @@ public class MarkdownVariablePrinterTests()
     public void ReportValueExpression_QuantityIncludesSymbol_ShouldReportIncludedSymbolOnly()
     {
         Console.WriteLine(_markdownVariablePrinter.ReportValueExpression(_density!));
-        Assert.That(_markdownVariablePrinter.ReportValueExpression(_density!), Is.EqualTo(@"= \frac{20 \text{ kg}}{6 \times 10^{-3} \text{ m}^{3}}"));
+        Assert.That(_markdownVariablePrinter.ReportValueExpression(_density!),
+            Is.EqualTo(@"= \frac{20 \text{ kg}}{6 \times 10^{-3} \text{ m}^{3}}"));
     }
 
     [Test]
@@ -106,7 +110,8 @@ public class MarkdownVariablePrinterTests()
         var b = new Variable(100, DefinedUnits.Millimetre, "b");
         var t = new Variable(10, DefinedUnits.Millimetre, "t");
         var sectionModulus = new Variable(b * t.Pow(2) / 4);
-        Assert.That(_markdownVariablePrinter.ReportSymbolExpression(sectionModulus), Is.EqualTo(@"= \frac{b t^{2}}{4}"));
+        Assert.That(_markdownVariablePrinter.ReportSymbolExpression(sectionModulus),
+            Is.EqualTo(@"= \frac{b t^{2}}{4}"));
     }
 
     [Test]
@@ -119,8 +124,9 @@ public class MarkdownVariablePrinterTests()
                        &= 3,333.3 \text{ kg m}^{-3}
                        """;
 
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected),
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_density!)));
+        Assert.That(
+            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_density!)),
+            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -131,8 +137,9 @@ public class MarkdownVariablePrinterTests()
                        l &= 100 \text{ mm}
                        """;
 
-        Assert.AreEqual(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected),
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_length)));
+        Assert.That(
+            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_length)),
+            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]

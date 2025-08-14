@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Abstractions;
+﻿using System.ComponentModel.Design;
+using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
@@ -94,14 +95,14 @@ public class UnitTypeChecker : IVisitor<Unit?>
         return Visit(dest.InnerExpression);
     }
 
-    private static Unit? Visit(NameExpression dest)
+    private Unit? Visit(NameExpression dest)
     {
         // This assumes that name resolution happens first.
         switch (dest.GetResolvedDeclaration())
         {
             case VariableDeclaration variableDeclaration:
                 // Compare with the declared unit of the variable, not the evaluated unit of the variable.
-                return variableDeclaration.Unit;
+                return Visit(variableDeclaration);
             default:
                 throw new ArgumentException($"Unit checking of type {dest.GetType()} is not supported.");
         }
@@ -116,6 +117,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
     {
         // Cache the unit for the unit assignment expression
         var unit = Visit(dest.UnitExpression);
+        dest.SetAssignedUnit(unit);
         dest.SetEvaluatedUnit(unit);
         return unit;
     }
@@ -133,19 +135,55 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     public Unit? Visit(VariableDeclaration dest)
     {
+        // If there is already a unit assigned to this variable declaration, the visitor has already passed through here.
+        var assignedUnit = dest.GetAssignedUnit();
+        if (assignedUnit != null)
+        {
+            return assignedUnit;
+        }
+
+        // Get the units that have been directly assigned to the variable declaration and set them in the metadata
+        var unitAssignmentExpression = dest.UnitAssignment?.UnitExpression;
+        if (unitAssignmentExpression != null)
+        {
+            assignedUnit = Visit(unitAssignmentExpression);
+        }
+
+        dest.SetAssignedUnit(assignedUnit);
+
+        // Evaluate the units of the calculation expression and set them in the metadata as well.
         var expressionUnit = Visit(dest.Expression);
+        dest.SetEvaluatedUnit(expressionUnit);
+
+        // If there is no assigned unit, but the expression has a unit, set a weakly assigned evaluated unit.
+        // Do not set the assigned unit to signal a future warning that all variables should have an assigned unit.
+        if (assignedUnit == null && expressionUnit != null)
+        {
+            // Note that it is OK to not assign a unit to a variable with a dimensionless result.
+            if (expressionUnit.IsDimensionless)
+            {
+                dest.SetAssignedUnit(expressionUnit);
+                return expressionUnit;
+            }
+
+            // Provide a weak unit assignment to the declaration
+            // TODO: Add a warning that this should be called up explicitly
+            dest.AddError(ErrorCode.VariableDoesNotHaveExplicitUnit);
+            dest.SetEvaluatedUnit(expressionUnit);
+            return expressionUnit;
+        }
 
         // If both are not null, the units should be checked for compatibility with one another.
-        if (dest.Unit != null && expressionUnit != null)
+        if (assignedUnit != null && expressionUnit != null)
         {
-            if (Unit.EqualDimensions(dest.Unit, expressionUnit)) return dest.Unit;
+            if (Unit.EqualDimensions(assignedUnit, expressionUnit)) return assignedUnit;
 
             dest.AddError(ErrorCode.UnitMismatch);
             return null;
         }
 
         //  If one is not null and one is null, then the units are definitely incompatible. 
-        if (dest.Unit != null && expressionUnit == null || dest.Unit == null && expressionUnit != null)
+        if (assignedUnit != null && expressionUnit == null)
         {
             dest.AddError(ErrorCode.CouldNotResolveUnits);
         }

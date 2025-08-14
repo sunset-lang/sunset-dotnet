@@ -15,6 +15,7 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// <param name="unitExpression">The unit expression held within the brackets.</param>
 public class VariableUnitAssignment(IToken open, IToken? close, IExpression unitExpression)
 {
+    // TODO: Get rid of all of this and just use UnitAssignmentExpression
     public IToken Open { get; } = open;
     public IToken? Close { get; } = close;
 

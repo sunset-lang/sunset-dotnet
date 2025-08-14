@@ -16,4 +16,14 @@ public static class UnitTypeCheckerExtensions
     {
         dest.GetPassData<UnitTypeCheckPassData>(PassDataKey).EvaluatedUnit = unit;
     }
+
+    public static Unit? GetAssignedUnit(this IVisitable dest)
+    {
+        return dest.GetPassData<UnitTypeCheckPassData>(PassDataKey).AssignedUnit;
+    }
+
+    public static void SetAssignedUnit(this IVisitable dest, Unit? unit)
+    {
+        dest.GetPassData<UnitTypeCheckPassData>(PassDataKey).AssignedUnit = unit;
+    }
 }

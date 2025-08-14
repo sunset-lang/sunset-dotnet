@@ -60,7 +60,7 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
                 UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpression);
 
             return variableDisplayName + " &= " + numberConstant.Value +
-                   unitAssignmentExpression.Unit?.ToLatexString();
+                   unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString();
         }
 
         // TODO: Add extra cases for when a variable is a number with no unit, and when a variable is just a constant evaluation.

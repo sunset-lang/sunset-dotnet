@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -82,7 +83,7 @@ public class DebugPrinter : IVisitor<string>
     {
         return $"""
                     {dest.FullPath}:
-                        Unit: {dest.Unit}
+                        Unit: {dest.GetAssignedUnit()}
                         Symbol: {dest.Variable.Symbol}
                         Expression: {Visit(dest.Expression)}
                         
@@ -128,7 +129,7 @@ public class DebugPrinter : IVisitor<string>
     {
         var variable = variableDeclaration.Variable;
         return
-            $"{variable.Name} <{variable.Symbol}> {{{variableDeclaration.Unit}}} = {Visit(variableDeclaration.Expression)}";
+            $"{variable.Name} <{variable.Symbol}> {{{variableDeclaration.UnitAssignment?.Unit}}} = {Visit(variableDeclaration.Expression)}";
     }
 
     public string Visit(SymbolName dest)

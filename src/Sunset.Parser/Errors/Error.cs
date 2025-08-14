@@ -26,10 +26,11 @@ public enum ErrorCode
     // Units
     UnitMismatch,
     ExpectedUnit,
+    UnitInExpression,
+    VariableDoesNotHaveExplicitUnit,
 
     // Name resolution errors
     CouldNotFindName,
-    UnitInExpression
 }
 
 public class Error
@@ -61,6 +62,12 @@ public class Error
         { ErrorCode.StringInExpression, (ErrorType.Semantic, "String in expression.") },
         { ErrorCode.UnitMismatch, (ErrorType.Semantic, "Unit mismatch.") },
         { ErrorCode.ExpectedUnit, (ErrorType.Semantic, "Expected a name of a unit but found a variable instead.") },
+        { ErrorCode.UnitInExpression, (ErrorType.Semantic, "There is a unit in the expression.") },
+        {
+            ErrorCode.VariableDoesNotHaveExplicitUnit,
+            (ErrorType.Warning, "The variable defined does not have an explicit unit set.")
+        },
+        { ErrorCode.CouldNotFindName, (ErrorType.Semantic, "Could not find name.") },
 
         // TODO: Add test to confirm that there are error messages for all error codes
     };

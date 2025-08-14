@@ -12,6 +12,8 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// </summary>
 public class VariableDeclaration : IDeclaration, IExpression
 {
+    public VariableUnitAssignment? UnitAssignment { get; }
+
     // TODO: Add symbolic expression at compile/parse time
     private readonly SymbolName? _symbolExpression;
 
@@ -39,6 +41,7 @@ public class VariableDeclaration : IDeclaration, IExpression
         StringToken? labelToken = null)
     {
         _symbolExpression = symbolExpression;
+        UnitAssignment = unitAssignment;
 
         ParentScope = parentScope;
         Name = nameToken.Value.ToString();
@@ -67,11 +70,6 @@ public class VariableDeclaration : IDeclaration, IExpression
     /// The expression that defines the value of the variable.
     /// </summary>
     public IExpression Expression { get; }
-
-    /// <summary>
-    /// The units associated with this declared variable.
-    /// </summary>
-    public Unit? Unit => Variable.Unit;
 
     public IScope? ParentScope { get; init; }
 

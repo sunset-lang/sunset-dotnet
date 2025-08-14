@@ -32,6 +32,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
+            Element element => Visit(element),
             IScope scope => Visit(scope),
             _ => throw new NotImplementedException()
         };
@@ -104,8 +105,15 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
     private IQuantity? Visit(VariableDeclaration dest)
     {
         var value = Visit(dest.Expression);
+        dest.SetDefaultQuantity(value);
         dest.Variable.DefaultValue = value;
         return value;
+    }
+
+    private IQuantity? Visit(Element dest)
+    {
+        // TODO: Work out how the default instance of an element can be set here.
+        throw new NotImplementedException();
     }
 
     private IQuantity? Visit(IScope dest)

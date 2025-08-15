@@ -148,10 +148,11 @@ public class Variable : IVariable,
         report.AddItem(this);
     }
 
+    // TODO: This doesn't seem necessary, possibly only to allow variables to be created dynamically for testing
     private VariableDeclaration GetDeclaration(IExpression expression)
     {
         // If the expression provided is already a VariableDeclaration, no need for additional redirection
-        if (expression is VariableDeclaration variableDeclaration && variableDeclaration.Variable == this)
+        if (expression is VariableDeclaration variableDeclaration)
             return variableDeclaration;
 
         // It not, wrap the expression in a new VariableDeclaration to allow for printing.

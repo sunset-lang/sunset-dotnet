@@ -1,4 +1,6 @@
+using System.Runtime.InteropServices;
 using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis.CycleChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
@@ -44,23 +46,44 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // Show the symbol unless it is empty, in which case show the name of the variable.
         var variableDisplayName = variable.Symbol != string.Empty ? variable.Symbol : $"\\text{{{variable.Name}}}";
 
+        // If the variable has been created through evaluating Sunset code and the variable has no dependencies, it should be reported as a constant
+        // TODO: Make this it's own function
+        var dependencies = variable.Declaration.GetDependencies();
+        if (dependencies is { IsEmpty: true })
+        {
+            switch (variable.Declaration.Expression)
+            {
+                case NumberConstant numberConstant:
+                    return variableDisplayName + " &= " + numberConstant.Value +
+                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString();
+                case UnitAssignmentExpression
+                {
+                    Value: NumberConstant quantityConstant
+                } unitAssignmentExpression:
+                    return variableDisplayName + " &= " + quantityConstant.Value +
+                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString();
+            }
+        }
+
         // This part is a shortcut, to be shown when a variable's expression is simply a number with a unit assigned.
+        // This part is also mostly for reporting variables that are defined directly in .NET code.
         // Example output for length
         // l &= 100 \text{ mm} \\
+        // TODO: Clean this part up - it is only required if variables are defined in code, which will likely rarely happen 
         if (variable.Expression is VariableDeclaration
             {
                 Expression: UnitAssignmentExpression
                 {
-                    Value: NumberConstant numberConstant
-                } unitAssignmentExpression
+                    Value: NumberConstant numberConstantCode
+                } unitAssignmentExpressionCode
             })
         {
             // If the unit hasn't already been evaluated, evaluate it first before printing
-            if (unitAssignmentExpression.Unit == null)
-                UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpression);
+            if (unitAssignmentExpressionCode.Unit == null)
+                UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpressionCode);
 
-            return variableDisplayName + " &= " + numberConstant.Value +
-                   unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString();
+            return variableDisplayName + " &= " + numberConstantCode.Value +
+                   unitAssignmentExpressionCode.GetEvaluatedUnit()?.ToLatexString();
         }
 
         // TODO: Add extra cases for when a variable is a number with no unit, and when a variable is just a constant evaluation.
@@ -69,11 +92,18 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // \rho &= \frac{m}{V} \\
         // &= \frac{20 \text{ kg}}{10 \text{ m}^{3}} \\
         // &= 2 \text{ kg m}^{-3} \\
-        var result = variableDisplayName + " &" + ReportSymbolExpression(variable);
+        var result = variableDisplayName;
 
-        if (variable.Reference != "") result += " &\\quad\\text{(" + variable.Reference + ")}";
+        // If there are dependencies or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
+        if (dependencies is { IsEmpty: false } or null)
+        {
+            result += " &" + ReportSymbolExpression(variable);
+            if (variable.Reference != "") result += " &\\quad\\text{(" + variable.Reference + ")}";
+            result += " \\\\\n";
+        }
 
-        result += $" \\\\\n&{ReportValueExpression(variable)} \\\\\n&= {ReportDefaultValue(variable)} \\\\";
+
+        result += $"&{ReportValueExpression(variable)} \\\\\n&= {ReportDefaultValue(variable)} \\\\";
 
         return result;
     }

@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis;
+using Sunset.Parser.Analysis.CycleChecking;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
@@ -90,7 +91,13 @@ public class Environment : IScope
 
             nameResolver.Visit(scope, scope.ParentScope);
         }
-        // TODO: Implement name resolution
+
+        // Cycle checking
+        var cycleChecker = new CycleChecker();
+        foreach (var scope in ChildScopes.Values)
+        {
+            cycleChecker.Visit(scope);
+        }
 
         // Type checking
         var typeChecker = new UnitTypeChecker();

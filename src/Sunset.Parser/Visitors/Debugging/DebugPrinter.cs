@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Sunset.Parser.Analysis.CycleChecking;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
@@ -81,12 +82,19 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(VariableDeclaration dest)
     {
+        var dependencies = dest.GetDependencies()?.GetPaths();
+        var dependencyNames = string.Empty;
+        if (dependencies != null)
+        {
+            dependencyNames = string.Join(", ", dependencies);
+        }
+
         return $"""
                     {dest.FullPath}:
                         Unit: {dest.GetAssignedUnit()}
                         Symbol: {dest.Variable.Symbol}
                         Expression: {Visit(dest.Expression)}
-                        
+                        Dependencies: {dependencyNames}
                 """;
     }
 

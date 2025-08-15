@@ -35,52 +35,52 @@ public class DebugPrinter : IVisitor<string>
         };
     }
 
-    public string Visit(BinaryExpression dest)
+    private string Visit(BinaryExpression dest)
     {
         return "(" + dest.OperatorToken + " " + dest.Left.Accept(this) + " " + dest.Right.Accept(this) + ")";
     }
 
-    public string Visit(UnaryExpression dest)
+    private string Visit(UnaryExpression dest)
     {
         return "(" + dest.OperatorToken + " " + dest.Operand.Accept(this) + ")";
     }
 
-    public string Visit(GroupingExpression dest)
+    private string Visit(GroupingExpression dest)
     {
         return dest.InnerExpression.Accept(this);
     }
 
-    public string Visit(NameExpression dest)
+    private string Visit(NameExpression dest)
     {
         return dest.GetResolvedDeclaration()?.FullPath ?? $"{dest.Name}!";
     }
 
-    public string Visit(IfExpression dest)
+    private string Visit(IfExpression dest)
     {
         throw new NotImplementedException();
     }
 
-    public string Visit(UnitAssignmentExpression dest)
+    private string Visit(UnitAssignmentExpression dest)
     {
         return "(assign " + dest.Value.Accept(this) + " " + dest.UnitExpression.Accept(this) + ")";
     }
 
-    public string Visit(NumberConstant dest)
+    private string Visit(NumberConstant dest)
     {
         return dest.Token.ToString();
     }
 
-    public string Visit(StringConstant dest)
+    private string Visit(StringConstant dest)
     {
         return dest.Token.ToString();
     }
 
-    public string Visit(UnitConstant dest)
+    private string Visit(UnitConstant dest)
     {
         return dest.Unit.ToString();
     }
 
-    public string Visit(VariableDeclaration dest)
+    private string Visit(VariableDeclaration dest)
     {
         var dependencies = dest.GetDependencies()?.GetPaths();
         var dependencyNames = string.Empty;
@@ -98,7 +98,7 @@ public class DebugPrinter : IVisitor<string>
                 """;
     }
 
-    public string Visit(FileScope dest)
+    private string Visit(FileScope dest)
     {
         var builder = new StringBuilder();
         builder.AppendLine($"{dest.FullPath}:");

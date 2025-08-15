@@ -55,13 +55,13 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
             {
                 case NumberConstant numberConstant:
                     return variableDisplayName + " &= " + numberConstant.Value +
-                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString();
+                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString() + @"\\";
                 case UnitAssignmentExpression
                 {
                     Value: NumberConstant quantityConstant
                 } unitAssignmentExpression:
                     return variableDisplayName + " &= " + quantityConstant.Value +
-                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString();
+                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + @"\\";
             }
         }
 

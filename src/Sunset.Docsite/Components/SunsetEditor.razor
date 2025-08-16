@@ -1,0 +1,139 @@
+﻿@using BlazorMonaco
+@using BlazorMonaco.Editor
+@using Sunset.Parser
+@inject IJSRuntime JS
+
+@implements IAsyncDisposable
+
+<MudCard Class="mb-4 mud-background-gray">
+    <MudCardContent>
+        <MudGrid Class="mb-2">
+            <MudItem>
+                <MudText Typo="Typo.h6">Code</MudText>
+                <StandaloneCodeEditor @ref="_editor" Id="editor" CssClass="editor"
+                                      ConstructionOptions="EditorConstructionOptions"
+                                      OnKeyUp="EditorKeyUp"/>
+            </MudItem>
+            <MudItem>
+                <MudText Class="mb-4" Typo="Typo.h6">Output</MudText>
+                <div @ref="_renderedOutputElement"></div>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
+
+@code{
+
+    /// <summary>
+    /// The code editor
+    /// </summary>
+    private StandaloneCodeEditor _editor = new();
+
+    /// <summary>
+    /// The output text
+    /// </summary>
+    private string _outputText = string.Empty;
+
+    /// <summary>
+    /// The interop module containing the KaTeX rendering code.
+    /// </summary>
+    private IJSObjectReference? _module;
+
+    /// <summary>
+    /// The element to which KaTeX renders the equations.
+    /// </summary>
+    private ElementReference? _renderedOutputElement;
+
+    /// <summary>
+    /// Loads the rendering interop module.
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./scripts.js");
+        }
+
+        await RunCode();
+    }
+
+    /// <summary>
+    /// Assemble editor options.
+    /// </summary>
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Value = "x = 12",
+        };
+    }
+
+    /// <summary>
+    /// Compiles and executes the code in the editor.
+    /// </summary>
+    private async Task RunCode()
+    {
+        try
+        {
+            var code = await _editor.GetValue();
+
+            var sourceFile = SourceFile.FromString(code);
+            var environment = sourceFile.CreateEnvironment();
+            environment.Parse();
+
+            // Render output wrapped in LaTeX align block
+            var output = "\\begin{aligned}\r\n" + ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues() + @"\end{aligned}";
+
+            await RenderRawOutput(output);
+
+            // Render using KaTeX and JS interop
+            if (_module != null)
+            {
+                await _module.InvokeVoidAsync("renderLatexOutput", output, _renderedOutputElement);
+            }
+        }
+        catch
+        {
+            // Do nothing with errors for now
+        }
+    }
+
+    /// <summary>
+    /// Clean up imported module.
+    /// </summary>
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (_module != null)
+        {
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// Render the raw output to the screen.
+    /// </summary>
+    /// <param name="output">Raw output to be rendered.</param>
+    /// <returns></returns>
+    private Task RenderRawOutput(string output)
+    {
+        _outputText = output;
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Re-run the code and display the output whenever there is a keypress in the editor.
+    /// </summary>
+    private async Task EditorKeyUp(KeyboardEvent arg)
+    {
+        await RunCode();
+    }
+
+}

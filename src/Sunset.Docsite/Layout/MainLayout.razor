@@ -1,18 +1,27 @@
-﻿@inherits LayoutComponentBase
+﻿@using MudBlazor
+@inherits LayoutComponentBase
 
-<MudThemeProvider/>
+<MudThemeProvider IsDarkMode="true"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
 <MudLayout>
     <MudAppBar>
-        My Application
+        <MudText>
+            The Sunset Language
+        </MudText>
+        <MudSpacer/>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/">Home</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/learn">Learn</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/playground">Playground</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/install">Install</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/ref">Reference</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/about">About</MudButton>
     </MudAppBar>
-    <MudDrawer Open="false">
-
-    </MudDrawer>
     <MudMainContent>
-        @Body
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            @Body
+        </MudContainer>
     </MudMainContent>
 </MudLayout>

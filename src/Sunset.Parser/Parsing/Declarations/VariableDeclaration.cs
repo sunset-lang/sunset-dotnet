@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Abstractions;
+﻿using System.Diagnostics;
+using Sunset.Parser.Abstractions;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Tokens;
@@ -10,6 +11,7 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// <summary>
 /// Declares a new variable assigned with a calculation expression.
 /// </summary>
+[DebuggerDisplay("{FullPath}")]
 public class VariableDeclaration : IDeclaration, IExpression
 {
     public VariableUnitAssignment? UnitAssignment { get; }

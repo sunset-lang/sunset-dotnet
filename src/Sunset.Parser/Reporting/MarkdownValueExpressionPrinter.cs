@@ -68,7 +68,7 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
             case VariableDeclaration variableDeclaration:
                 if (variableDeclaration.Variable.DefaultValue != null)
                     return MarkdownHelpers.ReportQuantity(variableDeclaration.Variable.DefaultValue);
-                throw new Exception("Default value not evaluated");
+                return "\\text{!Error!}";
             default:
                 throw new ArgumentOutOfRangeException();
         }

@@ -9,7 +9,7 @@ namespace Sunset.Parser.Parsing.Constants;
 ///     Represents a unit of measurement in the expression tree.
 /// </summary>
 /// <param name="unit">The unit of measurement.</param>
-public class UnitConstant(Unit unit) : ExpressionBase
+public class UnitConstant(Unit unit) : ExpressionBase, IConstant
 {
     /// <summary>
     ///     Creates a new instance of <see cref="UnitConstant" /> from a string token.

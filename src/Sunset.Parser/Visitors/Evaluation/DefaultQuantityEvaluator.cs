@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
@@ -20,6 +21,11 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
 
     public IQuantity? Visit(IVisitable dest)
     {
+        if (dest.HasCircularReferenceError())
+        {
+            return null;
+        }
+
         return dest switch
         {
             BinaryExpression binaryExpression => Visit(binaryExpression),

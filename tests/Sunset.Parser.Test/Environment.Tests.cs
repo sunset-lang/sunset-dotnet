@@ -1,6 +1,5 @@
 ﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Analysis.CycleChecking;
-using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Units;
@@ -111,7 +110,7 @@ public class EnvironmentTests
     }
 
     private void AssertVariableDeclaration(IScope scope, string variableName, double? expectedValue, Unit expectedUnit,
-        string[]? dependencyNames = null)
+        string[]? referenceNames = null)
     {
         if (scope.ChildDeclarations[variableName] is VariableDeclaration variableDeclaration)
         {
@@ -129,23 +128,23 @@ public class EnvironmentTests
 
             Assert.That(Unit.EqualDimensions(defaultUnit, expectedUnit), Is.True);
 
-            // Test dependency trail generation
-            if (dependencyNames == null)
+            var references = variableDeclaration.GetReferences();
+            if (references == null)
             {
-                Assert.That(variableDeclaration.GetDependencies() is { IsEmpty: true });
+                Assert.Fail("Expected references to be set by cycle checker.");
+                return;
+            }
+
+            // Test reference trail generation
+            if (referenceNames == null)
+            {
+                Assert.That(references, Is.Empty);
             }
             else
             {
-                var dependencies = variableDeclaration.GetDependencies();
-                if (dependencies == null)
+                foreach (var name in referenceNames)
                 {
-                    Assert.Fail("Expected dependencies to be set");
-                    return;
-                }
-
-                foreach (var name in dependencyNames)
-                {
-                    Assert.That(dependencies.FindByName(name), Is.Not.Null);
+                    Assert.That(references.Any(reference => reference.Name == name));
                 }
             }
         }

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using Sunset.Parser.Abstractions;
-using Sunset.Parser.Analysis.CycleChecking;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
@@ -46,10 +46,10 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // Show the symbol unless it is empty, in which case show the name of the variable.
         var variableDisplayName = variable.Symbol != string.Empty ? variable.Symbol : $"\\text{{{variable.Name}}}";
 
-        // If the variable has been created through evaluating Sunset code and the variable has no dependencies, it should be reported as a constant
+        // If the variable has been created through evaluating Sunset code and the variable has no references, it should be reported as a constant
         // TODO: Make this it's own function
-        var dependencies = variable.Declaration.GetDependencies();
-        if (dependencies is { IsEmpty: true })
+        var references = variable.Declaration.GetReferences();
+        if (references?.Count > 0)
         {
             switch (variable.Declaration.Expression)
             {
@@ -94,11 +94,11 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // &= 2 \text{ kg m}^{-3} \\
         var result = variableDisplayName;
 
-        // If there are dependencies or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
-        if (dependencies is { IsEmpty: false } or null)
+        // If there are references or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
+        if (references?.Count > 0 || references == null)
         {
             result += " &" + ReportSymbolExpression(variable);
-            if (variable.Reference != "") result += " &\\quad\\text{(" + variable.Reference + ")}";
+            if (variable.Reference != "") result += @" &\quad\text{(" + variable.Reference + ")}";
             result += " \\\\\n";
         }
 
@@ -167,9 +167,10 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         }
 
         var result = DefaultQuantityEvaluator.EvaluateExpression(variable.Expression);
+        // Show an error if a quantity cannot be calculated
         if (result == null)
         {
-            throw new Exception("Could not evaluate default value for variable " + variable.Name);
+            return $"\\text{{!Error!}}";
         }
 
         return MarkdownHelpers.ReportQuantity(result);

@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using Sunset.Parser.Analysis.CycleChecking;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
@@ -17,6 +17,11 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(IVisitable dest)
     {
+        if (dest.HasCircularReferenceError())
+        {
+            return "!Circular reference!";
+        }
+
         return dest switch
         {
             BinaryExpression binary => Visit(binary),
@@ -82,19 +87,15 @@ public class DebugPrinter : IVisitor<string>
 
     private string Visit(VariableDeclaration dest)
     {
-        var dependencies = dest.GetDependencies()?.GetPaths();
-        var dependencyNames = string.Empty;
-        if (dependencies != null)
-        {
-            dependencyNames = string.Join(", ", dependencies);
-        }
+        var references = (dest.GetReferences() ?? []).Select(x => x.FullPath).ToArray();
+        var referenceNames = string.Join(", ", references);
 
         return $"""
                     {dest.FullPath}:
                         Unit: {dest.GetAssignedUnit()}
                         Symbol: {dest.Variable.Symbol}
                         Expression: {Visit(dest.Expression)}
-                        Dependencies: {dependencyNames}
+                        References: {referenceNames}
                 """;
     }
 

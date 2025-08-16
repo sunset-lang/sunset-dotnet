@@ -1,8 +1,8 @@
 ﻿using Serilog;
 using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis;
-using Sunset.Parser.Analysis.CycleChecking;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Visitors;
@@ -93,10 +93,10 @@ public class Environment : IScope
         }
 
         // Cycle checking
-        var cycleChecker = new CycleChecker();
+        var cycleChecker = new ReferenceChecker();
         foreach (var scope in ChildScopes.Values)
         {
-            cycleChecker.Visit(scope);
+            cycleChecker.Visit(scope, []);
         }
 
         // Type checking

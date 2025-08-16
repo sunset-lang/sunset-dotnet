@@ -31,6 +31,7 @@ public enum ErrorCode
 
     // Name resolution errors
     CouldNotFindName,
+    CircularReference
 }
 
 public class Error
@@ -68,6 +69,7 @@ public class Error
             (ErrorType.Warning, "The variable defined does not have an explicit unit set.")
         },
         { ErrorCode.CouldNotFindName, (ErrorType.Semantic, "Could not find name.") },
+        { ErrorCode.CircularReference, (ErrorType.Semantic, "Circular reference detected.") }
 
         // TODO: Add test to confirm that there are error messages for all error codes
     };

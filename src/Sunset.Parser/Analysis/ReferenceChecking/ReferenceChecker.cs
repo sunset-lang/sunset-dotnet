@@ -1,0 +1,156 @@
+﻿using Sunset.Parser.Abstractions;
+using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Errors;
+using Sunset.Parser.Expressions;
+using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Visitors;
+
+namespace Sunset.Parser.Analysis.ReferenceChecking;
+
+/// <summary>
+/// Checks references in each function and whether there are cyclic references.
+/// </summary>
+public class ReferenceChecker
+{
+    /// <summary>
+    /// The Visit functions pass down the visited nodes as parameters, which is used for cyclic reference checking.
+    /// They return the references which are cached when paths are visited multiple times.
+    /// </summary>
+    /// <param name="dest">The destination node of the visitor.</param>
+    /// <param name="visited">The set of visited nodes.</param>
+    /// <returns>The references that this node has.</returns>
+    /// <exception cref="ArgumentException">Thrown when an unknown node type is visited.</exception>
+    public HashSet<IDeclaration>? Visit(IVisitable dest, HashSet<IDeclaration> visited)
+    {
+        return dest switch
+        {
+            BinaryExpression binaryExpression => Visit(binaryExpression, visited),
+            UnaryExpression unaryExpression => Visit(unaryExpression, visited),
+            GroupingExpression groupingExpression => Visit(groupingExpression, visited),
+            NameExpression nameExpression => Visit(nameExpression, visited),
+            IfExpression ifExpression => Visit(ifExpression, visited),
+            VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
+            UnitConstant unitConstant => Visit(unitConstant, visited),
+            IScope scope => Visit(scope, visited),
+            IConstant => null,
+            UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),
+            _ => throw new ArgumentException($"Cycle checker cannot visit the node of type {dest.GetType()}")
+        };
+    }
+
+    private HashSet<IDeclaration>? Visit(BinaryExpression dest, HashSet<IDeclaration> visited)
+    {
+        // For the dot operator only return the right most reference.
+        // TODO: Double check whether this is the case or if parents should be considered as references as well
+        if (dest.Operator == TokenType.Dot)
+            return Visit(dest.Right, visited);
+
+
+        // Return the union of the references from both sides of the expression
+        var leftReferences = Visit(dest.Left, visited) ?? [];
+        var rightReferences = Visit(dest.Right, visited) ?? [];
+
+        return leftReferences.Union(rightReferences).ToHashSet();
+    }
+
+    private HashSet<IDeclaration>? Visit(UnaryExpression dest, HashSet<IDeclaration> visited)
+    {
+        return Visit(dest.Operand, visited);
+    }
+
+    private HashSet<IDeclaration>? Visit(GroupingExpression dest, HashSet<IDeclaration> visited)
+    {
+        return Visit(dest.InnerExpression, visited);
+    }
+
+    private HashSet<IDeclaration>? Visit(NameExpression dest, HashSet<IDeclaration> visited)
+    {
+        var declaration = dest.GetResolvedDeclaration();
+        // If no declaration can be found, this error will already have been logged in the name resolution pass
+        // Just send a null result so the pass can continue.
+        if (declaration == null)
+        {
+            return null;
+        }
+
+        var declarationReferences = Visit(declaration, visited);
+        // If the resolved variable declaration has no references (e.g. is a constant), just add the declaration as a reference.
+        if (declarationReferences == null) return [declaration];
+
+        // Otherwise add this declaration to the references
+        declarationReferences.Add(declaration);
+        return declarationReferences;
+    }
+
+    private HashSet<IDeclaration>? Visit(UnitAssignmentExpression dest, HashSet<IDeclaration> visited)
+    {
+        return null;
+    }
+
+    private HashSet<IDeclaration> Visit(IfExpression dest, HashSet<IDeclaration> visited)
+    {
+        throw new NotImplementedException();
+    }
+
+    private HashSet<IDeclaration> Visit(VariableDeclaration dest, HashSet<IDeclaration> visited)
+    {
+        // Get the cached references if they exist, noting that GetReferences returns a copy of the reference set
+        var cachedReferences = dest.GetReferences();
+        if (cachedReferences != null)
+        {
+            // Return a new copy of the references
+            return cachedReferences;
+        }
+
+        // Capture a cyclic reference if this variable has already been visited
+        if (visited.Contains(dest))
+        {
+            dest.AddError(ErrorCode.CircularReference);
+            // Return this variable as a reference to provide an upstream signal that there is a circular reference and prevent further checking.
+            return [dest];
+        }
+
+        // Resolve all references within the expression and store the references.
+        // Note that this stores a shallow clone of the references so the same references can be passed through.
+        var references = Visit(dest.Expression, [..visited, dest]);
+        // If there are circular references in the references made by this variable, add it to this variable.
+        if (references != null)
+        {
+            if (references.Any(reference => reference.Errors.Any(error => error.Code == ErrorCode.CircularReference)))
+            {
+                dest.AddError(ErrorCode.CircularReference);
+            }
+        }
+
+        // Set an empty reference set if visited to signal that this has already been visited
+        // and that there are no references to this variable.
+        dest.SetReferences(references ??= []);
+
+        // Return a copy of the references that have been set, noting that SetReferences sets a copy and not the original reference
+        return references;
+    }
+
+    public HashSet<IDeclaration> Visit(IScope dest, HashSet<IDeclaration> visited)
+    {
+        var references = new HashSet<IDeclaration>();
+
+        foreach (var children in dest.ChildDeclarations.Values)
+        {
+            // Add the children and the declaration itself as a reference
+            var childReferences = Visit(children, visited);
+            if (childReferences != null)
+            {
+                references.UnionWith(childReferences);
+            }
+
+            references.Add(children);
+        }
+
+        dest.SetReferences(references);
+
+        references.Add(dest);
+        return references;
+    }
+}

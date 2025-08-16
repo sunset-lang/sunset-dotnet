@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
@@ -24,6 +25,9 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     public Unit? Visit(IVisitable dest)
     {
+        // Protect against infinite recursion
+        if (dest.HasCircularReferenceError()) return null;
+
         return dest switch
         {
             BinaryExpression binaryExpression => Visit(binaryExpression),

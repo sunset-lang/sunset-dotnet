@@ -170,7 +170,7 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // Show an error if a quantity cannot be calculated
         if (result == null)
         {
-            return $"\\text{{!Error!}}";
+            return $"\\text{{Error!}}";
         }
 
         return MarkdownHelpers.ReportQuantity(result);

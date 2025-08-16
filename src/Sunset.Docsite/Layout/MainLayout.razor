@@ -1,16 +1,27 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
+﻿@using MudBlazor
+@inherits LayoutComponentBase
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<MudThemeProvider IsDarkMode="true"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 
-        <article class="content px-4">
+<MudLayout>
+    <MudAppBar>
+        <MudText>
+            The Sunset Language
+        </MudText>
+        <MudSpacer/>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/">Home</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/learn">Learn</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/playground">Playground</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/install">Install</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/ref">Reference</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/about">About</MudButton>
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Medium">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

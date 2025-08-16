@@ -1,149 +1,71 @@
 ﻿@page "/"
-@using BlazorMonaco
-@using BlazorMonaco.Editor
-@using Sunset.Parser
-@inject IJSRuntime JS
+@using Sunset.Docsite.Components
 
-@implements IAsyncDisposable
+<PageTitle>The Sunset Language</PageTitle>
 
-<PageTitle>The Sunset Language playground</PageTitle>
+<h1 class="mt-8 mb-4">The Sunset Language</h1>
 
-<h1>The Sunset Language</h1>
-<h2>Live playground</h2>
-<div class="row">
-    <!-- Code editor -->
-    <div class="col-md-6">
-        <StandaloneCodeEditor @ref="_editor" Id="editor" CssClass="editor"
-                              ConstructionOptions="EditorConstructionOptions"
-                              OnKeyUp="EditorKeyUp"/>
-    </div>
-    <!-- Output -->
-    <div class="col-md-6">
-        <!-- Rendered output -->
-        <div @ref="_renderedOutputElement"></div>
+<MudText>
+    Sunset is a simple programming language designed specifically for design engineers.
 
-        <!-- Raw  output -->
-        <textarea
-            class="form-control border rounded p-3"
-            style="min-height: 400px;"
-            @bind="_outputText"
-            readonly></textarea>
-    </div>
-</div>
+    Play around with the example below or in our
+</MudText>
+<MudLink Href="/playground">playground</MudLink>
+<MudText>
+    to see it in action.
+</MudText>
 
+<!-- Example scripts -->
+<SunsetEditor/>
 
-@code{
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard>
+            <MudCardContent>
+                <h2>Learn more</h2>
+                <MudText>Follow along with our interactive tutorials to learn more about Sunset and how it can help you
+                    create faster, safer engineering tools.
+                </MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Href="/learn">Start learning</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
 
-    /// <summary>
-    /// The code editor
-    /// </summary>
-    private StandaloneCodeEditor _editor = new();
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard>
+            <MudCardContent>
+                <h2>Install</h2>
+                <MudText>Sunset comes with a number of tools to help you write good clean code. Install them for the
+                    best experience in writing code on your computer.
+                </MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Href="/learn">Install Sunset tools</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
 
-    /// <summary>
-    /// The output text
-    /// </summary>
-    private string _outputText = string.Empty;
-
-    /// <summary>
-    /// The interop module containing the KaTeX rendering code.
-    /// </summary>
-    private IJSObjectReference? _module;
-
-    /// <summary>
-    /// The element to which KaTeX renders the equations.
-    /// </summary>
-    private ElementReference? _renderedOutputElement;
-
-    /// <summary>
-    /// Loads the rendering interop module.
-    /// </summary>
-    /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./scripts.js");
-        }
-
-        await RunCode();
-    }
-
-    /// <summary>
-    /// Assemble editor options.
-    /// </summary>
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Value = "x = 12",
-        };
-    }
-
-    /// <summary>
-    /// Compiles and executes the code in the editor.
-    /// </summary>
-    private async Task RunCode()
-    {
-        try
-        {
-            var code = await _editor.GetValue();
-
-            var sourceFile = SourceFile.FromString(code);
-            var environment = sourceFile.CreateEnvironment();
-            environment.Parse();
-
-            // Render output wrapped in LaTeX align block
-            var output = "\\begin{aligned}\r\n" + ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues() + @"\end{aligned}";
-
-            await RenderRawOutput(output);
-
-            // Render using KaTeX and JS interop
-            if (_module != null)
-            {
-                await _module.InvokeVoidAsync("renderLatexOutput", output, _renderedOutputElement);
-            }
-        }
-        catch
-        {
-            // Do nothing with errors for now
-        }
-    }
-
-    /// <summary>
-    /// Clean up imported module.
-    /// </summary>
-    async ValueTask IAsyncDisposable.DisposeAsync()
-    {
-        if (_module != null)
-        {
-            try
-            {
-                await _module.DisposeAsync();
-            }
-            catch (JSDisconnectedException)
-            {
-            }
-        }
-    }
-
-    /// <summary>
-    /// Render the raw output to the screen.
-    /// </summary>
-    /// <param name="text">Raw output to be rendered.</param>
-    /// <returns></returns>
-    private Task RenderRawOutput(string output)
-    {
-        _outputText = output;
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Re-run the code and display the output whenever there is a keypress in the editor.
-    /// </summary>
-    private async Task EditorKeyUp(KeyboardEvent arg)
-    {
-        await RunCode();
-    }
-
-}
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard>
+            <MudCardContent>
+                <h2>Why Sunset?</h2>
+                <MudText>Sunset has a number of advantages over traditional spreadsheet-based tools. Here are three of
+                    them:
+                    <ul class="ml-4">
+                        <li>All equations are shown in their symbolic form, so if the equation <b>looks</b> right,
+                            you're
+                            guaranteed that the calculations <b>are</b> right.
+                        </li>
+                        <li>All units are converted automatically.</li>
+                        <li>It's free and open source.</li>
+                    </ul>
+                </MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Href="/why">See more reasons</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>

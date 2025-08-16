@@ -21,9 +21,12 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
 
     public IQuantity? Visit(IVisitable dest)
     {
-        if (dest.HasCircularReferenceError())
+        if (dest is IErrorContainer errorContainer)
         {
-            return null;
+            if (errorContainer.ContainsError<CircularReferenceError>())
+            {
+                return null;
+            }
         }
 
         return dest switch
@@ -90,7 +93,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         var declaration = dest.GetResolvedDeclaration();
         if (declaration != null) return Visit(declaration);
 
-        dest.AddError(ErrorCode.CouldNotFindName);
+        dest.AddError(new NameResolutionError(dest));
         return null;
     }
 
@@ -139,13 +142,13 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
 
     private IQuantity? Visit(StringConstant dest)
     {
-        dest.AddError(ErrorCode.StringInExpression);
+        dest.AddError(new StringInExpressionError(dest.Token));
         return null;
     }
 
     private IQuantity? Visit(UnitConstant dest)
     {
-        dest.AddError(ErrorCode.UnitInExpression);
+        dest.AddError(new UnitInExpressionError(dest.Token));
         return null;
     }
 

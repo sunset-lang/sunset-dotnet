@@ -10,11 +10,11 @@ namespace Sunset.Parser.Expressions;
 public abstract class ExpressionBase : IExpression
 {
     /// <inheritdoc />
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
 
-    public void AddError(ErrorCode code)
+    public void AddError(IError error)
     {
-        Errors.Add(Error.Create(code));
+        Errors.Add(error);
     }
 
     public Dictionary<string, IPassData> PassData { get; } = [];

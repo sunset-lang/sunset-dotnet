@@ -8,7 +8,7 @@ public interface IErrorContainer
     /// <summary>
     /// A list of the errors that are held by this container.
     /// </summary>
-    List<Error> Errors { get; }
+    List<IError> Errors { get; }
 
     /// <summary>
     /// True if errors exist, false otherwise.
@@ -16,11 +16,10 @@ public interface IErrorContainer
     bool HasErrors => Errors.Count > 0;
 
     /// <summary>
-    /// Adds an error based on a provided <see cref="ErrorCode" />.
+    /// Adds an error to the container. />.
     /// </summary>
-    /// <param name="code">Code representing the error.</param>
-    void AddError(ErrorCode code)
+    void AddError(IError error)
     {
-        Errors.Add(Error.Create(code));
+        Errors.Add(error);
     }
 }

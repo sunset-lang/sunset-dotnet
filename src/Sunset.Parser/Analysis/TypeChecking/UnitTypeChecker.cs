@@ -2,6 +2,7 @@
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -26,7 +27,13 @@ public class UnitTypeChecker : IVisitor<Unit?>
     public Unit? Visit(IVisitable dest)
     {
         // Protect against infinite recursion
-        if (dest.HasCircularReferenceError()) return null;
+        if (dest is IErrorContainer container)
+        {
+            if (container.ContainsError<CircularReferenceError>())
+            {
+                return null;
+            }
+        }
 
         return dest switch
         {
@@ -52,7 +59,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
         if (leftResult == null || rightResult == null)
         {
-            dest.AddError(ErrorCode.CouldNotResolveUnits);
+            dest.AddError(new UnitResolutionError(dest));
             return null;
         }
 
@@ -79,7 +86,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
                 if (arithmeticResult.Valid) return arithmeticResult;
 
-                dest.AddError(ErrorCode.UnitMismatch);
+                dest.AddError(new UnitMismatchError(dest));
                 return null;
             }
             default:
@@ -127,7 +134,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
     private static Unit? Visit(StringConstant dest)
     {
-        dest.AddError(ErrorCode.StringInExpression);
+        dest.AddError(new StringInExpressionError(dest.Token));
         return null;
     }
 
@@ -171,7 +178,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
             // Provide a weak unit assignment to the declaration
             // TODO: Add a warning that this should be called up explicitly
-            dest.AddError(ErrorCode.VariableDoesNotHaveExplicitUnit);
+            dest.AddError(new VariableUnitDeclarationError(dest));
             dest.SetEvaluatedUnit(expressionUnit);
             return expressionUnit;
         }
@@ -181,14 +188,15 @@ public class UnitTypeChecker : IVisitor<Unit?>
         {
             if (Unit.EqualDimensions(assignedUnit, expressionUnit)) return assignedUnit;
 
-            dest.AddError(ErrorCode.UnitMismatch);
+            dest.AddError(new VariableUnitDeclarationError(dest));
             return null;
         }
 
         //  If one is not null and one is null, then the units are definitely incompatible. 
+        // TODO: Check for case where the expression unit is dimensionless or the unit is a constant
         if (assignedUnit != null && expressionUnit == null)
         {
-            dest.AddError(ErrorCode.CouldNotResolveUnits);
+            dest.AddError(new VariableUnitDeclarationError(dest));
         }
 
         // If both of the units are null, the units could match and would otherwise need to be picked up by the type checker.

@@ -217,7 +217,7 @@ public partial class Parser
 
             if (_current.Type is TokenType.Newline or TokenType.EndOfFile)
             {
-                _current.AddError(ErrorCode.UnexpectedSymbol);
+                _current.AddError(new UnexpectedSymbolError(_current));
                 break;
             }
         }
@@ -267,7 +267,7 @@ public partial class Parser
             return consumed;
         }
 
-        if (!optional) _current.AddError(ErrorCode.UnexpectedSymbol);
+        if (!optional) _current.AddError(new UnexpectedSymbolError(_current));
 
         return null;
     }

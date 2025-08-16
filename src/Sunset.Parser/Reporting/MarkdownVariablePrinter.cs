@@ -44,24 +44,25 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
     public string ReportVariable(IVariable variable)
     {
         // Show the symbol unless it is empty, in which case show the name of the variable.
-        var variableDisplayName = variable.Symbol != string.Empty ? variable.Symbol : $"\\text{{{variable.Name}}}";
+        var variableDisplayName =
+            (variable.Symbol != string.Empty ? variable.Symbol : $"\\text{{{variable.Name}}}") + " ";
 
         // If the variable has been created through evaluating Sunset code and the variable has no references, it should be reported as a constant
         // TODO: Make this it's own function
         var references = variable.Declaration.GetReferences();
-        if (references?.Count > 0)
+        if (references?.Count == 0)
         {
             switch (variable.Declaration.Expression)
             {
                 case NumberConstant numberConstant:
-                    return variableDisplayName + " &= " + numberConstant.Value +
-                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString() + @"\\";
+                    return variableDisplayName + "&= " + numberConstant.Value +
+                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString() + @" \\";
                 case UnitAssignmentExpression
                 {
                     Value: NumberConstant quantityConstant
                 } unitAssignmentExpression:
-                    return variableDisplayName + " &= " + quantityConstant.Value +
-                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + @"\\";
+                    return variableDisplayName + "&= " + quantityConstant.Value +
+                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + @" \\";
             }
         }
 
@@ -82,7 +83,7 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
             if (unitAssignmentExpressionCode.Unit == null)
                 UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpressionCode);
 
-            return variableDisplayName + " &= " + numberConstantCode.Value +
+            return variableDisplayName + "&= " + numberConstantCode.Value +
                    unitAssignmentExpressionCode.GetEvaluatedUnit()?.ToLatexString();
         }
 
@@ -97,13 +98,13 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
         // If there are references or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
         if (references?.Count > 0 || references == null)
         {
-            result += " &" + ReportSymbolExpression(variable);
+            result += "&" + ReportSymbolExpression(variable);
             if (variable.Reference != "") result += @" &\quad\text{(" + variable.Reference + ")}";
-            result += " \\\\\n";
+            result += " \\\\\r\n";
         }
 
 
-        result += $"&{ReportValueExpression(variable)} \\\\\n&= {ReportDefaultValue(variable)} \\\\";
+        result += $"&{ReportValueExpression(variable)} \\\\\r\n&= {ReportDefaultValue(variable)} \\\\";
 
         return result;
     }

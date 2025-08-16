@@ -206,4 +206,37 @@ public class MarkdownVariablePrinterTests()
         Console.WriteLine(markdownVariablePrinter.ReportSymbolExpression(test5));
         Console.WriteLine(markdownVariablePrinter.ReportSymbolExpression(test6));
     }
+
+    [Test]
+    public void Report_SingleConstantNumber_PrintsOneLine()
+    {
+        var source = SourceFile.FromString("x = 100");
+        var environment = new Environment(source);
+        environment.Parse();
+
+        var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
+        Assert.That(result, Is.EqualTo("\\text{x} &= 100 \\\\\r\n"));
+    }
+
+    [Test]
+    public void Report_SingleConstantQuantity_PrintsOneLine()
+    {
+        var source = SourceFile.FromString("x = 100 {mm}");
+        var environment = new Environment(source);
+        environment.Parse();
+
+        var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
+        Assert.That(result, Is.EqualTo("\\text{x} &= 100 \\text{ mm} \\\\\r\n"));
+    }
+
+    [Test]
+    public void Report_SingleConstantExpression_PrintsOneLine()
+    {
+        var source = SourceFile.FromString("x = 12 + 5");
+        var environment = new Environment(source);
+        environment.Parse();
+
+        var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
+        Assert.That(result, Is.EqualTo("\\text{x} &= 12 + 5 \\\\\r\n&= 17 \\\\\r\n"));
+    }
 }

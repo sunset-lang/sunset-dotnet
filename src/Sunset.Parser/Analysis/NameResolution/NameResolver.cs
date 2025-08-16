@@ -108,7 +108,7 @@ public class NameResolver : INameResolver
         }
 
         // TODO: Search for libraries in the root Environment.
-        dest.AddError(ErrorCode.CouldNotFindName);
+        dest.AddError(new NameResolutionError(dest)); 
     }
 
     private void Visit(UnitAssignmentExpression dest, IScope parentScope)

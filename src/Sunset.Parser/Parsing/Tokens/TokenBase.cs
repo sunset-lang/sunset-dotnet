@@ -92,7 +92,7 @@ public abstract class TokenBase : IToken
     /// <summary>
     ///     A list of the <see cref="Error" /> instances that this token contains.
     /// </summary>
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
 
     /// <summary>
     ///     Returns true if there are errors and false if there aren't.
@@ -111,8 +111,8 @@ public abstract class TokenBase : IToken
         return $"({Type})";
     }
 
-    public void AddError(ErrorCode code)
+    public void AddError(IError error)
     {
-        Errors.Add(Error.Create(code));
+        Errors.Add(error);
     }
 }

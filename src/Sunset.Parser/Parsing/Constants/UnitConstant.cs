@@ -24,7 +24,7 @@ public class UnitConstant(Unit unit) : ExpressionBase, IConstant
     /// <summary>
     ///     The token representing the unit, if available.
     /// </summary>
-    public StringToken? Token { get; }
+    public StringToken Token { get; } = new(unit.ToString().AsMemory(), TokenType.String, 0, 0, 0, 0);
 
     /// <summary>
     ///     The unit of measurement generated for this constant.

@@ -28,20 +28,4 @@ public static class ReferenceCheckExtensions
         // If no references are passed in, store an empty list to signal that the cycle checker has visited.
         dest.GetPassData<ReferenceCheckPassData>(PassDataKey).References = [..references ?? []];
     }
-
-    /// <summary>
-    /// Checks whether an error container has a circular reference error.
-    /// </summary>
-    /// <param name="dest">The error container to check.</param>
-    /// <returns>True if the error has been detected.</returns>
-    public static bool HasCircularReferenceError(this IVisitable dest)
-    {
-        if (dest is IErrorContainer errorContainer)
-        {
-            // TODO: Change this to use individual Error objects. See #18
-            return errorContainer.Errors.Any(e => e.Code == ErrorCode.CircularReference);
-        }
-
-        return false;
-    }
 }

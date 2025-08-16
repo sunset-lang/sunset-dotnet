@@ -107,7 +107,7 @@ public class ReferenceChecker
         // Capture a cyclic reference if this variable has already been visited
         if (visited.Contains(dest))
         {
-            dest.AddError(ErrorCode.CircularReference);
+            dest.AddError(new CircularReferenceError(dest));
             // Return this variable as a reference to provide an upstream signal that there is a circular reference and prevent further checking.
             return [dest];
         }
@@ -118,9 +118,9 @@ public class ReferenceChecker
         // If there are circular references in the references made by this variable, add it to this variable.
         if (references != null)
         {
-            if (references.Any(reference => reference.Errors.Any(error => error.Code == ErrorCode.CircularReference)))
+            if (references.Any(reference => reference.ContainsError<CircularReferenceError>()))
             {
-                dest.AddError(ErrorCode.CircularReference);
+                dest.AddError(new CircularReferenceError(dest));
             }
         }
 

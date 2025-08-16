@@ -19,12 +19,15 @@ public class VariableDeclaration : IDeclaration, IExpression
     // TODO: Add symbolic expression at compile/parse time
     private readonly SymbolName? _symbolExpression;
 
+    public StringToken NameToken { get; }
     public string Name { get; }
     public string FullPath { get; }
 
     public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
     {
         ParentScope = parentScope;
+        NameToken = new StringToken(variable.Name.AsMemory(), TokenType.Identifier, 0, 0, 0, 0);
+
         Name = variable.Name;
         FullPath = $"{parentScope?.FullPath ?? "$"}.{variable.Name}";
 
@@ -43,6 +46,7 @@ public class VariableDeclaration : IDeclaration, IExpression
         StringToken? labelToken = null)
     {
         _symbolExpression = symbolExpression;
+        NameToken = nameToken;
         UnitAssignment = unitAssignment;
 
         ParentScope = parentScope;
@@ -83,14 +87,14 @@ public class VariableDeclaration : IDeclaration, IExpression
     }
 
     /// <inheritdoc />
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
 
     /// <inheritdoc />
     public bool HasErrors => Errors.Count > 0;
 
     /// <inheritdoc />
-    public void AddError(ErrorCode code)
+    public void AddError(IError error)
     {
-        Errors.Add(Error.Create(code));
+        Errors.Add(error);
     }
 }

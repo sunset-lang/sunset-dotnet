@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Parsing.Tokens;
 using Sunset.Parser.Parsing.Tokens.Numbers;
 
@@ -256,7 +257,7 @@ public class Lexer
                     if (!char.IsDigit(_peek))
                     {
                         var numberErrorToken = new DoubleToken(0, start, _position, _line, _column);
-                        numberErrorToken.AddError(ErrorCode.NumberEndingWithDecimalPlace);
+                        numberErrorToken.AddError(new NumberEndingWithDecimalError(numberErrorToken));
                         return numberErrorToken;
                     }
 
@@ -278,7 +279,7 @@ public class Lexer
                     {
                         // If the number ends after the next exponent, finish the token and note an error
                         var numberErrorToken = new DoubleToken(0, start, _position, _line, _column);
-                        numberErrorToken.AddError(ErrorCode.NumberEndingWithExponent);
+                        numberErrorToken.AddError(new NumberEndingWithExponentError(numberErrorToken));
                         return numberErrorToken;
                     }
 
@@ -295,9 +296,9 @@ public class Lexer
         if (decimalPlaceError || exponentError)
         {
             var numberToken = new DoubleToken(0, start, _position, _line, _column);
-            if (decimalPlaceError) numberToken.AddError(ErrorCode.NumberWithMoreThanOneDecimalPlace);
+            if (decimalPlaceError) numberToken.AddError(new NumberDecimalPlaceError(numberToken));
 
-            if (exponentError) numberToken.AddError(ErrorCode.NumberWithMoreThanOneExponent);
+            if (exponentError) numberToken.AddError(new NumberExponentError(numberToken));
 
             return numberToken;
         }
@@ -352,7 +353,7 @@ public class Lexer
                     // This is a multiline string parsing error
                     var stringErrorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
                         start, _position, _line, _line, columnStart, _column);
-                    stringErrorToken.AddError(ErrorCode.MultilineStringNotClosed);
+                    stringErrorToken.AddError(new UnclosedMultilineStringError(stringErrorToken));
                     return stringErrorToken;
                 }
 
@@ -374,7 +375,7 @@ public class Lexer
                 // Consider that this is a string parsing error
                 var stringErrorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
                     start, _position, _line, _column);
-                stringErrorToken.AddError(ErrorCode.StringNotClosed);
+                stringErrorToken.AddError(new UnclosedStringError(stringErrorToken));
                 return stringErrorToken;
             }
 
@@ -427,7 +428,8 @@ public class Lexer
                     var identifierSymbolErrorToken = new StringToken(_source[(start + 1).._position],
                         TokenType.IdentifierSymbol,
                         start, _position, _line, _column);
-                    identifierSymbolErrorToken.AddError(ErrorCode.IdentifierSymbolEndsInUnderscore);
+                    identifierSymbolErrorToken.AddError(
+                        new IdentifierSymbolEndsInUnderscoreError(identifierSymbolErrorToken));
                     return identifierSymbolErrorToken;
                 }
 
@@ -440,9 +442,11 @@ public class Lexer
         var identifierSymbolToken = new StringToken(_source[(start + 1).._position], TokenType.IdentifierSymbol,
             start, _position, _line, _column);
 
-        if (subscriptError) identifierSymbolToken.AddError(ErrorCode.IdentifierSymbolWithMoreThanOneUnderscore);
+        if (subscriptError)
+            identifierSymbolToken.AddError(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
 
-        if (_current == '_') identifierSymbolToken.AddError(ErrorCode.IdentifierSymbolEndsInUnderscore);
+        if (_current == '_')
+            identifierSymbolToken.AddError(new IdentifierSymbolEndsInUnderscoreError(identifierSymbolToken));
 
         return identifierSymbolToken;
     }

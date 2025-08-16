@@ -23,6 +23,6 @@ public class Element(string name, IScope parentScope) : IScope
         return ChildDeclarations.GetValueOrDefault(name);
     }
 
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

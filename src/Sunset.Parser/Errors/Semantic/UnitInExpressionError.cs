@@ -1,0 +1,12 @@
+﻿using Sunset.Parser.Parsing.Tokens;
+
+namespace Sunset.Parser.Errors;
+
+public class UnitInExpressionError(StringToken token) : ISyntaxError
+{
+    public string Message =>
+        $"Units are not allowed in expressions, this may be resolved by closing it with curly braces, e.g. \"{{{token}}}\"";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken[]? Tokens { get; } = [token];
+}

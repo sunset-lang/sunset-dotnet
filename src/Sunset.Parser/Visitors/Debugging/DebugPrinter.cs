@@ -2,6 +2,7 @@
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -17,9 +18,13 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(IVisitable dest)
     {
-        if (dest.HasCircularReferenceError())
+        
+        if (dest is IErrorContainer errorContainer)
         {
-            return "!Circular reference!";
+            if (errorContainer.ContainsError<CircularReferenceError>())
+            {
+                return "!Circular reference!";
+            }
         }
 
         return dest switch

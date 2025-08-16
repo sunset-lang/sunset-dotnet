@@ -32,10 +32,10 @@ public class Library(string name) : IScope
         return visitor.Visit(this);
     }
 
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
     public bool HasErrors { get; }
 
-    public void AddError(ErrorCode code)
+    public void AddError(IError code)
     {
         throw new NotImplementedException();
     }

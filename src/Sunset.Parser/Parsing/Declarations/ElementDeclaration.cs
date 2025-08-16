@@ -38,5 +38,5 @@ public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
         // visitor.Visit(this);
     }
 
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
 }

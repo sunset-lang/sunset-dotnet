@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Units;
 using Sunset.Parser.Visitors.Debugging;
 
@@ -21,8 +22,8 @@ public class ReferenceCheckerTests
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
 
-        Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"].HasCircularReferenceError());
-        Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"].HasCircularReferenceError());
+        Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"].ContainsError<CircularReferenceError>());
+        Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"].ContainsError<CircularReferenceError>());
     }
 
     [Test]
@@ -42,9 +43,12 @@ public class ReferenceCheckerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"].HasCircularReferenceError());
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"].HasCircularReferenceError());
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["z"].HasCircularReferenceError());
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"]
+                .ContainsError<CircularReferenceError>());
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"]
+                .ContainsError<CircularReferenceError>());
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["z"]
+                .ContainsError<CircularReferenceError>());
         });
     }
 
@@ -67,11 +71,16 @@ public class ReferenceCheckerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"].HasCircularReferenceError());
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"].HasCircularReferenceError());
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["z"].HasCircularReferenceError());
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["a"].HasCircularReferenceError(), Is.False);
-            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["b"].HasCircularReferenceError(), Is.False);
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"]
+                .ContainsError<CircularReferenceError>());
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"]
+                .ContainsError<CircularReferenceError>());
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["z"]
+                .ContainsError<CircularReferenceError>());
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["a"].ContainsError<CircularReferenceError>(),
+                Is.False);
+            Assert.That(environment.ChildScopes["$file"].ChildDeclarations["b"].ContainsError<CircularReferenceError>(),
+                Is.False);
         });
     }
 }

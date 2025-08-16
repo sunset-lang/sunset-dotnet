@@ -118,7 +118,7 @@ public class Environment : IScope
     public IScope? ParentScope { get; init; } = null;
     public string FullPath => "$env";
 
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
 
     public IDeclaration? TryGetDeclaration(string name)
     {

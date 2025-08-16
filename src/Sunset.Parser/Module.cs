@@ -66,10 +66,10 @@ public class Module : IScope
         throw new NotImplementedException();
     }
 
-    public List<Error> Errors { get; } = [];
+    public List<IError> Errors { get; } = [];
     public bool HasErrors { get; }
 
-    public void AddError(ErrorCode code)
+    public void AddError(IError code)
     {
         throw new NotImplementedException();
     }

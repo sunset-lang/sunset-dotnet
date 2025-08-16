@@ -1,0 +1,11 @@
+﻿using Sunset.Parser.Expressions;
+using Sunset.Parser.Parsing.Tokens;
+
+namespace Sunset.Parser.Errors;
+
+public class NameResolutionError(NameExpression nameExpression) : ISemanticError
+{
+    public string Message { get; } = $"Could not find a variable named {nameExpression.Name}.";
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken[]? Tokens { get; } = [nameExpression.Token];
+}

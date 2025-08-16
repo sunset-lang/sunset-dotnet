@@ -73,10 +73,10 @@ public class MarkdownReportPrinterTests
                        \begin{alignedat}{2}
                        A &= b t \\
                        &= 100 \text{ mm} \times 10 \text{ mm} \\
-                       &= 1,000 \text{ mm}^{2}\\
+                       &= 1,000 \text{ mm}^{2} \\\\
                        \phi N_s &= \phi f_y A &\quad\text{(AS 4100-1998 Clause 4.3.1)} \\
                        &= 0.9 \times 350 \text{ MPa} \times 1,000 \text{ mm}^{2} \\
-                       &= 315 \text{ kN}
+                       &= 315 \text{ kN} \\
                        \end{alignedat}
                        $$
                        """;
@@ -100,10 +100,10 @@ public class MarkdownReportPrinterTests
                        \begin{alignedat}{2}
                        Z_p &= \frac{b t^{2}}{4} \\
                        &= \frac{100 \text{ mm} \times 10 \text{ mm}^{2}}{4} \\
-                       &= 2,500 \text{ mm}^{3}\\
+                       &= 2,500 \text{ mm}^{3} \\\\
                        \phi M_s &= \phi f_y Z_p &\quad\text{(AS 4100-1998 Clause 5.2.4)} \\
                        &= 0.9 \times 350 \text{ MPa} \times 2,500 \text{ mm}^{3} \\
-                       &= 787.5 \text{ N m}
+                       &= 787.5 \text{ N m} \\
                        \end{alignedat}
                        $$
                        """;
@@ -142,10 +142,10 @@ public class MarkdownReportPrinterTests
                        \begin{alignedat}{2}
                        A &= b t \\
                        &= 100 \text{ mm} \times 10 \text{ mm} \\
-                       &= 1,000 \text{ mm}^{2}\\
+                       &= 1,000 \text{ mm}^{2} \\\\
                        \phi N_s &= \phi f_y A &\quad\text{(AS 4100-1998 Clause 4.3.1)} \\
                        &= 0.9 \times 350 \text{ MPa} \times 1,000 \text{ mm}^{2} \\
-                       &= 315 \text{ kN}
+                       &= 315 \text{ kN} \\
                        \end{alignedat}
                        $$
                        Where: 
@@ -161,10 +161,10 @@ public class MarkdownReportPrinterTests
                        \begin{alignedat}{2}
                        Z_p &= \frac{b t^{2}}{4} \\
                        &= \frac{100 \text{ mm} \times 10 \text{ mm}^{2}}{4} \\
-                       &= 2,500 \text{ mm}^{3}\\
+                       &= 2,500 \text{ mm}^{3} \\\\
                        \phi M_s &= \phi f_y Z_p &\quad\text{(AS 4100-1998 Clause 5.2.4)} \\
                        &= 0.9 \times 350 \text{ MPa} \times 2,500 \text{ mm}^{3} \\
-                       &= 787.5 \text{ N m}
+                       &= 787.5 \text{ N m} \\
                        \end{alignedat}
                        $$
                        Where: 

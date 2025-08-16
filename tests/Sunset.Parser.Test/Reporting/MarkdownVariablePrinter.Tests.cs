@@ -121,7 +121,7 @@ public class MarkdownVariablePrinterTests()
         var expected = """
                        \rho &= \frac{m}{V} \\
                        &= \frac{20 \text{ kg}}{6 \times 10^{-3} \text{ m}^{3}} \\
-                       &= 3,333.3 \text{ kg m}^{-3}
+                       &= 3,333.3 \text{ kg m}^{-3} \\
                        """;
 
         Assert.That(

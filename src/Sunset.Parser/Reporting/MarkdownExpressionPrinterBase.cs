@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
@@ -18,6 +19,11 @@ public abstract class MarkdownExpressionPrinterBase : IVisitor<string>
 
     public string Visit(IVisitable dest)
     {
+        if (dest.HasCircularReferenceError())
+        {
+            return "!Circular reference!";
+        }
+
         return dest switch
         {
             BinaryExpression binaryExpression => Visit(binaryExpression),

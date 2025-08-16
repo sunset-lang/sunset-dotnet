@@ -8,7 +8,7 @@ namespace Sunset.Parser.Parsing.Constants;
 ///     Represents a constant number in the expression tree.
 /// </summary>
 /// <param name="token">Token that the number is generated from.</param>
-public class NumberConstant(INumberToken token) : ExpressionBase
+public class NumberConstant(INumberToken token) : ExpressionBase, IConstant
 {
     public NumberConstant(double value)
         : this(new DoubleToken(value, 0, 0, 0, 0))

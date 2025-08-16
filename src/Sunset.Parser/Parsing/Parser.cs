@@ -210,7 +210,7 @@ public partial class Parser
     {
         Consume(TokenType.OpenAngleBracket);
         List<IToken> tokens = [];
-        while (_current.Type is not TokenType.CloseAngleBracket)
+        while (_current.Type is not (TokenType.CloseAngleBracket or TokenType.GreaterThanOrEqual))
         {
             tokens.Add(_current);
             Advance();
@@ -220,6 +220,13 @@ public partial class Parser
                 _current.AddError(new UnexpectedSymbolError(_current));
                 break;
             }
+        }
+
+        // If there is no space between the close angle bracket and the equals sign, it is tokenised as a GreaterThanOrEqual token type
+        // In this case, split the token and consume just the CloseAngleBracket
+        if (_current.Type == TokenType.GreaterThanOrEqual)
+        {
+            // TODO: Do something here, possibly splitting or rewriting the token
         }
 
         Consume(TokenType.CloseAngleBracket);

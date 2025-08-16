@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Test.Parser;
+﻿using Sunset.Parser.Parsing.Declarations;
+
+namespace Sunset.Parser.Test.Parser;
 
 [TestFixture]
 public class ParserTests
@@ -28,5 +30,17 @@ public class ParserTests
 
         Assert.That(parser.SyntaxTree, Is.Not.Empty, "Expected non-empty syntax tree for multiple lines.");
         Assert.That(parser.SyntaxTree.Count, Is.EqualTo(2), "Expected two declarations in the syntax tree.");
+    }
+
+    [Test]
+    public void Parse_NoSpaceAfterSymbol_AssignsSymbol()
+    {
+        var input = """
+                    test <x>= 35
+                    """;
+        var parser = new Parsing.Parser(input, true);
+
+        var variable = parser.SyntaxTree.First() as VariableDeclaration;
+        Assert.That(variable!.Variable.Symbol, Is.EqualTo("x"));
     }
 }

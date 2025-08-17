@@ -2,8 +2,6 @@ using System.Text;
 using Markdig;
 using Markdig.Renderers;
 using Sunset.Parser.Abstractions;
-using Sunset.Parser.Design;
-using Sunset.Parser.Design.Checks;
 
 namespace Sunset.Parser.Reporting;
 
@@ -12,14 +10,12 @@ namespace Sunset.Parser.Reporting;
 /// </summary>
 public class MarkdownReportPrinter : IReportPrinter
 {
-    private readonly MarkdownCheckPrinter _checkPrinter;
     private readonly MarkdownVariablePrinter _variablePrinter;
 
     public MarkdownReportPrinter()
     {
         Settings = new PrinterSettings();
         _variablePrinter = new MarkdownVariablePrinter(Settings);
-        _checkPrinter = new MarkdownCheckPrinter(Settings);
         //_capacityCheckPrinter = new MarkdownCapacityCheckPrinter(Settings);
     }
 
@@ -27,7 +23,6 @@ public class MarkdownReportPrinter : IReportPrinter
     {
         Settings = settings;
         _variablePrinter = new MarkdownVariablePrinter(Settings);
-        _checkPrinter = new MarkdownCheckPrinter(Settings);
         //_capacityCheckPrinter = new MarkdownCapacityCheckPrinter(Settings);
     }
     //private readonly MarkdownCapacityCheckPrinter _capacityCheckPrinter;
@@ -217,20 +212,20 @@ public class MarkdownReportPrinter : IReportPrinter
             var item = section.ReportItems[i];
             switch (item)
             {
-                case IVariable variableItem:
+                case VariableReportItem variableItem:
                     // If the previous item was not a quantity, start a new equation block
                     // Otherwise, assume that the equation block is still open
-                    if (previousItem is not IVariable)
+                    if (previousItem is not VariableReportItem)
                         // Use \begin{alignedat}{2} to align the equal signs and the references
                         builder.AppendLine("$$\n\\begin{alignedat}{2}");
 
-                    builder.Append(_variablePrinter.ReportVariable(variableItem));
-                    quantities.Add(variableItem);
+                    builder.Append(_variablePrinter.ReportVariable(variableItem.Variable));
+                    quantities.Add(variableItem.Variable);
 
                     // If at the last item or the next item is not a quantity, close the equation block
                     var nextItem = i < section.ReportItems.Count - 1 ? section.ReportItems[i + 1] : null;
 
-                    if (nextItem is not IVariable)
+                    if (nextItem is not VariableReportItem)
                     {
                         builder.AppendLine("\n\\end{alignedat}\n$$");
                         // Print a glossary of all the printed quantities
@@ -247,9 +242,6 @@ public class MarkdownReportPrinter : IReportPrinter
                     break;
                 case TextReportItem textItem:
                     builder.AppendLine(textItem.Text);
-                    break;
-                case ICheck checkItem:
-                    builder.AppendLine(_checkPrinter.Print(checkItem));
                     break;
             }
 

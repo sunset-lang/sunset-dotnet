@@ -137,17 +137,6 @@ public class Variable : IVariable,
         return GetDependentVariables(Expression);
     }
 
-    public IVariable Report(ReportSection report)
-    {
-        AddToReport(report);
-        return this;
-    }
-
-    public void AddToReport(ReportSection report)
-    {
-        report.AddItem(this);
-    }
-
     // TODO: This doesn't seem necessary, possibly only to allow variables to be created dynamically for testing
     private VariableDeclaration GetDeclaration(IExpression expression)
     {

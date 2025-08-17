@@ -6,7 +6,7 @@ using Sunset.Parser.Units;
 
 namespace Sunset.Parser.Abstractions;
 
-public interface IVariable : IReportItem
+public interface IVariable
 {
     /// <summary>
     ///     The name of the quantity, used for the Sunset Language.
@@ -62,8 +62,6 @@ public interface IVariable : IReportItem
     public IVariable AssignLabel(string label);
 
     public List<IVariable> GetDependentVariables();
-
-    public IVariable Report(ReportSection report);
 
     public static IExpression operator +(IVariable left, IVariable right)
     {

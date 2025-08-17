@@ -1,5 +1,4 @@
-﻿using Sunset.Parser.Reporting;
-using Sunset.Parser.Units;
+﻿using Sunset.Parser.Units;
 
 namespace Sunset.Parser.Quantities;
 
@@ -50,11 +49,6 @@ public partial class Quantity : IQuantity
     public IQuantity Clone()
     {
         return new Quantity(Value, Unit);
-    }
-
-    public string ToLatexString()
-    {
-        return MarkdownHelpers.ReportQuantity(this);
     }
 
     public Quantity ToQuantity()

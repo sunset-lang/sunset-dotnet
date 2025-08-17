@@ -30,12 +30,6 @@ public interface IQuantity
 
     public IQuantity SetUnits(Unit unit);
 
-    /// <summary>
-    ///     Prints the value of the Quantity in the LaTeX format.
-    /// </summary>
-    /// <returns></returns>
-    public string ToLatexString();
-
     public Quantity ToQuantity();
 
     public static IQuantity operator +(IQuantity q1, IQuantity q2)

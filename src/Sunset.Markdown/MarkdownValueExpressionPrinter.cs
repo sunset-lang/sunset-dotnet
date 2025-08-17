@@ -1,7 +1,5 @@
 ﻿using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.NameResolution;
-using Sunset.Parser.Design;
-using Sunset.Parser.Design.Properties;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -114,7 +112,6 @@ public class MarkdownValueExpressionPrinter : MarkdownExpressionPrinterBase
         if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
             return dest.Variable switch
             {
-                PropertyBase property => MarkdownHelpers.ReportQuantity(property.Quantity),
                 Variable variableToPrint => variableToPrint.DefaultValue == null
                     ? MarkdownHelpers.ReportQuantity(new DefaultQuantityEvaluator().Visit(variableToPrint.Expression))
                     : MarkdownHelpers.ReportQuantity(variableToPrint.DefaultValue),

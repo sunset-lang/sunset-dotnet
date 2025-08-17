@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Reporting;
 using Sunset.Parser.Units;
 using Sunset.Parser.Visitors.Debugging;
 

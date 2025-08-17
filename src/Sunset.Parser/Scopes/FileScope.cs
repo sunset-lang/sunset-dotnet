@@ -33,23 +33,6 @@ public class FileScope(string name, IScope? parentScope) : IScope
         throw new NotImplementedException();
     }
 
-    /// <summary>
-    /// Prints all variables within a FileScope showing the evaluated default values.
-    /// </summary>
-    public string PrintDefaultValues()
-    {
-        var resultBuilder = new StringBuilder();
-
-        foreach (var declaration in ChildDeclarations.Values)
-        {
-            if (declaration is VariableDeclaration variable)
-            {
-                resultBuilder.AppendLine(MarkdownVariablePrinter.Report(variable.Variable));
-            }
-        }
-
-        return resultBuilder.ToString();
-    }
 
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

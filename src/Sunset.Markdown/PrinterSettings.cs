@@ -24,16 +24,6 @@ public class PrinterSettings
     public bool PrintTableOfContents { get; set; } = false;
 }
 
-public enum RoundingOption
-{
-    None,
-    Auto,
-    Engineering,
-    SignificantFigures,
-    FixedDecimal,
-    Scientific
-}
-
 public enum HeadingNumberingOption
 {
     None,

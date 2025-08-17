@@ -2,6 +2,7 @@
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities;
 using Sunset.Quantities.Quantities;
+using Sunset.Reporting;
 
 namespace Sunset.Markdown;
 

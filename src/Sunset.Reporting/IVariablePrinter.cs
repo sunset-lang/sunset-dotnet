@@ -1,6 +1,6 @@
 using Sunset.Parser.Parsing.Declarations;
 
-namespace Sunset.Markdown;
+namespace Sunset.Reporting;
 
 /// <summary>
 ///     Interface for converting IReportableQuantity objects into IReportItem objects for inclusion into IReports

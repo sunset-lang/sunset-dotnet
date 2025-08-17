@@ -1,6 +1,6 @@
 using Sunset.Quantities.Quantities;
 
-namespace Sunset.Markdown;
+namespace Sunset.Reporting;
 
 public class ReportSection(string heading)
 {

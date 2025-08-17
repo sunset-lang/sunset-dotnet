@@ -1,6 +1,6 @@
 using Sunset.Quantities;
 
-namespace Sunset.Markdown;
+namespace Sunset.Reporting;
 
 public class PrinterSettings
 {

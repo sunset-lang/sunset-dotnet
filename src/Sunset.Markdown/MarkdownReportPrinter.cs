@@ -2,6 +2,7 @@ using System.Text;
 using Markdig;
 using Markdig.Renderers;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Reporting;
 
 namespace Sunset.Markdown;
 

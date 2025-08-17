@@ -4,19 +4,22 @@ using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors.Evaluation;
+using Sunset.Reporting;
 
 namespace Sunset.Markdown;
 
 /// <summary>
 /// Prints a variable, including its expression and resulting value.
 /// </summary>
-/// <param name="settings">PrinterSettings that are used to determine the printed output.</param>
-public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinter
+public class MarkdownVariablePrinter : IVariablePrinter
 {
     /// <summary>
     /// Singleton that can be used to print a variable if particular print settings are not required.
     /// </summary>
     private static readonly MarkdownVariablePrinter Singleton = new();
+
+    private readonly MarkdownSymbolExpressionPrinter _symbolPrinter;
+    private readonly MarkdownValueExpressionPrinter _valuePrinter;
 
     /// <summary>
     /// Initialises a new printer with default print settings.
@@ -26,9 +29,20 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
     }
 
     /// <summary>
+    /// Prints a variable, including its expression and resulting value.
+    /// </summary>
+    /// <param name="settings">PrinterSettings that are used to determine the printed output.</param>
+    public MarkdownVariablePrinter(PrinterSettings settings)
+    {
+        Settings = settings;
+        _valuePrinter = new MarkdownValueExpressionPrinter(Settings);
+        _symbolPrinter = new MarkdownSymbolExpressionPrinter(Settings, _valuePrinter);
+    }
+
+    /// <summary>
     /// Settings that are used to print the report.
     /// </summary>
-    public PrinterSettings Settings { get; } = settings;
+    public PrinterSettings Settings { get; }
 
     /// <summary>
     ///     Reports a full expression for a quantity. This is in the form of:
@@ -116,7 +130,7 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
     {
         // Example output for density calculation
         // = \frac{m}{V}
-        return "= " + MarkdownSymbolExpressionPrinter.Report(variable.Declaration.Expression);
+        return "= " + _symbolPrinter.Visit(variable.Declaration.Expression);
     }
 
     /// <summary>
@@ -129,7 +143,7 @@ public class MarkdownVariablePrinter(PrinterSettings settings) : IVariablePrinte
     {
         // Example output for density calculation
         // = \frac{20 \text{ kg}}{10 \text{ m}^{3}}
-        return "= " + MarkdownValueExpressionPrinter.Report(variable.Declaration.Expression);
+        return "= " + _valuePrinter.Visit(variable.Declaration.Expression);
     }
 
     /// <summary>

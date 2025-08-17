@@ -1,5 +1,6 @@
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities.Units;
+using Sunset.Reporting;
 
 namespace Sunset.Markdown.Tests;
 

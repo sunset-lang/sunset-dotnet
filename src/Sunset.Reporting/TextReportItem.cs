@@ -1,4 +1,4 @@
-namespace Sunset.Markdown;
+namespace Sunset.Reporting;
 
 public class TextReportItem(string text) : IReportItem
 {

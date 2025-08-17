@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Sunset.Parser\Sunset.Parser.csproj" />
+      <ProjectReference Include="..\Sunset.Reporting\Sunset.Reporting.csproj" />
     </ItemGroup>
 
 </Project>

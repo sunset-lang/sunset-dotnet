@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="src/Sunset.Docsite/Sunset.Docsite.csproj" />
+  <Project Path="src/Sunset.Markdown/Sunset.Markdown.csproj" />
+  <Project Path="src/Sunset.Parser/Sunset.Parser.csproj" />
+  <Project Path="src/Sunset.Quantities/Sunset.Quantities.csproj" />
+  <Project Path="src/Sunset.Reporting/Sunset.Reporting.csproj" />
+  <Project Path="tests/Sunset.Markdown.Tests/Sunset.Markdown.Tests.csproj" />
+  <Project Path="tests/Sunset.Parser.Tests/Sunset.Parser.Tests.csproj" />
+  <Project Path="tests/Sunset.Quantities.Tests/Sunset.Quantities.Tests.csproj" />
+  <Project Path="tests/Sunset.TestHelpers/Sunset.TestHelpers.csproj" />
+</Solution>

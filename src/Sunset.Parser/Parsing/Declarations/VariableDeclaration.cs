@@ -58,10 +58,22 @@ public class VariableDeclaration : IDeclaration, IExpression
         // This is to keep the behaviour of the variable separate from its implementation in Sunset code.
         Expression = expression;
 
+        string symbol;
+
+        // If the variable name is a single letter and there is no symbol provided, make the name also the symbol
+        if (nameToken.Value.Length == 1 && symbolExpression == null)
+        {
+            symbol = nameToken.Value.ToString();
+        }
+        else
+        {
+            symbol = symbolExpression?.ToString() ?? "";
+        }
+
         Variable = new Variable(nameToken.ToString(),
             unitAssignment?.Unit ?? DefinedUnits.Dimensionless,
             this,
-            symbolExpression?.ToString() ?? "",
+            symbol,
             descriptionToken?.ToString() ?? "",
             referenceToken?.ToString() ?? "",
             labelToken?.ToString() ?? "");

@@ -30,8 +30,6 @@ public static class TokenDefinitions
         {
             { ('=', '='), TokenType.Equal },
             { ('!', '='), TokenType.NotEqual },
-            { ('>', '='), TokenType.GreaterThanOrEqual },
-            { ('<', '='), TokenType.LessThanOrEqual },
             { ('#', '#'), TokenType.Documentation },
             { ('s', ':'), TokenType.SymbolAssignment },
             { ('d', ':'), TokenType.DescriptionAssignment },

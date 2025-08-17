@@ -1,6 +1,6 @@
 ﻿using Sunset.Parser.Errors;
 
-namespace Sunset.Parser.Parsing.Tokens;
+namespace Sunset.Parser.Lexing.Tokens;
 
 public interface IToken : IErrorContainer
 {

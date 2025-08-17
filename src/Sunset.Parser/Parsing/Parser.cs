@@ -1,9 +1,11 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Parsing.Tokens;
-using IDeclaration = Sunset.Parser.Abstractions.IDeclaration;
+using Sunset.Parser.Scopes;
+using IDeclaration = Sunset.Parser.Parsing.Declarations.IDeclaration;
 using Range = System.Range;
 
 namespace Sunset.Parser.Parsing;

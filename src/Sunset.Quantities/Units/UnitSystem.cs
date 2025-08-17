@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Units;
+﻿namespace Sunset.Quantities.Units;
 
 public enum UnitSystem
 {

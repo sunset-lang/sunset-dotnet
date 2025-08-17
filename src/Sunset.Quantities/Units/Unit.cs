@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Numerics;
-using Sunset.Parser.Quantities;
+using Sunset.Quantities.Quantities;
 
-namespace Sunset.Parser.Units;
+namespace Sunset.Quantities.Units;
 
 /// <summary>
 ///     Represents a physical unit with multiple dimensions and factors for each dimension.

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace Sunset.Parser.Units;
+namespace Sunset.Quantities.Units;
 
 /// <summary>
 /// Contains a collections of predefined units, including base units, derived units, and their multiples.

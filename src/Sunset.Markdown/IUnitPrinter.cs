@@ -1,4 +1,4 @@
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 public interface IUnitPrinter
 {

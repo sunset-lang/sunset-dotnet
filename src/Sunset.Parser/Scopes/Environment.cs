@@ -1,14 +1,13 @@
 ﻿using Serilog;
-using Sunset.Parser.Abstractions;
-using Sunset.Parser.Analysis;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 using Sunset.Parser.Visitors.Evaluation;
 
-namespace Sunset.Parser;
+namespace Sunset.Parser.Scopes;
 
 /// <summary>
 /// # Environments

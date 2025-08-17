@@ -1,11 +1,8 @@
-﻿using System.Text;
-using Sunset.Parser.Abstractions;
-using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Reporting;
 using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser;
+namespace Sunset.Parser.Scopes;
 
 /// <summary>
 /// The scope that is contained within a file.

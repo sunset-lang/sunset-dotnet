@@ -1,8 +1,9 @@
 ﻿using System.Text;
-using Sunset.Parser.Abstractions;
-using Sunset.Parser.Quantities;
+using Sunset.Parser.Parsing.Declarations;
+using Sunset.Quantities;
+using Sunset.Quantities.Quantities;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 public static class MarkdownHelpers
 {

@@ -6,7 +6,7 @@ public class LexerMultiTokenTests
     [Test]
     public void Scan_ValidExpression_HasCorrectTokens()
     {
-        var lex = new Parsing.Lexer("1 + 2 * (23.65)^2 hello");
+        var lex = new Lexing.Lexer("1 + 2 * (23.65)^2 hello");
         var expected = """
                        (Number, 1)
                        (Plus)

@@ -1,10 +1,10 @@
 ﻿using Sunset.Parser.Errors;
-using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
-using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Abstractions;
+namespace Sunset.Parser.Expressions;
 
 /// <summary>
 /// An expression that can be evaluated.

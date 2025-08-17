@@ -1,6 +1,6 @@
-﻿using Sunset.Parser.Units;
+﻿using Sunset.Quantities.Units;
 
-namespace Sunset.Parser.Parsing.Tokens;
+namespace Sunset.Parser.Lexing.Tokens;
 
 public class StringToken : ValueTokenBase<ReadOnlyMemory<char>>
 {

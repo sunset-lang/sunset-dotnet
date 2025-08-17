@@ -1,9 +1,9 @@
 ﻿using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Parsing.Tokens;
 
-namespace Sunset.Parser.Errors;
+namespace Sunset.Parser.Errors.Semantic;
 
 public class UnitMismatchError(BinaryExpression expression) : ISemanticError
 {

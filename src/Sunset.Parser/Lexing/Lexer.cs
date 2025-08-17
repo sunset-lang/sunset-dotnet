@@ -1,10 +1,9 @@
 ﻿using System.Text;
-using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
-using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Parsing.Tokens.Numbers;
+using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Lexing.Tokens.Numbers;
 
-namespace Sunset.Parser.Parsing;
+namespace Sunset.Parser.Lexing;
 
 /// <summary>
 ///     Converts strings to a list of tokens.

@@ -1,6 +1,5 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Expressions;
-using Sunset.Parser.Parsing.Tokens;
+﻿using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 
 namespace Sunset.Parser.Errors.Semantic;
 

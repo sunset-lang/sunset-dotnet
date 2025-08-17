@@ -1,5 +1,5 @@
-﻿using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Parsing.Tokens.Numbers;
+﻿using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Lexing.Tokens.Numbers;
 
 namespace Sunset.Parser.Test.Lexer;
 
@@ -19,7 +19,7 @@ public class LexerSingleTokenTests
 
         foreach (var key in expected.Keys)
         {
-            var lex = new Parsing.Lexer(key.ToString(), false);
+            var lex = new Lexing.Lexer(key.ToString(), false);
             var token = lex.GetNextToken();
             Assert.That(token.Type, Is.EqualTo(expected[key]));
         }
@@ -32,7 +32,7 @@ public class LexerSingleTokenTests
 
         foreach (var key in expected.Keys)
         {
-            var lex = new Parsing.Lexer(key.firstCharacter + key.secondCharacter.ToString(), false);
+            var lex = new Lexing.Lexer(key.firstCharacter + key.secondCharacter.ToString(), false);
             var token = lex.GetNextToken();
             Assert.That(token.Type, Is.EqualTo(expected[key]));
         }
@@ -41,7 +41,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_ValidNumber_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("123.456", false);
+        var lex = new Lexing.Lexer("123.456", false);
         var token = lex.GetNextToken();
 
         Assert.That(token.Type, Is.EqualTo(TokenType.Number));
@@ -57,7 +57,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_ExponentiatedNumber_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("123.45678e3", false);
+        var lex = new Lexing.Lexer("123.45678e3", false);
         var token = lex.GetNextToken();
 
         Assert.That(token.Type, Is.EqualTo(TokenType.Number));
@@ -73,7 +73,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_NegativeNumber_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("-123", false);
+        var lex = new Lexing.Lexer("-123", false);
         var token = lex.GetNextToken();
 
         Assert.That(token.Type, Is.EqualTo(TokenType.Number));
@@ -89,7 +89,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_ValidInteger_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("123456", false);
+        var lex = new Lexing.Lexer("123456", false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.Number));
         if (token is IntToken intToken)
@@ -104,7 +104,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_InvalidNumber_HasError()
     {
-        var lex = new Parsing.Lexer("123.456.789", false);
+        var lex = new Lexing.Lexer("123.456.789", false);
         var token = lex.GetNextToken();
         Assert.That(token.HasErrors, Is.EqualTo(true));
         foreach (var message in token.Errors)
@@ -116,7 +116,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_SingleLineString_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("\"Hello, world\"", false);
+        var lex = new Lexing.Lexer("\"Hello, world\"", false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.String));
 
@@ -129,7 +129,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_MultiLineString_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("\"\"\"Hello, world\r\nHow are you doing today?\"\"\"", false);
+        var lex = new Lexing.Lexer("\"\"\"Hello, world\r\nHow are you doing today?\"\"\"", false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.MultilineString));
 
@@ -145,7 +145,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_Identifier_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("test", false);
+        var lex = new Lexing.Lexer("test", false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.Identifier));
 
@@ -158,7 +158,7 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_SymbolIdentifier_HasCorrectValue()
     {
-        var lex = new Parsing.Lexer("@test", false);
+        var lex = new Lexing.Lexer("@test", false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.IdentifierSymbol));
 

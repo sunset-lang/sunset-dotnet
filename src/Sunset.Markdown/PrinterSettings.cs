@@ -1,4 +1,6 @@
-namespace Sunset.Parser.Reporting;
+using Sunset.Quantities;
+
+namespace Sunset.Markdown;
 
 public class PrinterSettings
 {

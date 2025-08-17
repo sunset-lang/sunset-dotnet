@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Parsing.Tokens.Numbers;
+﻿namespace Sunset.Parser.Lexing.Tokens.Numbers;
 
 public interface INumberToken : IToken
 {

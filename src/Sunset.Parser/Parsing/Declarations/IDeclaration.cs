@@ -1,7 +1,8 @@
 ﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
 
-namespace Sunset.Parser.Abstractions;
+namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
 /// A node in the syntax tree that declares a new name.

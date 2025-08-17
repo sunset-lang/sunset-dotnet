@@ -1,7 +1,7 @@
-﻿using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Parsing.Tokens;
+﻿using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Parsing.Declarations;
 
-namespace Sunset.Parser.Errors;
+namespace Sunset.Parser.Errors.Semantic;
 
 public class CircularReferenceError(VariableDeclaration variable) : ISemanticError
 {

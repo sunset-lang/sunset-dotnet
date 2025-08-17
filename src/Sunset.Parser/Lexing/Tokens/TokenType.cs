@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Parsing.Tokens;
+﻿namespace Sunset.Parser.Lexing.Tokens;
 
 public enum TokenType
 {

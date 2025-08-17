@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-using Sunset.Parser.Abstractions;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
@@ -7,7 +5,7 @@ using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors.Evaluation;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 /// <summary>
 /// Prints a variable, including its expression and resulting value.

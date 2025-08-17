@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Abstractions;
+﻿using Sunset.Parser.Parsing.Declarations;
+
+namespace Sunset.Parser.Scopes;
 
 /// <summary>
 /// Contains a scope of variables and their values.

@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Quantities;
 
 public static class NumberUtilities
 {

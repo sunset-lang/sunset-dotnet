@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Reporting;
+﻿namespace Sunset.Quantities;
 
 public enum RoundingOption
 {

@@ -1,7 +1,7 @@
-using Sunset.Parser.Reporting;
-using Sunset.Parser.Units;
+using Sunset.Parser.Parsing.Declarations;
+using Sunset.Quantities.Units;
 
-namespace Sunset.Parser.Test.Reporting;
+namespace Sunset.Markdown.Tests;
 
 [TestFixture]
 public class MarkdownReportPrinterTests
@@ -80,8 +80,8 @@ public class MarkdownReportPrinterTests
                        \end{alignedat}
                        $$
                        """;
-        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport),
-            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(printedReport),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -107,8 +107,8 @@ public class MarkdownReportPrinterTests
                        \end{alignedat}
                        $$
                        """;
-        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport),
-            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(printedReport),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -175,8 +175,8 @@ public class MarkdownReportPrinterTests
                        - $f_y$ The yield strength of the steel plate.
                        - $\phi M_s$ The bending capacity of the steel plate. (AS 4100-1998 Clause 5.2.4)
                        """;
-        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedReport),
-            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(printedReport),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -204,7 +204,7 @@ public class MarkdownReportPrinterTests
                          - [1.2 Bending section capacity](#1.2)
                        """;
 
-        Assert.That(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(printedTableOfContents),
-            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(printedTableOfContents),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 }

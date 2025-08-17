@@ -1,6 +1,6 @@
-using Sunset.Parser.Units;
+using Sunset.Quantities.Units;
 
-namespace Sunset.Parser.Quantities;
+namespace Sunset.Quantities.Quantities;
 
 public partial class Quantity
 {

@@ -3,9 +3,12 @@ using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Scopes;
+using Environment = Sunset.Parser.Scopes.Environment;
 
 namespace Sunset.Parser.Visitors.Debugging;
 

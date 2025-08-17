@@ -1,8 +1,10 @@
-﻿using Sunset.Parser.Analysis.ReferenceChecking;
+﻿using Sunset.Markdown;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
-using Sunset.Parser.Reporting;
-using Sunset.Parser.Units;
+using Sunset.Parser.Errors.Semantic;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Environment = Sunset.Parser.Scopes.Environment;
 
 namespace Sunset.Parser.Test.Analysis;
 

@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Visitors.Debugging;
+﻿using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors.Debugging;
 
 namespace Sunset.Parser.Test.Parser;
 

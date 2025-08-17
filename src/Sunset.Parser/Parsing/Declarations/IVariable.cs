@@ -1,10 +1,8 @@
 ﻿using Sunset.Parser.Expressions;
-using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Quantities;
-using Sunset.Parser.Reporting;
-using Sunset.Parser.Units;
+using Sunset.Quantities.Quantities;
+using Sunset.Quantities.Units;
 
-namespace Sunset.Parser.Abstractions;
+namespace Sunset.Parser.Parsing.Declarations;
 
 public interface IVariable
 {

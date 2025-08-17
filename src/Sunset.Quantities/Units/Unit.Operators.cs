@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
-
-namespace Sunset.Parser.Units;
+namespace Sunset.Quantities.Units;
 
 // Mathematical operators for the Unit class
 public partial class Unit

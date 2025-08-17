@@ -1,6 +1,6 @@
 ﻿using Sunset.Parser.Errors;
 
-namespace Sunset.Parser.Parsing.Tokens;
+namespace Sunset.Parser.Lexing.Tokens;
 
 /// <summary>
 ///     The base class for all tokens. Implements positioning behaviour and contains static token definitions.

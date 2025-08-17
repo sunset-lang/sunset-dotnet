@@ -1,7 +1,7 @@
-using Sunset.Parser.Abstractions;
-using Sunset.Parser.Quantities;
+using Sunset.Parser.Parsing.Declarations;
+using Sunset.Quantities.Quantities;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 public interface IReportItem
 {

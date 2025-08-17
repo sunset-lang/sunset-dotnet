@@ -1,4 +1,4 @@
-using Sunset.Parser.Reporting;
+using Sunset.Quantities;
 
 namespace Sunset.Parser.Test.Reporting;
 

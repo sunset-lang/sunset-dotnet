@@ -1,6 +1,5 @@
 ﻿using Sunset.Parser.Analysis.TypeChecking;
-using Sunset.Parser.Quantities;
-using Sunset.Parser.Units;
+using Sunset.Quantities.Quantities;
 
 namespace Sunset.Parser.Visitors.Evaluation;
 

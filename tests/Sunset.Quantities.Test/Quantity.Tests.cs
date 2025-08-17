@@ -1,7 +1,7 @@
-using Sunset.Parser.Quantities;
-using Sunset.Parser.Units;
+using Sunset.Quantities.Quantities;
+using Sunset.Quantities.Units;
 
-namespace Sunset.Parser.Test.Quantities;
+namespace Sunset.Quantities.Test;
 
 [TestFixture]
 public class QuantityTests

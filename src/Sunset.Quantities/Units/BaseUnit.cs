@@ -1,4 +1,4 @@
-namespace Sunset.Parser.Units;
+namespace Sunset.Quantities.Units;
 
 /// <summary>
 /// A base unit represents a fundamental unit of measurement in a specific dimension.

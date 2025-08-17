@@ -1,14 +1,11 @@
 ﻿using System.Numerics;
-using Sunset.Parser.Abstractions;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
-using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Quantities;
-using Sunset.Parser.Reporting;
-using Sunset.Parser.Units;
+using Sunset.Quantities.Quantities;
+using Sunset.Quantities.Units;
 
-namespace Sunset.Parser;
+namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
 ///     A variable is a named container for a function. It may be part of an element or standalone in its own source.

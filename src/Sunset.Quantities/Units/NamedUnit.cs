@@ -1,4 +1,4 @@
-namespace Sunset.Parser.Units;
+namespace Sunset.Quantities.Units;
 
 /// <summary>
 ///     A named unit with a symbol. This includes all base units and derived units, e.g. m, mm, N, kN.

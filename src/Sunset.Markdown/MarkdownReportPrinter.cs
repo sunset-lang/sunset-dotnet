@@ -1,9 +1,9 @@
 using System.Text;
 using Markdig;
 using Markdig.Renderers;
-using Sunset.Parser.Abstractions;
+using Sunset.Parser.Parsing.Declarations;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 /// <summary>
 ///     Prints a ReportSection into Markdown.
@@ -87,7 +87,7 @@ public class MarkdownReportPrinter : IReportPrinter
         pipeline.Setup(renderer);
 
         // Convert Markdown to HTML
-        var document = Markdown.Parse(markdownInput, pipeline);
+        var document = Markdig.Markdown.Parse(markdownInput, pipeline);
         renderer.Render(document);
         writer.Flush();
         var htmlResult = writer.ToString();

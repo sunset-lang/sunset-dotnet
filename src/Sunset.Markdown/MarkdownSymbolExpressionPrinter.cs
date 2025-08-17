@@ -1,11 +1,12 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Analysis.NameResolution;
+﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Scopes;
+using Sunset.Quantities;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 public class MarkdownSymbolExpressionPrinter : MarkdownExpressionPrinterBase
 {

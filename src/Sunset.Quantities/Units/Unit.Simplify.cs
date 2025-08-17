@@ -1,6 +1,4 @@
-using Sunset.Parser.Reporting;
-
-namespace Sunset.Parser.Units;
+namespace Sunset.Quantities.Units;
 
 // Simplification methods for the Unit class.
 public partial class Unit

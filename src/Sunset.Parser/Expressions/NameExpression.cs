@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
-using Sunset.Parser.Abstractions;
 using Sunset.Parser.Errors;
-using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;

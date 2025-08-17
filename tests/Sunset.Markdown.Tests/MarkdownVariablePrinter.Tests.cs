@@ -1,9 +1,10 @@
-using Sunset.Parser.Abstractions;
-using Sunset.Parser.Reporting;
-using Sunset.Parser.Units;
+using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Sunset.Quantities.Units;
+using Environment = Sunset.Parser.Scopes.Environment;
 
-namespace Sunset.Parser.Test.Reporting;
+namespace Sunset.Markdown.Tests;
 
 [TestFixture]
 public class MarkdownVariablePrinterTests()
@@ -125,8 +126,8 @@ public class MarkdownVariablePrinterTests()
                        """;
 
         Assert.That(
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_density!)),
-            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
+            TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_density!)),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]
@@ -138,8 +139,8 @@ public class MarkdownVariablePrinterTests()
                        """;
 
         Assert.That(
-            Northrop.Common.TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_length)),
-            Is.EqualTo(Northrop.Common.TestHelpers.TestHelpers.NormalizeString(expected)));
+            TestHelpers.TestHelpers.NormalizeString(_markdownVariablePrinter.ReportVariable(_length)),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString(expected)));
     }
 
     [Test]

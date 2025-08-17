@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
 
-namespace Sunset.Parser;
+namespace Sunset.Quantities;
 
 public readonly struct Rational : INumber<Rational>
 {

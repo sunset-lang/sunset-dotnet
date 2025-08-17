@@ -1,9 +1,9 @@
 ﻿using System.Text;
-using Sunset.Parser.Abstractions;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Quantities;
+using Sunset.Parser.Scopes;
+using Sunset.Quantities.Quantities;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 public static class MarkdownQuantityExtensions
 {

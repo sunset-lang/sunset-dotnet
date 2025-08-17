@@ -1,4 +1,4 @@
-namespace Sunset.Parser.Quantities;
+namespace Sunset.Quantities.Quantities;
 
 public enum Operator
 {

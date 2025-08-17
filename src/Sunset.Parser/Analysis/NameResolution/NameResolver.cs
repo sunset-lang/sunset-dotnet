@@ -1,9 +1,10 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Parsing.Tokens;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.NameResolution;

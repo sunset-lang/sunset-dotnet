@@ -1,6 +1,6 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Statements;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Parsing.Declarations;

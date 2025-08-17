@@ -1,6 +1,6 @@
-using Sunset.Parser.Quantities;
+using Sunset.Quantities.Quantities;
 
-namespace Sunset.Parser.Reporting;
+namespace Sunset.Markdown;
 
 public class ReportSection(string heading)
 {

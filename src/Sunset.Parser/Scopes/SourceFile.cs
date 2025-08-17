@@ -1,6 +1,4 @@
-﻿using Sunset.Parser.Abstractions;
-
-namespace Sunset.Parser;
+﻿namespace Sunset.Parser.Scopes;
 
 /// <summary>
 /// Represents a single file containing Sunset source code.

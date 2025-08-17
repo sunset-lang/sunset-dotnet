@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Abstractions;
+﻿namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
 /// A syntax tree node that has a name associated with it

@@ -25,10 +25,3 @@ public class PrinterSettings
     public HeadingNumberingOption HeadingNumberingOption { get; set; } = HeadingNumberingOption.Numeric;
     public bool PrintTableOfContents { get; set; } = false;
 }
-
-public enum HeadingNumberingOption
-{
-    None,
-    Numeric,
-    Alphanumeric
-}

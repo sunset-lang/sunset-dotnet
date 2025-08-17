@@ -215,7 +215,7 @@ public class MarkdownVariablePrinterTests()
         environment.Parse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
-        Assert.That(result, Is.EqualTo("\\text{x} &= 100 \\\\\r\n"));
+        Assert.That(result, Is.EqualTo("x &= 100 \\\\\r\n"));
     }
 
     [Test]
@@ -226,7 +226,7 @@ public class MarkdownVariablePrinterTests()
         environment.Parse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
-        Assert.That(result, Is.EqualTo("\\text{x} &= 100 \\text{ mm} \\\\\r\n"));
+        Assert.That(result, Is.EqualTo("x &= 100 \\text{ mm} \\\\\r\n"));
     }
 
     [Test]
@@ -237,6 +237,6 @@ public class MarkdownVariablePrinterTests()
         environment.Parse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
-        Assert.That(result, Is.EqualTo("\\text{x} &= 12 + 5 \\\\\r\n&= 17 \\\\\r\n"));
+        Assert.That(result, Is.EqualTo("x &= 12 + 5 \\\\\r\n&= 17 \\\\\r\n"));
     }
 }

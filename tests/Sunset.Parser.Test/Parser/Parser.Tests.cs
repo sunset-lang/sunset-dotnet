@@ -43,4 +43,16 @@ public class ParserTests
         var variable = parser.SyntaxTree.First() as VariableDeclaration;
         Assert.That(variable!.Variable.Symbol, Is.EqualTo("x"));
     }
+
+    [Test]
+    public void Parse_SpaceAfterSymbol_AssignsSymbol()
+    {
+        var input = """
+                    test <x> = 35
+                    """;
+        var parser = new Parsing.Parser(input, true);
+
+        var variable = parser.SyntaxTree.First() as VariableDeclaration;
+        Assert.That(variable!.Variable.Symbol, Is.EqualTo("x"));
+    }
 }

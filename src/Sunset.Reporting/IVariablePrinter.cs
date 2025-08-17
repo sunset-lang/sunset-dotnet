@@ -7,6 +7,7 @@ namespace Sunset.Reporting;
 /// </summary>
 public interface IVariablePrinter
 {
+    // TODO: Generalise this into an abstract class with EquationComponents
     public PrinterSettings Settings { get; }
     public string ReportVariable(IVariable variable);
     public string ReportSymbolExpression(IVariable variable);

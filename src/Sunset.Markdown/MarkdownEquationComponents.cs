@@ -10,6 +10,12 @@ public class MarkdownEquationComponents : EquationComponents
     public override string RightParenthesis => "\\right)";
     public override string MultiplicationSymbol => "\\times";
 
+    public override string Newline => Linebreak + "\r\n";
+    public override string Linebreak => " \\\\";
+    public override string AlignSymbol => "&";
+    public override string AlignEquals => "&= ";
+    public override string EqualsSymbol => "= ";
+
     public override string Text(string text)
     {
         return $"\\text{{{text}}}";
@@ -34,5 +40,10 @@ public class MarkdownEquationComponents : EquationComponents
     public override string WrapParenthesis(string expression)
     {
         return LeftParenthesis + expression + RightParenthesis;
+    }
+
+    public override string Reference(string reference)
+    {
+        return @" &\quad\text{(" + reference + ")}";
     }
 }

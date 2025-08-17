@@ -21,6 +21,8 @@ public class MarkdownVariablePrinter : IVariablePrinter
     private readonly MarkdownSymbolExpressionPrinter _symbolPrinter;
     private readonly MarkdownValueExpressionPrinter _valuePrinter;
 
+    private static readonly MarkdownEquationComponents Eq = MarkdownEquationComponents.Instance;
+
     /// <summary>
     /// Initialises a new printer with default print settings.
     /// </summary>
@@ -57,7 +59,7 @@ public class MarkdownVariablePrinter : IVariablePrinter
     {
         // Show the symbol unless it is empty, in which case show the name of the variable.
         var variableDisplayName =
-            (variable.Symbol != string.Empty ? variable.Symbol : $"\\text{{{variable.Name}}}") + " ";
+            (variable.Symbol != string.Empty ? variable.Symbol : Eq.Text(variable.Name)) + " ";
 
         // If the variable has been created through evaluating Sunset code and the variable has no references, it should be reported as a constant
         // TODO: Make this it's own function
@@ -67,14 +69,14 @@ public class MarkdownVariablePrinter : IVariablePrinter
             switch (variable.Declaration.Expression)
             {
                 case NumberConstant numberConstant:
-                    return variableDisplayName + "&= " + numberConstant.Value +
-                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString() + @" \\";
+                    return variableDisplayName + Eq.AlignEquals + numberConstant.Value +
+                           variable.Declaration.Expression.GetEvaluatedUnit()?.ToLatexString() + Eq.Linebreak;
                 case UnitAssignmentExpression
                 {
                     Value: NumberConstant quantityConstant
                 } unitAssignmentExpression:
-                    return variableDisplayName + "&= " + quantityConstant.Value +
-                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + @" \\";
+                    return variableDisplayName + Eq.AlignEquals + quantityConstant.Value +
+                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + Eq.Linebreak;
             }
         }
 
@@ -95,7 +97,7 @@ public class MarkdownVariablePrinter : IVariablePrinter
             if (unitAssignmentExpressionCode.Unit == null)
                 UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpressionCode);
 
-            return variableDisplayName + "&= " + numberConstantCode.Value +
+            return variableDisplayName + Eq.AlignEquals + numberConstantCode.Value +
                    unitAssignmentExpressionCode.GetEvaluatedUnit()?.ToLatexString();
         }
 
@@ -110,13 +112,14 @@ public class MarkdownVariablePrinter : IVariablePrinter
         // If there are references or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
         if (references?.Count > 0 || references == null)
         {
-            result += "&" + ReportSymbolExpression(variable);
-            if (variable.Reference != "") result += @" &\quad\text{(" + variable.Reference + ")}";
-            result += " \\\\\r\n";
+            result += Eq.AlignSymbol + ReportSymbolExpression(variable);
+            if (variable.Reference != "") result += Eq.Reference(variable.Reference);
+            result += Eq.Newline;
         }
 
 
-        result += $"&{ReportValueExpression(variable)} \\\\\r\n&= {ReportDefaultValue(variable)} \\\\";
+        result += Eq.AlignSymbol + ReportValueExpression(variable) + Eq.Newline;
+        result += Eq.AlignEquals + ReportDefaultValue(variable) + Eq.Linebreak;
 
         return result;
     }
@@ -130,7 +133,7 @@ public class MarkdownVariablePrinter : IVariablePrinter
     {
         // Example output for density calculation
         // = \frac{m}{V}
-        return "= " + _symbolPrinter.Visit(variable.Declaration.Expression);
+        return Eq.EqualsSymbol + _symbolPrinter.Visit(variable.Declaration.Expression);
     }
 
     /// <summary>
@@ -143,7 +146,7 @@ public class MarkdownVariablePrinter : IVariablePrinter
     {
         // Example output for density calculation
         // = \frac{20 \text{ kg}}{10 \text{ m}^{3}}
-        return "= " + _valuePrinter.Visit(variable.Declaration.Expression);
+        return Eq.EqualsSymbol + _valuePrinter.Visit(variable.Declaration.Expression);
     }
 
     /// <summary>
@@ -183,7 +186,7 @@ public class MarkdownVariablePrinter : IVariablePrinter
         // Show an error if a quantity cannot be calculated
         if (result == null)
         {
-            return $"\\text{{Error!}}";
+            return Eq.Text("Error!");
         }
 
         return MarkdownHelpers.ReportQuantity(result);

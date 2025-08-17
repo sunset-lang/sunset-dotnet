@@ -17,14 +17,12 @@ public class MarkdownReportPrinter : IReportPrinter
     {
         Settings = new PrinterSettings();
         _variablePrinter = new MarkdownVariablePrinter(Settings);
-        //_capacityCheckPrinter = new MarkdownCapacityCheckPrinter(Settings);
     }
 
     public MarkdownReportPrinter(PrinterSettings settings)
     {
         Settings = settings;
         _variablePrinter = new MarkdownVariablePrinter(Settings);
-        //_capacityCheckPrinter = new MarkdownCapacityCheckPrinter(Settings);
     }
     //private readonly MarkdownCapacityCheckPrinter _capacityCheckPrinter;
 

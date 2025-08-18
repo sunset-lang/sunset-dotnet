@@ -1,4 +1,5 @@
-﻿using Sunset.Quantities.Quantities;
+﻿using Sunset.Markdown.Extensions;
+using Sunset.Quantities.Quantities;
 using Sunset.Reporting;
 using Sunset.Reporting.Visitors;
 
@@ -9,6 +10,6 @@ public class MarkdownValueExpressionPrinter(PrinterSettings settings)
 {
     protected override string ReportQuantity(IQuantity quantity)
     {
-        return MarkdownHelpers.ReportQuantity(quantity);
+        return quantity.ToLatexString();
     }
 }

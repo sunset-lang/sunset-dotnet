@@ -1,6 +1,8 @@
+using Sunset.Markdown.Extensions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
 
@@ -23,38 +25,47 @@ public class MarkdownVariablePrinterTests()
     {
         _volume = new Variable(_length * _width * _height).AssignSymbol("V");
         _density = new Variable(_mass / _volume).AssignSymbol("\\rho");
+        DefaultQuantityEvaluator.EvaluateExpression(_length.Expression);
+        DefaultQuantityEvaluator.EvaluateExpression(_width.Expression);
+        DefaultQuantityEvaluator.EvaluateExpression(_height.Expression);
+        DefaultQuantityEvaluator.EvaluateExpression(_mass.Expression);
+        DefaultQuantityEvaluator.EvaluateExpression(_volume.Expression);
+        DefaultQuantityEvaluator.EvaluateExpression(_density.Expression);
     }
 
     [Test]
     public void ReportValue_BaseUnit_ShouldReportCorrectValue()
     {
         var mass = new Variable(20, DefinedUnits.Kilogram, "m");
-        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(mass), Is.EqualTo("20 \\text{ kg}"));
+        var defaultValue = mass!.DefaultValue!.ToLatexString();
+        Assert.That(defaultValue, Is.EqualTo("20 \\text{ kg}"));
 
-        Console.WriteLine("Mass: " + MarkdownVariablePrinter.ReportDefaultValue(mass));
+        Console.WriteLine("Mass: " + defaultValue);
     }
 
     [Test]
     public void ReportValue_Dimensionless_ShouldReportCorrectSignificantFigures()
     {
         var quantity = new Variable(0.9, DefinedUnits.Dimensionless, "\\phi");
-        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(quantity), Is.EqualTo("0.9"));
-        Console.WriteLine("Dimensionless: " + MarkdownVariablePrinter.ReportDefaultValue(quantity));
+        var defaultValue = quantity!.DefaultValue!.ToLatexString();
+        Assert.That(defaultValue, Is.EqualTo("0.9"));
+        Console.WriteLine("Dimensionless: " + defaultValue);
     }
 
     [Test]
     public void ReportValue_FirstMultiplication_ShouldReportCorrectValue()
     {
-        Console.WriteLine("Volume: " + MarkdownVariablePrinter.ReportDefaultValue(_volume!));
-        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(_volume!),
+        Console.WriteLine("Volume: " + _volume!.DefaultValue!.ToLatexString());
+        Assert.That(_volume!.DefaultValue!.ToLatexString(),
             Is.EqualTo("6 \\times 10^{-3} \\text{ m}^{3}"));
     }
 
     [Test]
     public void ReportValue_SecondMultiplication_ShouldReportCorrectValue()
     {
-        Console.WriteLine("Density: " + MarkdownVariablePrinter.ReportDefaultValue(_density!));
-        Assert.That(MarkdownVariablePrinter.ReportDefaultValue(_density!), Is.EqualTo("3,333.3 \\text{ kg m}^{-3}"));
+        var densityDefault = _density!.DefaultValue!.ToLatexString();
+        Console.WriteLine("Density: " + densityDefault);
+        Assert.That(densityDefault, Is.EqualTo("3,333.3 \\text{ kg m}^{-3}"));
     }
 
     [Test]
@@ -67,34 +78,39 @@ public class MarkdownVariablePrinterTests()
         var height = new Variable(300, DefinedUnits.Metre, "h");
         var volume = new Variable(length * width * height);
         var density = new Variable(_mass / volume);
+        DefaultQuantityEvaluator.EvaluateExpression(volume.Expression);
+        DefaultQuantityEvaluator.EvaluateExpression(density.Expression);
 
         Console.WriteLine(new DebugPrinter().Visit(density.Expression));
+        var volumeDefault = volume.DefaultValue!.ToLatexString();
+        var densityDefault = density.DefaultValue!.ToLatexString();
 
         Assert.Multiple(() =>
         {
-            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(volume),
+            Assert.That(volumeDefault,
                 Is.EqualTo(@"6 \times 10^{-3} \text{ km}^{3}"));
-            Assert.That(MarkdownVariablePrinter.ReportDefaultValue(density),
+            Assert.That(densityDefault,
                 Is.EqualTo(@"3.333 \times 10^{-6} \text{ kg m}^{-3}"));
         });
 
-        Console.WriteLine("Volume: " + MarkdownVariablePrinter.ReportDefaultValue(volume));
-        Console.WriteLine("Density: " + MarkdownVariablePrinter.ReportDefaultValue(density));
+        Console.WriteLine("Volume: " + volumeDefault);
+        Console.WriteLine("Density: " + densityDefault);
     }
 
     [Test]
     public void ReportValueExpression_QuantityIncludesSymbol_ShouldReportIncludedSymbolOnly()
     {
-        Console.WriteLine(_markdownVariablePrinter.ReportValueExpression(_density!));
-        Assert.That(_markdownVariablePrinter.ReportValueExpression(_density!),
-            Is.EqualTo(@"= \frac{20 \text{ kg}}{6 \times 10^{-3} \text{ m}^{3}}"));
+        var densityDefault = _markdownVariablePrinter.ReportValueExpression(_density!);
+        Console.WriteLine(densityDefault);
+        Assert.That(densityDefault,
+            Is.EqualTo(@"\frac{20 \text{ kg}}{6 \times 10^{-3} \text{ m}^{3}}"));
     }
 
     [Test]
     public void ReportSymbolExpression_QuantityIncludesSymbol_ShouldReportIncludedSymbolOnly()
     {
         Console.WriteLine(_markdownVariablePrinter.ReportSymbolExpression(_density!));
-        Assert.That(_markdownVariablePrinter.ReportSymbolExpression(_density!), Is.EqualTo(@"= \frac{m}{V}"));
+        Assert.That(_markdownVariablePrinter.ReportSymbolExpression(_density!), Is.EqualTo(@"\frac{m}{V}"));
     }
 
     [Test]
@@ -102,7 +118,7 @@ public class MarkdownVariablePrinterTests()
     {
         var t = new Variable(10, DefinedUnits.Millimetre, "t");
         var tSquared = new Variable(t.Pow(2));
-        Assert.That(_markdownVariablePrinter.ReportSymbolExpression(tSquared), Is.EqualTo(@"= t^{2}"));
+        Assert.That(_markdownVariablePrinter.ReportSymbolExpression(tSquared), Is.EqualTo(@"t^{2}"));
     }
 
     [Test]
@@ -112,7 +128,7 @@ public class MarkdownVariablePrinterTests()
         var t = new Variable(10, DefinedUnits.Millimetre, "t");
         var sectionModulus = new Variable(b * t.Pow(2) / 4);
         Assert.That(_markdownVariablePrinter.ReportSymbolExpression(sectionModulus),
-            Is.EqualTo(@"= \frac{b t^{2}}{4}"));
+            Is.EqualTo(@"\frac{b t^{2}}{4}"));
     }
 
     [Test]
@@ -135,7 +151,7 @@ public class MarkdownVariablePrinterTests()
     {
         Console.WriteLine(_markdownVariablePrinter.ReportVariable(_length));
         var expected = """
-                       l &= 100 \text{ mm}
+                       l &= 100 \text{ mm} \\
                        """;
 
         Assert.That(
@@ -157,12 +173,12 @@ public class MarkdownVariablePrinterTests()
 
         Assert.Multiple(() =>
         {
-            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test1), Is.EqualTo("= a + b c"));
-            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test2), Is.EqualTo("= \\left(a + b\\right) c"));
-            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test3), Is.EqualTo("= a + b c"));
+            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test1), Is.EqualTo("a + b c"));
+            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test2), Is.EqualTo(@"\left(a + b\right) c"));
+            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test3), Is.EqualTo("a + b c"));
             // Currently fails because parentheses are being added around the numerator. Should never add parentheses to
             // just a numerator or denominator.
-            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test4), Is.EqualTo("= \\frac{a + b}{c}"));
+            Assert.That(_markdownVariablePrinter.ReportSymbolExpression(test4), Is.EqualTo(@"\frac{a + b}{c}"));
         });
 
         Console.WriteLine(_markdownVariablePrinter.ReportSymbolExpression(test1));
@@ -192,12 +208,12 @@ public class MarkdownVariablePrinterTests()
 
         Assert.Multiple(() =>
         {
-            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test1), Is.EqualTo("= \\frac{a c}{b}"));
-            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test2), Is.EqualTo("= \\frac{a b}{c}"));
-            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test3), Is.EqualTo("= \\frac{a c}{b d}"));
-            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test4), Is.EqualTo("= \\frac{a}{b c}"));
-            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test5), Is.EqualTo("= \\frac{a c}{b}"));
-            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test6), Is.EqualTo("= \\frac{a d}{b c}"));
+            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test1), Is.EqualTo("\\frac{a c}{b}"));
+            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test2), Is.EqualTo("\\frac{a b}{c}"));
+            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test3), Is.EqualTo("\\frac{a c}{b d}"));
+            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test4), Is.EqualTo("\\frac{a}{b c}"));
+            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test5), Is.EqualTo("\\frac{a c}{b}"));
+            Assert.That(markdownVariablePrinter.ReportSymbolExpression(test6), Is.EqualTo("\\frac{a d}{b c}"));
         });
 
         Console.WriteLine(markdownVariablePrinter.ReportSymbolExpression(test1));

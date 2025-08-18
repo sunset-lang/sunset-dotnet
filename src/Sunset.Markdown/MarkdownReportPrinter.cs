@@ -1,6 +1,7 @@
 using System.Text;
 using Markdig;
 using Markdig.Renderers;
+using Sunset.Markdown.Extensions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Reporting;
 
@@ -266,7 +267,7 @@ public class MarkdownReportPrinter : IReportPrinter
 
         foreach (var variable in variablesToPrint)
         {
-            var variableInformation = MarkdownHelpers.ReportVariableInformation(variable);
+            var variableInformation = variable.PrintVariableInformationAsMarkdown();
             if (variableInformation != "") builder.AppendLine(variableInformation);
         }
     }

@@ -1,37 +1,33 @@
 ﻿using System.Text;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Scopes;
 using Sunset.Quantities;
 using Sunset.Quantities.Quantities;
 using Sunset.Reporting;
 
-namespace Sunset.Markdown;
+namespace Sunset.Markdown.Extensions;
 
-public static class MarkdownHelpers
+public static class MarkdownQuantityExtensions
 {
-    public static string ReportVariableReference(IVariable variable)
-    {
-        return $@"\quad\text{{({variable.Reference})}}";
-    }
-
     /// <summary>
-    ///     Reports an IQuantity as a Markdown formatting string using the default PrinterSettings.
+    ///     Reports an IQuantity as a LaTeX formatting string using the default PrinterSettings.
     /// </summary>
     /// <param name="quantity">IQuantity to be reported.</param>
     /// <returns>A string representation of the value of the IQuantity.</returns>
-    public static string ReportQuantity(IQuantity quantity)
+    public static string ToLatexString(this IQuantity quantity)
     {
-        return ReportQuantity(quantity, PrinterSettings.Default);
+        return quantity.ToLatexString(PrinterSettings.Default);
     }
 
     /// <summary>
-    ///     Reports an IQuantity as a Markdown formatted string using the provided PrinterSettings.
+    ///     Reports an IQuantity as a LaTeX formatted string using the provided PrinterSettings.
     /// </summary>
     /// <param name="quantity">IQuantity to be reported.</param>
     /// <param name="settings">PrinterSettings to use.</param>
     /// <returns>A string representation of the value of the IQuantity.</returns>
     /// <exception cref="NotImplementedException"></exception>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private static string ReportQuantity(IQuantity quantity, PrinterSettings settings)
+    public static string ToLatexString(this IQuantity quantity, PrinterSettings settings)
     {
         // Example output for density calculation
         // 2 \text{ kg m}^{-3}
@@ -66,30 +62,27 @@ public static class MarkdownHelpers
         }
     }
 
-
     /// <summary>
-    ///     Prints a string representation of the quantity symbol, description and reference in an unordered list.
-    ///     This takes the form of:
-    ///     - Symbol      Description (Reference)
+    /// Prints all variables within a scope, showing the evaluated default values.
     /// </summary>
-    /// <param name="variable">IQuantity to be printed.</param>
-    /// <returns>String representation of the quantity.</returns>
-    public static string ReportVariableInformation(IVariable variable)
+    public static string PrintDefaultValues(this IScope scope)
     {
-        StringBuilder builder = new();
+        var resultBuilder = new StringBuilder();
 
-        // Only print the symbol if it exists
-        if (variable.Symbol == "" ||
-            variable is { Description: "", Reference: "" })
-            return "";
+        foreach (var declaration in scope.ChildDeclarations.Values)
+        {
+            if (declaration is VariableDeclaration variable)
+            {
+                resultBuilder.AppendLine(MarkdownVariablePrinter.Report(variable.Variable));
+            }
+        }
 
-        builder.Append($"- ${variable.Symbol}$");
+        return resultBuilder.ToString();
+    }
 
-        // Only print the description and reference if they exist
-        if (variable.Description != "") builder.Append($" {variable.Description}");
-
-        if (variable.Reference != "") builder.Append($" ({variable.Reference})");
-
-        return builder.ToString();
+    public static IVariable Report(this IVariable variable, ReportSection report)
+    {
+        report.AddItem(new VariableReportItem(variable));
+        return variable;
     }
 }

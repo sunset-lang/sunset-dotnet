@@ -1,3 +1,4 @@
+using Sunset.Markdown.Extensions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities.Units;
 using Sunset.Reporting;

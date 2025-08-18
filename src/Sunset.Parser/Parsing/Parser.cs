@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using System.Diagnostics.SymbolStore;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing;
@@ -158,11 +159,77 @@ public partial class Parser
         return leftExpression;
     }
 
+    private static readonly TokenType[] ElementContainerTokens = [TokenType.Input, TokenType.Output];
 
+    public ElementDeclaration? GetElementDeclaration(IScope parentScope)
+    {
+        // Set up variable containers for element
+        var containers =
+            new Dictionary<TokenType, List<VariableDeclaration>>
+            {
+                { TokenType.Input, [] },
+                { TokenType.Output, [] },
+            };
+
+        var defineToken = Consume(TokenType.Define);
+        if (defineToken == null)
+        {
+            throw new Exception("Expected a define token");
+        }
+
+        // TODO: Consider making a generic Consume function for given token types
+        var nameToken = Consume(TokenType.Identifier) as StringToken;
+
+        if (nameToken == null)
+        {
+            defineToken.AddError(new ElementDeclarationWithoutNameError(defineToken));
+            // TODO: Enter panic mode here
+            return null;
+        }
+
+        var element = new ElementDeclaration(nameToken, parentScope);
+
+        foreach (var currentContainerType in ElementContainerTokens)
+        {
+            // Optionally consume the container token and allow new lines before the token
+            // The assumes that all containers are in the defined order
+            var currentContainerToken = Consume(currentContainerType, true, true);
+            if (currentContainerToken == null) continue;
+
+            containers.TryGetValue(currentContainerType, out var container);
+            if (container == null)
+            {
+                throw new Exception("Undefined element variable container token type.");
+            }
+
+            // Consume a token but continue execution if one is not found - report it as an error.
+            Consume(TokenType.Colon);
+            while (_current.Type is not TokenType.End and not TokenType.EndOfFile)
+            {
+                // If starting another type of container, continue
+                if (ElementContainerTokens.Contains(_current.Type))
+                {
+                    continue;
+                }
+
+                container.Add(GetVariableDeclaration(element));
+            }
+        }
+
+        return element;
+    }
+
+
+    /// <summary>
+    /// Gets a new variable declaration, starting at the current 
+    /// </summary>
+    /// <param name="parentScope"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public VariableDeclaration GetVariableDeclaration(IScope parentScope)
     {
-        // Grammar:
-        // (IDENTIFIER symbolAssignment? | IDENTIFIER_SYMBOL) unitAssignment? "=" expression
+        ConsumeNewlines();
+
         StringToken nameToken;
         SymbolName? symbolExpression = null;
 
@@ -176,15 +243,23 @@ public partial class Parser
 
                 break;
             }
-            case { Type: TokenType.IdentifierSymbol }:
+            case { Type: TokenType.OpenAngleBracket }:
             {
-                nameToken = Consume(TokenType.IdentifierSymbol) as StringToken ??
-                            throw new Exception("Expected an identifier symbol");
-                symbolExpression = new SymbolName([nameToken]);
+                symbolExpression = GetSymbolExpression();
+                if (symbolExpression.NameToken != null)
+                {
+                    nameToken = symbolExpression.NameToken;
+                }
+                else
+                {
+                    throw new Exception("Cannot use symbol expression as name, must be a new exception");
+                }
+
                 break;
             }
             default:
-                throw new Exception("Expected an identifier or identifier symbol");
+                // TODO: Handle this error better
+                throw new Exception("Expected an identifier");
         }
 
         VariableUnitAssignment? unitAssignment = null;
@@ -272,9 +347,15 @@ public partial class Parser
     /// </summary>
     /// <param name="type">Expected token type to be consumed.</param>
     /// <param name="optional">True if the token type is optional. Throws an error if the token type is not found and false.</param>
+    /// <param name="consumeNewLines">True if new lines are allowed between the target token and the current position.</param>
     /// <returns>The consumed token, or null if the TokenType was not found.</returns>
-    private IToken? Consume(TokenType type, bool optional = false)
+    private IToken? Consume(TokenType type, bool optional = false, bool consumeNewLines = false)
     {
+        if (consumeNewLines && type != TokenType.Newline)
+        {
+            ConsumeNewlines();
+        }
+
         if (_current.Type == type)
         {
             var consumed = _current;
@@ -285,6 +366,17 @@ public partial class Parser
         if (!optional) _current.AddError(new UnexpectedSymbolError(_current));
 
         return null;
+    }
+
+    /// <summary>
+    /// Consumes all new line tokens until a non-new line token is found.
+    /// </summary>
+    private void ConsumeNewlines()
+    {
+        while (_current.Type is TokenType.Newline)
+        {
+            Consume(TokenType.Newline);
+        }
     }
 
     /// <summary>

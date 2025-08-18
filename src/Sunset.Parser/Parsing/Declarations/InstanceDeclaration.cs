@@ -15,7 +15,7 @@ public class InstanceDeclaration(string name, IScope parentScope) : IDeclaration
     /// <summary>
     /// The element that is being declared.
     /// </summary>
-    public Element Element { get; }
+    public ElementDeclaration Element { get; }
 
     public Dictionary<string, IPassData> PassData { get; } = [];
 

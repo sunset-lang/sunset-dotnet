@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Statements;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
@@ -8,7 +9,7 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// <summary>
 ///     Represents the declaration of a new element type.
 /// </summary>
-public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
+public class ElementDeclaration(StringToken nameToken, IScope parentScope) : IScope
 {
     /// <summary>
     ///     The group of inputs for the element.
@@ -23,11 +24,11 @@ public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
     /// <summary>
     ///     The name of the new element being declared.
     /// </summary>
-    public string Name { get; } = name;
+    public string Name { get; } = nameToken.ToString();
 
-    public string FullPath { get; } = parentScope.FullPath + "." + name;
+    public string FullPath { get; } = parentScope.FullPath + "." + nameToken;
 
-    public required IScope? ParentScope { get; init; } = parentScope;
+    public IScope? ParentScope { get; init; } = parentScope;
 
     public Dictionary<string, IPassData> PassData { get; } = [];
 
@@ -39,4 +40,9 @@ public class ElementDeclaration(string name, IScope parentScope) : IDeclaration
     }
 
     public List<IError> Errors { get; } = [];
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
+    public IDeclaration? TryGetDeclaration(string name)
+    {
+        throw new NotImplementedException();
+    }
 }

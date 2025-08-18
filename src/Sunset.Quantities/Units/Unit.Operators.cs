@@ -1,3 +1,5 @@
+using Sunset.Quantities.MathUtilities;
+
 namespace Sunset.Quantities.Units;
 
 // Mathematical operators for the Unit class

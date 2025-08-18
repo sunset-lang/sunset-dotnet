@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Sunset.Quantities;
+namespace Sunset.Quantities.MathUtilities;
 
 public static class NumberUtilities
 {
@@ -26,7 +26,7 @@ public static class NumberUtilities
     /// </returns>
     public static int Magnitude(double value)
     {
-        return (int)Math.Floor(Math.Log10(Math.Abs(value)));
+        return (int)System.Math.Floor(System.Math.Log10(System.Math.Abs(value)));
     }
 
     /// <summary>
@@ -53,10 +53,10 @@ public static class NumberUtilities
     public static string ToNumberString(double value, int significantFigures = 4, bool removeTrailingZeros = true)
     {
         var magnitude = Magnitude(value);
-        var decimalPlaces = Math.Max(1, -magnitude + significantFigures - 1);
+        var decimalPlaces = System.Math.Max(1, -magnitude + significantFigures - 1);
 
         // If the value is an integer, don't show any decimal places
-        if (Math.Abs(value % 1) < double.Epsilon) decimalPlaces = 0;
+        if (System.Math.Abs(value % 1) < double.Epsilon) decimalPlaces = 0;
 
         var formattedValue = value.ToString($"N{decimalPlaces}", CultureInfo.InvariantCulture);
 
@@ -77,14 +77,14 @@ public static class NumberUtilities
     private static (double value, int exponent) ScaleNumber(double value,
         RoundingOption roundingOption = RoundingOption.Auto)
     {
-        var absValue = Math.Abs(value);
+        var absValue = System.Math.Abs(value);
 
         // TODO: Implement different rounding options here
 
         if (absValue is >= 0.1 and <= 10000) return (value, 0);
 
-        var exponent = (int)Math.Floor(Math.Log10(absValue) / 3) * 3;
-        var scale = Math.Pow(10, exponent);
+        var exponent = (int)System.Math.Floor(System.Math.Log10(absValue) / 3) * 3;
+        var scale = System.Math.Pow(10, exponent);
 
         return (value / scale, exponent);
     }
@@ -112,8 +112,8 @@ public static class NumberUtilities
         // Express the value in engineering notation, exponents to be multiples of 3 only with 3 significant digits
         if (value == 0) return "0";
 
-        var exponent = (int)Math.Floor(Math.Log10(Math.Abs(value)) / 3) * 3;
-        var scale = Math.Pow(10, exponent);
+        var exponent = (int)System.Math.Floor(System.Math.Log10(System.Math.Abs(value)) / 3) * 3;
+        var scale = System.Math.Pow(10, exponent);
 
         return latex
             ? $"{ToNumberString(value / scale)}\\times 10^{{{exponent}}}"

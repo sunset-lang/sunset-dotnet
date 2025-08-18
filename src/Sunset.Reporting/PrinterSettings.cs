@@ -1,4 +1,5 @@
 using Sunset.Quantities;
+using Sunset.Quantities.MathUtilities;
 
 namespace Sunset.Reporting;
 

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
 
-namespace Sunset.Quantities;
+namespace Sunset.Quantities.MathUtilities;
 
 public readonly struct Rational : INumber<Rational>
 {
@@ -10,7 +10,7 @@ public readonly struct Rational : INumber<Rational>
     public readonly int Denominator = 1;
 
     public bool IsInteger => Denominator == 1;
-    public int Sign => Math.Sign(Numerator);
+    public int Sign => System.Math.Sign(Numerator);
 
     public override bool Equals(object? obj)
     {
@@ -47,12 +47,12 @@ public readonly struct Rational : INumber<Rational>
 
     public Rational Pow(int exponent)
     {
-        return new Rational((int)Math.Pow(Numerator, exponent), (int)Math.Pow(Denominator, exponent));
+        return new Rational((int)System.Math.Pow(Numerator, exponent), (int)System.Math.Pow(Denominator, exponent));
     }
 
     public Rational Abs()
     {
-        return new Rational(Math.Abs(Numerator), Math.Abs(Denominator));
+        return new Rational(System.Math.Abs(Numerator), System.Math.Abs(Denominator));
     }
 
     #region Operators
@@ -230,7 +230,7 @@ public readonly struct Rational : INumber<Rational>
 
     public static Rational Abs(Rational value)
     {
-        return new Rational(Math.Abs(value.Numerator), Math.Abs(value.Denominator));
+        return new Rational(System.Math.Abs(value.Numerator), System.Math.Abs(value.Denominator));
     }
 
     public static bool IsCanonical(Rational value)

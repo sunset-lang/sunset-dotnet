@@ -1,4 +1,4 @@
-﻿namespace Sunset.Quantities;
+﻿namespace Sunset.Quantities.MathUtilities;
 
 public enum RoundingOption
 {

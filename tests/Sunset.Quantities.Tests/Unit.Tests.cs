@@ -1,3 +1,4 @@
+using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Units;
 
 namespace Sunset.Quantities.Test;

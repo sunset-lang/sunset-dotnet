@@ -4,6 +4,7 @@ using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities;
+using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Quantities;
 
 namespace Sunset.Reporting.Visitors;

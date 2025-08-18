@@ -1,3 +1,5 @@
+using Sunset.Quantities.MathUtilities;
+
 namespace Sunset.Quantities.Units;
 
 // Simplification methods for the Unit class.

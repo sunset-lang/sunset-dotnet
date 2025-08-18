@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Numerics;
+using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Quantities;
 
 namespace Sunset.Quantities.Units;

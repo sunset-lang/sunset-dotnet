@@ -30,8 +30,6 @@ jobs:
         run: dotnet test --no-restore -c Release
       - name: Publish
         run: dotnet publish -c Release -o release src/Sunset.Docsite
-      - name: Deploy
-        
   deploy:
     needs: build
     environment:

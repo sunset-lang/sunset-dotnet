@@ -1,4 +1,4 @@
-﻿namespace Northrop.Common.TestHelpers;
+﻿namespace Sunset.TestHelpers;
 
 public static class TestHelpers
 {

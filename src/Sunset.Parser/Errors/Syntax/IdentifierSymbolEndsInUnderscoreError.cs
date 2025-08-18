@@ -1,6 +1,6 @@
-﻿using Sunset.Parser.Parsing.Tokens;
+﻿using Sunset.Parser.Lexing.Tokens;
 
-namespace Sunset.Parser.Errors;
+namespace Sunset.Parser.Errors.Syntax;
 
 public class IdentifierSymbolEndsInUnderscoreError(StringToken token) : ISyntaxError
 {

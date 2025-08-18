@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Sunset.Parser\Sunset.Parser.csproj" />
+      <ProjectReference Include="..\Sunset.Reporting\Sunset.Reporting.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Abstractions;
+﻿using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.ReferenceChecking;

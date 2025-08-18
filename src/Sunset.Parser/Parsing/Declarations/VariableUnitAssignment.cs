@@ -1,9 +1,8 @@
-﻿using Sunset.Parser.Abstractions;
-using Sunset.Parser.Analysis.TypeChecking;
+﻿using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
-using Sunset.Parser.Parsing.Tokens;
-using Sunset.Parser.Units;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Visitors.Evaluation;
+using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Parsing.Declarations;
 

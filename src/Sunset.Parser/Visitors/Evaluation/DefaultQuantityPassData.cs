@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Quantities;
+﻿using Sunset.Quantities.Quantities;
 
 namespace Sunset.Parser.Visitors.Evaluation;
 

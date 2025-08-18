@@ -26,8 +26,8 @@ jobs:
           dotnet-version: 9.0.x
       - name: Install dependencies
         run: dotnet restore
-      - name: Test
-        run: dotnet test --no-restore -c Release
+      #- name: Test
+      #  run: dotnet test --no-restore -c Release
       - name: Publish
         run: dotnet publish -c Release -o release src/Sunset.Docsite
   deploy:

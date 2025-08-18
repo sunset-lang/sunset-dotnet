@@ -16,8 +16,8 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
     public PrinterSettings Settings { get; } = settings;
 
     private readonly EquationComponents _eq = components;
-    protected abstract SymbolExpressionPrinter SymbolPrinter { get; }
-    protected abstract ValueExpressionPrinter ValuePrinter { get; }
+    public abstract SymbolExpressionPrinter SymbolPrinter { get; }
+    public abstract ValueExpressionPrinter ValuePrinter { get; }
 
     /// <summary>
     ///     Reports a full expression for a quantity. This is in the form of:

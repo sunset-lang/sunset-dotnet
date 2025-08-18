@@ -20,8 +20,8 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     /// </summary>
     private static readonly MarkdownVariablePrinter Singleton = new();
 
-    protected override SymbolExpressionPrinter SymbolPrinter { get; }
-    protected override ValueExpressionPrinter ValuePrinter { get; }
+    public override SymbolExpressionPrinter SymbolPrinter { get; }
+    public override ValueExpressionPrinter ValuePrinter { get; }
 
     /// <summary>
     /// Initialises a new printer with default print settings.

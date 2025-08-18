@@ -2,6 +2,7 @@
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Visitors;
 
 namespace Sunset.Reporting.Visitors;
 
@@ -57,8 +58,33 @@ public abstract class SymbolExpressionPrinter(
 
     protected override string Visit(VariableDeclaration dest)
     {
-        if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "") return dest.Variable.Symbol;
+        // Get and return the cached expression if the visitor has already visited this node
+        var cachedExpression = GetResolvedSymbolExpression(dest);
+        if (cachedExpression != null) return cachedExpression;
 
-        return Visit(dest.Expression);
+        string symbolExpression;
+        if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
+        {
+            symbolExpression = dest.Variable.Symbol;
+        }
+        else
+        {
+            symbolExpression = Visit(dest.Expression);
+        }
+
+        // Cache the symbol expression for possible later usage
+        SetResolvedSymbolExpression(dest, symbolExpression);
+        return symbolExpression;
     }
+
+    /// <summary>
+    /// Sets the resolved symbol expression within a variable declaration. Overridden in implementing classes depending on the reporting type.
+    /// </summary>
+    protected abstract void SetResolvedSymbolExpression(VariableDeclaration declaration, string symbolExpression);
+
+    /// <summary>
+    /// Gets the resolved symbol expression within a variable declaration. Overridden in implementing classes depending on the reporting type.
+    /// </summary>
+    /// <param name="declaration"></param>
+    protected abstract string? GetResolvedSymbolExpression(VariableDeclaration declaration);
 }

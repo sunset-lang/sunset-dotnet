@@ -54,6 +54,8 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
     protected string VisitBinaryExpression(BinaryExpression dest, bool implicitMultiplication)
     {
         // Set the child operators to parentheses to be added around expression of lower power
+        // TODO: Fix this for Sunset code as it does not add parent operators for by (a + b) * c
+        // An additional compiler step is probably required to set the parent binary operators for all expressions
         if (dest.Left is BinaryExpression left) left.ParentBinaryOperator = dest.Operator;
         if (dest.Right is BinaryExpression right) right.ParentBinaryOperator = dest.Operator;
 
@@ -88,6 +90,7 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
 
     private string Visit(GroupingExpression dest)
     {
+        // Note: Wrapping isn't done here - all wrapping is the minimum result required for correctness and is handled in the VisitBinaryExpression method.
         return Visit(dest.InnerExpression);
     }
 

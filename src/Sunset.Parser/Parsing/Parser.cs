@@ -77,6 +77,12 @@ public partial class Parser
         SyntaxTree.Clear();
         while (_current.Type != TokenType.EndOfFile)
         {
+            // Skip blank lines
+            if (_current.Type is TokenType.Newline)
+            {
+                Advance();
+            }
+
             SyntaxTree.Add(GetVariableDeclaration(parentScope));
         }
 

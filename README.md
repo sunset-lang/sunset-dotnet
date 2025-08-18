@@ -1,4 +1,4 @@
-﻿# Sunset .NET
+﻿![image](docs/assets/logo.svg)
 
 This repository contains the .NET version of the Sunset compiler and runtime.
 

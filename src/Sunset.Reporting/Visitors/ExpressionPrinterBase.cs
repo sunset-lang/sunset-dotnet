@@ -56,8 +56,10 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
         // Set the child operators to parentheses to be added around expression of lower power
         // TODO: Fix this for Sunset code as it does not add parent operators for by (a + b) * c
         // An additional compiler step is probably required to set the parent binary operators for all expressions
-        if (dest.Left is BinaryExpression left) left.ParentBinaryOperator = dest.Operator;
-        if (dest.Right is BinaryExpression right) right.ParentBinaryOperator = dest.Operator;
+        if (dest.Left is BinaryExpression leftBinary) leftBinary.ParentBinaryOperator = dest.Operator;
+        if (dest.Left is GroupingExpression leftGrouping) leftGrouping.ParentBinaryOperator = dest.Operator;
+        if (dest.Right is BinaryExpression rightBinary) rightBinary.ParentBinaryOperator = dest.Operator;
+        if (dest.Right is GroupingExpression rightGrouping) rightGrouping.ParentBinaryOperator = dest.Operator;
 
         var result = dest.Operator switch
         {
@@ -90,8 +92,27 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
 
     private string Visit(GroupingExpression dest)
     {
-        // Note: Wrapping isn't done here - all wrapping is the minimum result required for correctness and is handled in the VisitBinaryExpression method.
-        return Visit(dest.InnerExpression);
+        // Propagate the parent binary operator to allow for grouping optimisation.
+        if (dest.InnerExpression is GroupingExpression groupingExpression)
+        {
+            groupingExpression.ParentBinaryOperator = dest.ParentBinaryOperator;
+        }
+
+        var result = Visit(dest.InnerExpression);
+
+        // Note that wrapping is only done here when the inner expression is a binary expression. Otherwise, all
+        // grouping is done in the VisitBinaryExpression function. This allows fractions to use the automatic
+        // grouping provided by the numerator and denominator.
+
+        if (dest.InnerExpression is not BinaryExpression binaryExpression) return result;
+
+        var binaryOperator = binaryExpression.Operator;
+        return dest.ParentBinaryOperator switch
+        {
+            TokenType.Multiply when binaryOperator <= TokenType.Minus => Eq.WrapParenthesis(result),
+            TokenType.Power when binaryOperator <= TokenType.Divide => Eq.WrapParenthesis(result),
+            _ => result
+        };
     }
 
 

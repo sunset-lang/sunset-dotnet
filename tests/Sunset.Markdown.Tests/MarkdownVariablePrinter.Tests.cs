@@ -162,7 +162,6 @@ public class MarkdownVariablePrinterTests()
     [Test]
     public void ReportSymbolExpression_OrderOfOperations_ShouldRespectParentheses()
     {
-        /*
         var sourceFile = SourceFile.FromString("""
                                                a = 12 {m}
                                                b = 3 {m}
@@ -170,42 +169,28 @@ public class MarkdownVariablePrinterTests()
 
                                                test1 = a + b * c
                                                test2 = (a + b) * c
-                                               test3 = a + b * c
-                                               test4 = (a + b) / c
-                                               """);*/
-        var sourceFile = SourceFile.FromString("""
-                                               a = 12 {m}
-                                               b = 3 {m}
-                                               c = 4 {m}
-
-                                               test2 = (a + b) * c
+                                               test3 = (a + b) / c
                                                """);
 
         var environment = new Environment(sourceFile);
         environment.Parse();
-        //var test1 = environment.ChildScopes["$file"].ChildDeclarations["test1"] as VariableDeclaration;
+        var test1 = environment.ChildScopes["$file"].ChildDeclarations["test1"] as VariableDeclaration;
         var test2 = environment.ChildScopes["$file"].ChildDeclarations["test2"] as VariableDeclaration;
-        //var test3 = environment.ChildScopes["$file"].ChildDeclarations["test3"] as VariableDeclaration;
-        //var test4 = environment.ChildScopes["$file"].ChildDeclarations["test4"] as VariableDeclaration;
-        //_markdownVariablePrinter.SymbolPrinter.Visit(test1!);
+        var test3 = environment.ChildScopes["$file"].ChildDeclarations["test3"] as VariableDeclaration;
+        _markdownVariablePrinter.SymbolPrinter.Visit(test1!);
         _markdownVariablePrinter.SymbolPrinter.Visit(test2!);
-        //_markdownVariablePrinter.SymbolPrinter.Visit(test3!);
-        //_markdownVariablePrinter.SymbolPrinter.Visit(test4!);
+        _markdownVariablePrinter.SymbolPrinter.Visit(test3!);
 
-        //Assert.Multiple(() =>
-        //{
-            //Assert.That(test1?.GetResolvedSymbolExpression(), Is.EqualTo("a + b c"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(test1?.GetResolvedSymbolExpression(), Is.EqualTo("a + b c"));
             Assert.That(test2?.GetResolvedSymbolExpression(), Is.EqualTo(@"\left(a + b\right) c"));
-            //Assert.That(test3?.GetResolvedSymbolExpression(), Is.EqualTo("a + b c"));
-            // Currently fails because parentheses are being added around the numerator. Should never add parentheses to
-            // just a numerator or denominator.
-            //Assert.That(test4?.GetResolvedSymbolExpression(), Is.EqualTo(@"\frac{a + b}{c}"));
-        //});
+            Assert.That(test3?.GetResolvedSymbolExpression(), Is.EqualTo(@"\frac{a + b}{c}"));
+        });
 
-        //Console.WriteLine(test1?.GetResolvedSymbolExpression());
+        Console.WriteLine(test1?.GetResolvedSymbolExpression());
         Console.WriteLine(test2?.GetResolvedSymbolExpression());
-        //Console.WriteLine(test3?.GetResolvedSymbolExpression());
-        //Console.WriteLine(test4?.GetResolvedSymbolExpression());
+        Console.WriteLine(test3?.GetResolvedSymbolExpression());
     }
 
 

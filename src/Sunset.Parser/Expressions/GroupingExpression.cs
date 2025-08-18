@@ -10,4 +10,5 @@ public class GroupingExpression(IToken open, IToken? close, IExpression innerExp
     public IToken Open { get; } = open;
     public IToken? Close { get; } = close;
     public IExpression InnerExpression { get; } = innerExpression;
+    public TokenType? ParentBinaryOperator { get; set; }
 }

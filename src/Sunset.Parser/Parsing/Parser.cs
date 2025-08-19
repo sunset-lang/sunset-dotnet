@@ -78,13 +78,19 @@ public partial class Parser
         SyntaxTree.Clear();
         while (_current.Type != TokenType.EndOfFile)
         {
-            // Skip blank lines
-            if (_current.Type is TokenType.Newline)
+            ConsumeNewlines();
+            IDeclaration? declaration = _current.Type switch
             {
-                Advance();
-            }
+                TokenType.Define => GetElementDeclaration(parentScope),
+                TokenType.Identifier or TokenType.OpenAngleBracket => GetVariableDeclaration(parentScope),
+                // TODO: Handle this error properly
+                _ => throw new ArgumentOutOfRangeException("Unexpected token type: " + _current.Type)
+            };
 
-            SyntaxTree.Add(GetVariableDeclaration(parentScope));
+            if (declaration != null)
+            {
+                SyntaxTree.Add(declaration);
+            }
         }
 
         return SyntaxTree;
@@ -159,13 +165,12 @@ public partial class Parser
         return leftExpression;
     }
 
-    private static readonly TokenType[] ElementContainerTokens = [TokenType.Input, TokenType.Output];
 
     public ElementDeclaration? GetElementDeclaration(IScope parentScope)
     {
         // Set up variable containers for element
         var containers =
-            new Dictionary<TokenType, List<VariableDeclaration>>
+            new Dictionary<TokenType, List<IDeclaration>>
             {
                 { TokenType.Input, [] },
                 { TokenType.Output, [] },
@@ -178,21 +183,23 @@ public partial class Parser
         }
 
         // TODO: Consider making a generic Consume function for given token types
-        var nameToken = Consume(TokenType.Identifier) as StringToken;
 
-        if (nameToken == null)
+        if (Consume(TokenType.Identifier) is not StringToken nameToken)
         {
             defineToken.AddError(new ElementDeclarationWithoutNameError(defineToken));
             // TODO: Enter panic mode here
             return null;
         }
 
+        Consume(TokenType.Colon);
+
+
         var element = new ElementDeclaration(nameToken, parentScope);
 
-        foreach (var currentContainerType in ElementContainerTokens)
+        foreach (var currentContainerType in ElementDeclaration.VariableContainerTokens)
         {
             // Optionally consume the container token and allow new lines before the token
-            // The assumes that all containers are in the defined order
+            // This assumes that all containers are in the defined order
             var currentContainerToken = Consume(currentContainerType, true, true);
             if (currentContainerToken == null) continue;
 
@@ -202,19 +209,23 @@ public partial class Parser
                 throw new Exception("Undefined element variable container token type.");
             }
 
-            // Consume a token but continue execution if one is not found - report it as an error.
+            // Consume a token but continue execution if one is not found. Report it as an error
             Consume(TokenType.Colon);
             while (_current.Type is not TokenType.End and not TokenType.EndOfFile)
             {
-                // If starting another type of container, continue
-                if (ElementContainerTokens.Contains(_current.Type))
+                // If the keyword to define another container exists, break out of this container
+                if (ElementDeclaration.VariableContainerTokens.Contains(_current.Type))
                 {
-                    continue;
+                    break;
                 }
 
                 container.Add(GetVariableDeclaration(element));
             }
         }
+
+        Consume(TokenType.End);
+
+        element.Containers = containers;
 
         return element;
     }

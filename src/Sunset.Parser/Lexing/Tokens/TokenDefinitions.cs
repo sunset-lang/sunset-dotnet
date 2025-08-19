@@ -41,8 +41,8 @@ public static class TokenDefinitions
     public static readonly Dictionary<string, TokenType> Keywords = new()
     {
         { "define", TokenType.Define },
-        { "input", TokenType.Input },
-        { "output", TokenType.Output },
+        { "inputs", TokenType.Input },
+        { "outputs", TokenType.Output },
         { "if", TokenType.If },
         { "else", TokenType.Else },
         { "end", TokenType.End },

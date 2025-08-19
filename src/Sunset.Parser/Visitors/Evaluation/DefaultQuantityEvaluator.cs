@@ -42,7 +42,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
-            Element element => Visit(element),
+            ElementDeclaration element => Visit(element),
             IScope scope => Visit(scope),
             _ => throw new NotImplementedException()
         };
@@ -120,7 +120,7 @@ public class DefaultQuantityEvaluator : IVisitor<IQuantity?>
         return value;
     }
 
-    private IQuantity? Visit(Element dest)
+    private IQuantity? Visit(ElementDeclaration dest)
     {
         // TODO: Work out how the default instance of an element can be set here.
         throw new NotImplementedException();

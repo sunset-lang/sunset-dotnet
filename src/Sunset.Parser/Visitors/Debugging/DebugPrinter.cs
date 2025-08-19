@@ -21,7 +21,6 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(IVisitable dest)
     {
-        
         if (dest is IErrorContainer errorContainer)
         {
             if (errorContainer.ContainsError<CircularReferenceError>())
@@ -42,6 +41,7 @@ public class DebugPrinter : IVisitor<string>
             StringConstant str => Visit(str),
             UnitConstant unit => Visit(unit),
             VariableDeclaration variable => Visit(variable),
+            ElementDeclaration element => Visit(element),
             FileScope fileScope => Visit(fileScope),
             Environment environment => Visit(environment),
             _ => throw new NotImplementedException()
@@ -119,7 +119,7 @@ public class DebugPrinter : IVisitor<string>
         return builder.ToString();
     }
 
-    public string Visit(Element dest)
+    public string Visit(ElementDeclaration dest)
     {
         throw new NotImplementedException();
     }
@@ -147,6 +147,25 @@ public class DebugPrinter : IVisitor<string>
         var variable = variableDeclaration.Variable;
         return
             $"{variable.Name} <{variable.Symbol}> {{{variableDeclaration.UnitAssignment?.Unit}}} = {Visit(variableDeclaration.Expression)}";
+    }
+
+    public string PrintElementDeclaration(ElementDeclaration elementDeclaration)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"element {elementDeclaration.Name}:");
+        foreach (var containerType in ElementDeclaration.VariableContainerTokens)
+        {
+            builder.AppendLine($"    {containerType}:");
+            if (elementDeclaration.Containers.TryGetValue(containerType, out var container))
+            {
+                foreach (var variable in container.OfType<VariableDeclaration>())
+                {
+                    builder.AppendLine($"        {PrintVariableDeclaration(variable)}");
+                }
+            }
+        }
+
+        return builder.ToString();
     }
 
     public string Visit(SymbolName dest)

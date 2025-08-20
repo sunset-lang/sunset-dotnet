@@ -4,6 +4,7 @@ using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Reporting;
 using Sunset.Reporting.Visitors;
@@ -82,7 +83,14 @@ public class MarkdownVariablePrinter : VariablePrinterBase
         }
 
         var result = DefaultQuantityEvaluator.EvaluateExpression(variable.Expression);
-        // Show an error if a quantity cannot be calculated
-        return result == null ? MarkdownEquationComponents.Instance.Text("Error!") : result.ToLatexString();
+        if (result is QuantityResult quantityResult)
+        {
+            // Show an error if a quantity cannot be calculated
+            return quantityResult.Result.ToLatexString();
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
     }
 }

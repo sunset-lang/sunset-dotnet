@@ -1,4 +1,5 @@
 ﻿using Sunset.Markdown.Extensions;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
 using Sunset.Quantities.Units;
@@ -26,8 +27,11 @@ public class ElementTests
 
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
-        // TODO: Add assertions
-        Assert.Fail();
+
+        var element = environment.ChildScopes["$file"].ChildDeclarations["Square"] as ElementDeclaration;
+        // Check that the element is not null and has three child variables.
+        Assert.That(element, Is.Not.Null);
+        Assert.That(element.ChildDeclarations, Has.Count.EqualTo(3));
     }
 
     [Test]

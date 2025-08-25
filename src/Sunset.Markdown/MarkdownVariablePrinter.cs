@@ -82,7 +82,7 @@ public class MarkdownVariablePrinter : VariablePrinterBase
             return variable.DefaultValue.ToLatexString();
         }
 
-        var result = DefaultQuantityEvaluator.EvaluateExpression(variable.Expression);
+        var result = Evaluator.EvaluateExpression(variable.Expression);
         if (result is QuantityResult quantityResult)
         {
             // Show an error if a quantity cannot be calculated

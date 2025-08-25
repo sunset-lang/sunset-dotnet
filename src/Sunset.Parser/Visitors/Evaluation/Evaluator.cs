@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Runtime.InteropServices;
-using Sunset.Parser.Analysis.NameResolution;
-using Sunset.Parser.Analysis.ReferenceChecking;
+﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -18,11 +15,11 @@ using Sunset.Quantities.Units;
 namespace Sunset.Parser.Visitors.Evaluation;
 
 /// <summary>
-///     Evaluates default results for all elements based on the default input variables.
+/// Evaluates expressions and returns the result, storing it along the way.
 /// </summary>
-public class DefaultQuantityEvaluator : IVisitor<IResult?>
+public class Evaluator : IVisitor<IResult?>
 {
-    private static readonly DefaultQuantityEvaluator Singleton = new();
+    private static readonly Evaluator Singleton = new();
 
     public static IResult? EvaluateExpression(IExpression expression)
     {
@@ -30,6 +27,11 @@ public class DefaultQuantityEvaluator : IVisitor<IResult?>
     }
 
     public IResult? Visit(IVisitable dest)
+    {
+        return Visit(dest, null);
+    }
+
+    public IResult? Visit(IVisitable dest, IScope? currentScope)
     {
         // Stop execution on circular references
         if (dest is IErrorContainer errorContainer)
@@ -42,26 +44,26 @@ public class DefaultQuantityEvaluator : IVisitor<IResult?>
 
         return dest switch
         {
-            BinaryExpression binaryExpression => Visit(binaryExpression),
-            UnaryExpression unaryExpression => Visit(unaryExpression),
-            GroupingExpression groupingExpression => Visit(groupingExpression),
-            NameExpression nameExpression => Visit(nameExpression),
-            IfExpression ifExpression => Visit(ifExpression),
-            UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression),
-            VariableDeclaration variableAssignmentExpression => Visit(variableAssignmentExpression),
-            NumberConstant numberConstant => Visit(numberConstant),
-            StringConstant stringConstant => Visit(stringConstant),
-            UnitConstant unitConstant => Visit(unitConstant),
-            ElementDeclaration element => Visit(element),
-            IScope scope => Visit(scope),
+            BinaryExpression binaryExpression => Visit(binaryExpression, currentScope),
+            UnaryExpression unaryExpression => Visit(unaryExpression, currentScope),
+            GroupingExpression groupingExpression => Visit(groupingExpression, currentScope),
+            NameExpression nameExpression => Visit(nameExpression, currentScope),
+            IfExpression ifExpression => Visit(ifExpression, currentScope),
+            UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, currentScope),
+            VariableDeclaration variableAssignmentExpression => Visit(variableAssignmentExpression, currentScope),
+            NumberConstant numberConstant => Visit(numberConstant, currentScope),
+            StringConstant stringConstant => Visit(stringConstant, currentScope),
+            UnitConstant unitConstant => Visit(unitConstant, currentScope),
+            ElementDeclaration element => Visit(element, currentScope),
+            IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
         };
     }
 
-    private IResult? Visit(BinaryExpression dest)
+    private IResult? Visit(BinaryExpression dest, IScope? currentScope)
     {
-        var leftResult = Visit(dest.Left);
-        var rightResult = Visit(dest.Right);
+        var leftResult = Visit(dest.Left, currentScope);
+        var rightResult = Visit(dest.Right, currentScope);
         if (leftResult == null || rightResult == null)
         {
             return null;
@@ -89,9 +91,9 @@ public class DefaultQuantityEvaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult? Visit(UnaryExpression dest)
+    private IResult? Visit(UnaryExpression dest, IScope? currentScope)
     {
-        var operandValue = Visit(dest.Operand);
+        var operandValue = Visit(dest.Operand, currentScope);
         if (operandValue == null)
         {
             return null;
@@ -111,32 +113,32 @@ public class DefaultQuantityEvaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult? Visit(GroupingExpression dest)
+    private IResult? Visit(GroupingExpression dest, IScope? currentScope)
     {
-        return Visit(dest.InnerExpression);
+        return Visit(dest.InnerExpression, currentScope);
     }
 
-    private IResult? Visit(NameExpression dest)
+    private IResult? Visit(NameExpression dest, IScope? currentScope)
     {
         var declaration = dest.GetResolvedDeclaration();
-        if (declaration != null) return Visit(declaration);
+        if (declaration != null) return Visit(declaration, currentScope);
 
         dest.AddError(new NameResolutionError(dest));
         return null;
     }
 
-    private IResult Visit(IfExpression dest)
+    private IResult Visit(IfExpression dest, IScope? currentScope)
     {
         throw new NotImplementedException();
     }
 
-    private IResult? Visit(UnitAssignmentExpression dest)
+    private IResult? Visit(UnitAssignmentExpression dest, IScope? currentScope)
     {
         // Evaluate the units of the expression before return the quantity with units included
         var unit = UnitTypeChecker.EvaluateExpressionUnits(dest.UnitExpression);
         if (unit == null) return null;
 
-        var value = Visit(dest.Value);
+        var value = Visit(dest.Value, currentScope);
         // Units can only be set for quantities
         if (value is QuantityResult quantityResult)
         {
@@ -160,42 +162,51 @@ public class DefaultQuantityEvaluator : IVisitor<IResult?>
      * a = z.y
      */
 
-    private IResult? Visit(VariableDeclaration dest, IScope? currentScope = null)
+    private IResult? Visit(VariableDeclaration dest, IScope? currentScope)
     {
-        // TODO: This should be aware of the scope that this variable is being called in...
-        var value = Visit(dest.Expression);
-        dest.SetDefaultQuantity(value);
-        dest.Variable.DefaultValue = value;
+        // Get the result from visiting the expression
+        var value = Visit(dest.Expression, currentScope);
+
+        // Store the result in the pass data relevant to the scope provided
+        // TODO: Is this correct, or does an instance need to be declared as a new scope?
+        if (currentScope == null)
+        {
+            dest.SetDefaultResult(value);
+        }
+        else
+        {
+            dest.SetResult(currentScope, value);
+        }
+
+        if (value is QuantityResult quantityResult)
+        {
+            dest.Variable.DefaultValue = quantityResult.Result;
+        }
+
         return value;
     }
 
-    private IResult? Visit(ElementDeclaration dest)
-    {
-        // TODO: Work out how the default instance of an element can be set here.
-        throw new NotImplementedException();
-    }
-
-    private IResult? Visit(IScope dest)
+    private IResult? Visit(IScope dest, IScope? currentScope)
     {
         foreach (var declaration in dest.ChildDeclarations.Values)
         {
-            Visit(declaration);
+            Visit(declaration, currentScope);
         }
 
         return null;
     }
 
-    private IResult Visit(NumberConstant dest)
+    private IResult Visit(NumberConstant dest, IScope? currentScope)
     {
         return new QuantityResult(dest.Value, DefinedUnits.Dimensionless);
     }
 
-    private IResult? Visit(StringConstant dest)
+    private IResult? Visit(StringConstant dest, IScope? currentScope)
     {
         return new StringResult(dest.Token.ToString());
     }
 
-    private IResult? Visit(UnitConstant dest)
+    private IResult? Visit(UnitConstant dest, IScope? currentScope)
     {
         return new UnitResult(dest.Unit);
     }

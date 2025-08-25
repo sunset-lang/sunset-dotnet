@@ -121,7 +121,29 @@ public class DebugPrinter : IVisitor<string>
 
     public string Visit(ElementDeclaration dest)
     {
-        throw new NotImplementedException();
+        var builder = new StringBuilder();
+        builder.AppendLine($"{dest.FullPath}:");
+        if (dest.Inputs != null)
+        {
+            foreach (var declaration in dest.Inputs)
+            {
+                builder.AppendLine(Visit(declaration));
+            }
+        }
+        else
+        {
+            return "";
+        }
+
+        if (dest.Outputs != null)
+        {
+            foreach (var declaration in dest.Outputs)
+            {
+                builder.AppendLine(Visit(declaration));
+            }
+        }
+
+        return builder.ToString();
     }
 
     public string Visit(Environment environment)

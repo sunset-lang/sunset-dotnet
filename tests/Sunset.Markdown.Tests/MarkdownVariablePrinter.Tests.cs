@@ -25,12 +25,12 @@ public class MarkdownVariablePrinterTests()
     {
         _volume = new Variable(_length * _width * _height).AssignSymbol("V");
         _density = new Variable(_mass / _volume).AssignSymbol("\\rho");
-        DefaultQuantityEvaluator.EvaluateExpression(_length.Expression);
-        DefaultQuantityEvaluator.EvaluateExpression(_width.Expression);
-        DefaultQuantityEvaluator.EvaluateExpression(_height.Expression);
-        DefaultQuantityEvaluator.EvaluateExpression(_mass.Expression);
-        DefaultQuantityEvaluator.EvaluateExpression(_volume.Expression);
-        DefaultQuantityEvaluator.EvaluateExpression(_density.Expression);
+        Evaluator.EvaluateExpression(_length.Expression);
+        Evaluator.EvaluateExpression(_width.Expression);
+        Evaluator.EvaluateExpression(_height.Expression);
+        Evaluator.EvaluateExpression(_mass.Expression);
+        Evaluator.EvaluateExpression(_volume.Expression);
+        Evaluator.EvaluateExpression(_density.Expression);
     }
 
     [Test]
@@ -78,8 +78,8 @@ public class MarkdownVariablePrinterTests()
         var height = new Variable(300, DefinedUnits.Metre, "h");
         var volume = new Variable(length * width * height);
         var density = new Variable(_mass / volume);
-        DefaultQuantityEvaluator.EvaluateExpression(volume.Expression);
-        DefaultQuantityEvaluator.EvaluateExpression(density.Expression);
+        Evaluator.EvaluateExpression(volume.Expression);
+        Evaluator.EvaluateExpression(density.Expression);
 
         Console.WriteLine(new DebugPrinter().Visit(density.Expression));
         var volumeDefault = volume.DefaultValue!.ToLatexString();

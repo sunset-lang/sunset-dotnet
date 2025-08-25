@@ -44,7 +44,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         // TODO: Don't do any evaluation here - just print the result.
 
         // If the expression is a constant, report it now
-        var evaluationResult = DefaultQuantityEvaluator.EvaluateExpression(dest);
+        var evaluationResult = Evaluator.EvaluateExpression(dest);
 
         if (evaluationResult is QuantityResult quantityResult)
         {
@@ -78,7 +78,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
     {
         if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
         {
-            var evaluationResult = DefaultQuantityEvaluator.EvaluateExpression(dest);
+            var evaluationResult = Evaluator.EvaluateExpression(dest);
             if (evaluationResult is QuantityResult quantityResult)
             {
                 return dest.Variable switch

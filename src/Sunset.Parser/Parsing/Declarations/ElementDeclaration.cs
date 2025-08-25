@@ -9,7 +9,7 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// <summary>
 ///     Represents the declaration of a new element type.
 /// </summary>
-public class ElementDeclaration(StringToken nameToken, IScope parentScope) : IScope
+public class ElementDeclaration(StringToken nameToken, IScope parentScope) : IScope, INamed
 {
     /// <summary>
     /// An array of the token types that represent the various declaration containers that an element has, in order.
@@ -78,6 +78,6 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
 
     public IDeclaration? TryGetDeclaration(string name)
     {
-        throw new NotImplementedException();
+        return ChildDeclarations.GetValueOrDefault(name);
     }
 }

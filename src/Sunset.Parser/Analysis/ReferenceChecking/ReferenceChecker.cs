@@ -32,6 +32,7 @@ public class ReferenceChecker
             GroupingExpression groupingExpression => Visit(groupingExpression, visited),
             NameExpression nameExpression => Visit(nameExpression, visited),
             IfExpression ifExpression => Visit(ifExpression, visited),
+            CallExpression callExpression => Visit(callExpression, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             UnitConstant unitConstant => Visit(unitConstant, visited),
             IScope scope => Visit(scope, visited),
@@ -91,6 +92,11 @@ public class ReferenceChecker
     }
 
     private HashSet<IDeclaration> Visit(IfExpression dest, HashSet<IDeclaration> visited)
+    {
+        throw new NotImplementedException();
+    }
+
+    private HashSet<IDeclaration> Visit(CallExpression dest, HashSet<IDeclaration> visited)
     {
         throw new NotImplementedException();
     }

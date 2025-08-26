@@ -144,7 +144,8 @@ public partial class Parser
             if (_current.Type is TokenType.EndOfFile
                 or TokenType.Newline
                 or TokenType.CloseParenthesis
-                or TokenType.CloseBrace)
+                or TokenType.CloseBrace
+                or TokenType.Comma)
                 break;
 
             // Particular logic for avoiding implicit multiplication outside of unit expressions despite it being returned within
@@ -326,6 +327,14 @@ public partial class Parser
         Consume(TokenType.CloseAngleBracket);
 
         return new SymbolName(tokens);
+    }
+
+    public Argument? GetArgument()
+    {
+        if (Consume(TokenType.Identifier, false, true) is not StringToken name) return null;
+        Consume(TokenType.Assignment);
+        var expression = GetExpression();
+        return new Argument(name, expression);
     }
 
     #region Parser controls

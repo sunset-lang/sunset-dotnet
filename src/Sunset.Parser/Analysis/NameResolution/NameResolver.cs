@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using System.Net.NetworkInformation;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -29,6 +30,9 @@ public class NameResolver : INameResolver
                 break;
             case IfExpression ifExpression:
                 Visit(ifExpression, parentScope);
+                break;
+            case CallExpression callExpression:
+                Visit(callExpression, parentScope);
                 break;
             case VariableDeclaration variableAssignmentExpression:
                 Visit(variableAssignmentExpression, parentScope);
@@ -109,7 +113,7 @@ public class NameResolver : INameResolver
         }
 
         // TODO: Search for libraries in the root Environment.
-        dest.AddError(new NameResolutionError(dest)); 
+        dest.AddError(new NameResolutionError(dest));
     }
 
     private void Visit(UnitAssignmentExpression dest, IScope parentScope)
@@ -149,6 +153,19 @@ public class NameResolver : INameResolver
     private void Visit(IfExpression dest, IScope parentScope)
     {
         throw new NotImplementedException();
+    }
+
+    private void Visit(CallExpression dest, IScope parentScope)
+    {
+        // Resolve the target of the call expression.
+        Visit(dest.Target, parentScope);
+        // If the target is an element, the argument names should be resolved within the scope of the element
+        var parentElement = dest.Target.GetResolvedDeclaration() as ElementDeclaration;
+        foreach (var argument in dest.Arguments)
+        {
+            Visit(argument.ArgumentName, parentElement ?? parentScope);
+            Visit(argument.Expression, parentScope);
+        }
     }
 
     private void Visit(VariableDeclaration dest, IScope parentScope)

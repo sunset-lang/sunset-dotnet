@@ -21,6 +21,7 @@ public static class TokenDefinitions
         { '}', TokenType.CloseBrace },
         { ',', TokenType.Comma },
         { ':', TokenType.Colon },
+        { '.', TokenType.Dot },
         { '\n', TokenType.Newline },
         { '\0', TokenType.EndOfFile }
     };

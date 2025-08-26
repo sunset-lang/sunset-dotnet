@@ -1,4 +1,6 @@
-﻿using Sunset.Markdown.Extensions;
+﻿using NUnit.Framework.Internal;
+using Serilog;
+using Sunset.Markdown.Extensions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
@@ -37,6 +39,10 @@ public class ElementTests
     [Test]
     public void Parse_SingleElementWithInstanceAndAccess_CorrectResult()
     {
+        using var log = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        Log.Logger = log;
+        Log.Information("Starting test");
+        // TODO: Appears to be an error in tokenising the input
         var sourceFile = SourceFile.FromString("""
                                                define Square:
                                                    inputs:

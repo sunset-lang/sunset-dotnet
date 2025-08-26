@@ -203,6 +203,7 @@ public class Lexer
             return new Token(singleCharacterTokenType, _position, _line, _column);
         }
 
+        Advance();
         return new Token(TokenType.Error, _position, _line, _column);
     }
 

@@ -25,7 +25,7 @@ public class ElementTests
                                                end
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
@@ -56,7 +56,7 @@ public class ElementTests
                                                Result {mm^2} = SquareInstance.Area
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));

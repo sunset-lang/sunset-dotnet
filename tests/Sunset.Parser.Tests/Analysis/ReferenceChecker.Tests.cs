@@ -18,7 +18,7 @@ public class ReferenceCheckerTests
                                                y = 25 + x
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
@@ -37,7 +37,7 @@ public class ReferenceCheckerTests
                                                z = 11 + y
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
@@ -65,7 +65,7 @@ public class ReferenceCheckerTests
                                                b = 12 + a
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();

@@ -4,6 +4,7 @@ using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
 
@@ -17,7 +18,7 @@ public class VariableTests
     {
         var sourceFile = SourceFile.FromString("x = 35 + 12");
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
@@ -30,7 +31,7 @@ public class VariableTests
     {
         var sourceFile = SourceFile.FromString("x {m} = 35 {m} + 12 {m}");
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
@@ -45,7 +46,7 @@ public class VariableTests
                                                y = 8 + 9
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
@@ -63,7 +64,7 @@ public class VariableTests
                                                area <A> {mm^2} = length * width
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
@@ -82,7 +83,7 @@ public class VariableTests
                                                z = x - y
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
@@ -101,7 +102,7 @@ public class VariableTests
                                                x = 35 + 12
                                                """);
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
@@ -109,6 +110,32 @@ public class VariableTests
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 94, DefinedUnits.Dimensionless, ["x"]);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "z", -47, DefinedUnits.Dimensionless, ["x", "y"]);
+    }
+
+    [Test]
+    public void Analyse_InvalidUnits_DoesNotEvaluate()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               x {mm} = 35 {mm}
+                                               y {s} = 40 {s}
+                                               z = x + y
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+        var fileScope = environment.ChildScopes["$file"] as FileScope;
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
+
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 35, DefinedUnits.Millimetre);
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 40, DefinedUnits.Second);
+        var variable = environment.ChildScopes["$file"].ChildDeclarations["z"];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(variable.GetResult(fileScope!), Is.Null);
+            Assert.That(variable.HasErrors, Is.True);
+        });
     }
 
     private static void AssertVariableDeclaration(IScope scope, string variableName, double? expectedValue,

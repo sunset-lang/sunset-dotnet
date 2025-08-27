@@ -173,7 +173,7 @@ public class MarkdownVariablePrinterTests
                                                """);
 
         var environment = new Environment(sourceFile);
-        environment.Parse();
+        environment.Analyse();
         var test1 = environment.ChildScopes["$file"].ChildDeclarations["test1"] as VariableDeclaration;
         var test2 = environment.ChildScopes["$file"].ChildDeclarations["test2"] as VariableDeclaration;
         var test3 = environment.ChildScopes["$file"].ChildDeclarations["test3"] as VariableDeclaration;
@@ -235,7 +235,7 @@ public class MarkdownVariablePrinterTests
     {
         var source = SourceFile.FromString("x = 100");
         var environment = new Environment(source);
-        environment.Parse();
+        environment.Analyse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
         Assert.That(result, Is.EqualTo("x &= 100 \\\\\r\n"));
@@ -246,7 +246,7 @@ public class MarkdownVariablePrinterTests
     {
         var source = SourceFile.FromString("x = 100 {mm}");
         var environment = new Environment(source);
-        environment.Parse();
+        environment.Analyse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
         Assert.That(result, Is.EqualTo("x &= 100 \\text{ mm} \\\\\r\n"));
@@ -257,7 +257,7 @@ public class MarkdownVariablePrinterTests
     {
         var source = SourceFile.FromString("x = 12 + 5");
         var environment = new Environment(source);
-        environment.Parse();
+        environment.Analyse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues();
         Assert.That(result, Is.EqualTo("x &= 12 + 5 \\\\\r\n&= 17 \\\\\r\n"));

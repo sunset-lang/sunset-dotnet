@@ -86,11 +86,8 @@ public class Environment : IScope
     /// <summary>
     ///     Performs static analysis on the source. This includes checking of all types and default quantity evaluation.
     /// </summary>
-    public void Parse()
+    public void Analyse()
     {
-        // Parsing
-        // TODO: Move parsing here
-
         // Name resolution
         var nameResolver = new NameResolver();
         foreach (var scope in ChildScopes.Values)

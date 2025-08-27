@@ -14,14 +14,24 @@ public partial class Quantity
 
     // TODO: Handle int and Rational numeric types
 
-    public static Quantity operator +(Quantity q1, Quantity q2)
+    public static Quantity? operator +(Quantity q1, Quantity q2)
     {
+        if (!Units.Unit.EqualDimensions(q1.Unit, q2.Unit))
+        {
+            return null;
+        }
+
         var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
         return new Quantity(q1.Value + q2.Value * conversionFactor, q1.Unit + q2.Unit);
     }
 
-    public static Quantity operator -(Quantity q1, Quantity q2)
+    public static Quantity? operator -(Quantity q1, Quantity q2)
     {
+        if (!Units.Unit.EqualDimensions(q1.Unit, q2.Unit))
+        {
+            return null;
+        }
+
         var conversionFactor = q2.Unit.GetConversionFactor(q1.Unit);
         return new Quantity(q1.Value - q2.Value * conversionFactor, q1.Unit - q2.Unit);
     }

@@ -7,6 +7,11 @@ public class SymbolName
     public readonly string Name;
     public readonly IToken[] Tokens;
 
+    /// <summary>
+    /// If the symbol can also be used as a name, use it
+    /// </summary>
+    public readonly StringToken? NameToken;
+
     public SymbolName(IEnumerable<IToken> tokens)
     {
         var enumerable = tokens as IToken[] ?? tokens.ToArray();
@@ -14,6 +19,12 @@ public class SymbolName
 
         CheckSymbol();
         Name = string.Join(" ", enumerable.Select(t => t.ToString()));
+
+        // If the symbol can also be used as a name (i.e. it is made up of a single token, note that it can also be used as a name.
+        if (Tokens.Length == 1 && Tokens.First() is StringToken nameToken)
+        {
+            NameToken = nameToken;
+        }
     }
 
     public void CheckSymbol()

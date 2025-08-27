@@ -15,6 +15,15 @@ public class UnitMismatchError(BinaryExpression expression) : ISemanticError
     public IToken[]? Tokens { get; } = [expression.OperatorToken];
 }
 
+public class ArgumentUnitMismatchError(Argument argument) : ISemanticError
+{
+    public string Message =>
+        $"The element property being assigned to has units ?? and the value assigned has units ??. These aren't compatible";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken[]? Tokens { get; } = [argument.EqualsToken];
+}
+
 public class DeclaredUnitMismatchError : ISemanticError
 {
     private readonly VariableDeclaration _variable;

@@ -21,6 +21,7 @@ public static class TokenDefinitions
         { '}', TokenType.CloseBrace },
         { ',', TokenType.Comma },
         { ':', TokenType.Colon },
+        { '.', TokenType.Dot },
         { '\n', TokenType.Newline },
         { '\0', TokenType.EndOfFile }
     };
@@ -40,6 +41,9 @@ public static class TokenDefinitions
 
     public static readonly Dictionary<string, TokenType> Keywords = new()
     {
+        { "define", TokenType.Define },
+        { "inputs", TokenType.Input },
+        { "outputs", TokenType.Output },
         { "if", TokenType.If },
         { "else", TokenType.Else },
         { "end", TokenType.End },

@@ -99,6 +99,7 @@ public class Environment : IScope
         }
 
         // Type checking
+        // TODO: Generalise this into checking all types and not just units
         var typeChecker = new UnitTypeChecker();
         foreach (var scope in ChildScopes.Values)
         {
@@ -106,10 +107,10 @@ public class Environment : IScope
         }
 
         // Default evaluation
-        var quantityEvaluator = new DefaultQuantityEvaluator();
+        var quantityEvaluator = new Evaluator();
         foreach (var scope in ChildScopes.Values)
         {
-            quantityEvaluator.Visit(scope);
+            quantityEvaluator.Visit(scope, scope);
         }
     }
 

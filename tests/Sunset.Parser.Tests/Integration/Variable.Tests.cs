@@ -1,5 +1,4 @@
-﻿using Sunset.Markdown;
-using Sunset.Markdown.Extensions;
+﻿using Sunset.Markdown.Extensions;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Parsing.Declarations;
@@ -8,10 +7,10 @@ using Sunset.Parser.Visitors.Debugging;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
 
-namespace Sunset.Parser.Test;
+namespace Sunset.Parser.Test.Integration;
 
 [TestFixture]
-public class EnvironmentTests
+public class VariableTests
 {
     [Test]
     public void Analyse_SingleVariableDimensionless_CorrectResult()
@@ -112,7 +111,8 @@ public class EnvironmentTests
         AssertVariableDeclaration(environment.ChildScopes["$file"], "z", -47, DefinedUnits.Dimensionless, ["x", "y"]);
     }
 
-    private void AssertVariableDeclaration(IScope scope, string variableName, double? expectedValue, Unit expectedUnit,
+    private static void AssertVariableDeclaration(IScope scope, string variableName, double? expectedValue,
+        Unit expectedUnit,
         string[]? referenceNames = null)
     {
         if (scope.ChildDeclarations[variableName] is VariableDeclaration variableDeclaration)

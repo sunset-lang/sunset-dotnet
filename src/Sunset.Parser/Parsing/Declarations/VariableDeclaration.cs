@@ -12,7 +12,7 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// Declares a new variable assigned with a calculation expression.
 /// </summary>
 [DebuggerDisplay("{FullPath}")]
-public class VariableDeclaration : IDeclaration, IExpression
+public class VariableDeclaration : IDeclaration, IExpression, INamed
 {
     public VariableUnitAssignment? UnitAssignment { get; }
 

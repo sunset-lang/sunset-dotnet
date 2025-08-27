@@ -332,9 +332,10 @@ public partial class Parser
     public Argument? GetArgument()
     {
         if (Consume(TokenType.Identifier, false, true) is not StringToken name) return null;
-        Consume(TokenType.Assignment);
+        var assignmentToken = Consume(TokenType.Assignment);
+        if (assignmentToken == null) return null;
         var expression = GetExpression();
-        return new Argument(name, expression);
+        return new Argument(name, assignmentToken, expression);
     }
 
     #region Parser controls

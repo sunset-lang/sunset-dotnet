@@ -99,6 +99,7 @@ public class Environment : IScope
         }
 
         // Type checking
+        // TODO: Generalise this into checking all types and not just units
         var typeChecker = new UnitTypeChecker();
         foreach (var scope in ChildScopes.Values)
         {

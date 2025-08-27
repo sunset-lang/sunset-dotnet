@@ -43,6 +43,8 @@ public class UnitTypeChecker : IVisitor<Unit?>
             NameExpression nameExpression => Visit(nameExpression),
             IfExpression ifExpression => Visit(ifExpression),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression),
+            CallExpression callExpression => Visit(callExpression),
+            Argument argument => Visit(argument),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration),
             NumberConstant => DefinedUnits.Dimensionless,
             StringConstant stringConstant => Visit(stringConstant),
@@ -130,6 +132,42 @@ public class UnitTypeChecker : IVisitor<Unit?>
         dest.SetAssignedUnit(unit);
         dest.SetEvaluatedUnit(unit);
         return unit;
+    }
+
+    private Unit? Visit(CallExpression dest)
+    {
+        foreach (var argument in dest.Arguments)
+        {
+            Visit(argument);
+        }
+
+        // There is no appropriate return type for an expression call.
+        // TODO: Implement element type checking
+        return null;
+    }
+
+    private Unit? Visit(Argument dest)
+    {
+        var propertyDeclaration = dest.GetResolvedDeclaration();
+        if (propertyDeclaration == null) return null;
+
+        var propertyType = Visit(propertyDeclaration);
+        var evaluatedType = Visit(dest.Expression);
+
+        // Check that the units of the property being assigned to by the argument and the evaluated expression units are compatible.
+        if (propertyType != null && evaluatedType != null)
+        {
+            if (!Unit.EqualDimensions(propertyType, evaluatedType))
+            {
+                dest.Expression.AddError(new ArgumentUnitMismatchError(dest));
+                return null;
+            }
+        }
+
+        dest.SetAssignedUnit(propertyType);
+        dest.SetEvaluatedUnit(evaluatedType);
+
+        return propertyType;
     }
 
     private static Unit? Visit(StringConstant dest)

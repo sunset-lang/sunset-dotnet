@@ -90,7 +90,7 @@ public class MarkdownVariablePrinter : VariablePrinterBase
         }
         else
         {
-            throw new NotImplementedException();
+            return "Error!";
         }
     }
 }

@@ -51,7 +51,7 @@ public class Evaluator : IVisitor<IResult?>
             NameExpression nameExpression => Visit(nameExpression, currentScope),
             IfExpression ifExpression => Visit(ifExpression, currentScope),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, currentScope),
-            VariableDeclaration variableAssignmentExpression => Visit(variableAssignmentExpression, currentScope),
+            VariableDeclaration variableDeclaration => Visit(variableDeclaration, currentScope),
             CallExpression callExpression => Visit(callExpression, currentScope),
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
@@ -185,7 +185,10 @@ public class Evaluator : IVisitor<IResult?>
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);
 
-        dest.SetResult(currentScope, value);
+        if (currentScope != null)
+        {
+            dest.SetResult(currentScope, value);
+        }
 
         if (value is QuantityResult quantityResult && currentScope is not ElementResult)
         {

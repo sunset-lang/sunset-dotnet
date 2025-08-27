@@ -66,6 +66,7 @@ public enum TokenType
     // <>
     OpenAngleBracket, // <
     CloseAngleBracket, // >
+    ForwardSlash, // \
 
     // Symbols
     Comma, // ,
@@ -79,5 +80,5 @@ public enum TokenType
     // Elements
     Define,
     Input,
-    Output
+    Output,
 }

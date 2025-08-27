@@ -2,6 +2,7 @@
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities;
 using Sunset.Quantities.MathUtilities;
@@ -43,12 +44,22 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         // TODO: Don't do any evaluation here - just print the result.
 
         // If the expression is a constant, report it now
-        if (dest.Value is NumberConstant numberConstant)
-            return ReportQuantity(DefaultQuantityEvaluator.EvaluateExpression(dest));
+        var evaluationResult = Evaluator.EvaluateExpression(dest);
+
+        if (evaluationResult is QuantityResult quantityResult)
+        {
+            if (dest.Value is NumberConstant numberConstant)
+                return ReportQuantity(quantityResult.Result);
+        }
+        else
+        {
+            return "Error!";
+        }
 
         // Otherwise, show the conversion factor to the target unit
-        var sourceUnit = DefaultQuantityEvaluator.EvaluateExpression(dest).Unit;
+        var sourceUnit = quantityResult.Result.Unit;
         if (dest.Unit == null) return Visit(dest.Value);
+
         return Visit(dest) + " \\times " +
                NumberUtilities.ToNumberString(sourceUnit.GetConversionFactor(dest.Unit));
     }
@@ -66,13 +77,19 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
     protected override string Visit(VariableDeclaration dest)
     {
         if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
-            return dest.Variable switch
+        {
+            var evaluationResult = Evaluator.EvaluateExpression(dest);
+            if (evaluationResult is QuantityResult quantityResult)
             {
-                Variable variableToPrint => variableToPrint.DefaultValue == null
-                    ? ReportQuantity(new DefaultQuantityEvaluator().Visit(variableToPrint.Expression))
-                    : ReportQuantity(variableToPrint.DefaultValue),
-                _ => "Error!"
-            };
+                return dest.Variable switch
+                {
+                    Variable variableToPrint => variableToPrint.DefaultValue == null
+                        ? ReportQuantity(quantityResult.Result)
+                        : ReportQuantity(variableToPrint.DefaultValue),
+                    _ => "Error!"
+                };
+            }
+        }
 
         return Visit(dest.Expression);
         // TODO: Store result in pass data in addition to returning it

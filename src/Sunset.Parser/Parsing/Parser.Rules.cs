@@ -1,7 +1,10 @@
-﻿using Sunset.Parser.Expressions;
+﻿using System.Collections.Concurrent;
+using System.Reflection.Metadata.Ecma335;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Parsing;
 
@@ -122,8 +125,26 @@ public partial class Parser
 
     private static IExpression Call(Parser parser, IExpression left)
     {
-        // TODO: Work out function calls and argument lists
-        throw new NotImplementedException();
+        // Consume opening parenthesis
+        parser.Consume(TokenType.OpenParenthesis, false, true);
+        // Start consuming arguments as variable declarations
+        var arguments = new List<Argument>();
+        while (parser._current.Type != TokenType.EndOfFile)
+        {
+            var argument = parser.GetArgument();
+            if (argument == null) break;
+            arguments.Add(argument);
+            if (parser._current.Type == TokenType.CloseParenthesis)
+            {
+                break;
+            }
+
+            // Consume a comma to separate arguments
+            parser.Consume(TokenType.Comma, false, true);
+        }
+
+        parser.Consume(TokenType.CloseParenthesis, false, true);
+        return new CallExpression(left, arguments);
     }
 
     private static IExpression String(Parser parser)

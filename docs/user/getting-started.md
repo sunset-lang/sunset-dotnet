@@ -13,7 +13,8 @@ x = 35 {mm}
 y = 50 {N} // This is also a comment
 ```
 
-The preferred style is to have all comments on new lines with a space between the `//` character and the beginning of the comment.
+The preferred style is to have all comments on new lines with a space between the `//` character and the beginning of
+the comment.
 
 ## Units
 
@@ -290,11 +291,11 @@ This will result in the following report:
 > $$
 >
 >> \begin{alignedat}{2}
->> b &= 150 \text{ mm} \\
->> d &= 10 \text{ mm} \\
->> Z_p &= 3,750 \text{ mm}^2 &\quad\text{(Example reference)}
->> \end{alignedat}
->> $$
+> > b &= 150 \text{ mm} \\
+> > d &= 10 \text{ mm} \\
+> > Z_p &= 3,750 \text{ mm}^2 &\quad\text{(Example reference)}
+> > \end{alignedat}
+> > $$
 >
 > Where:
 >
@@ -339,27 +340,28 @@ Elements can also be used as variables in other elements.
 If we wanted to calculate the elastic capacity of a section, we might define some elements as below:
 
 ```
-Section:
+define Section:
     inputs:
         Width <w> = 10 {mm}
         Depth <d> = 100 {mm}
-    
-    Area <A> = w * d
-    @I_xx = w * d^3 / 12
+    outputs:
+        Area <A> = w * d
+        <I_xx> = w * d^3 / 12
 
-IsotropicMaterial:
+define IsotropicMaterial:
     inputs:
         YieldStrength <f_y> = 300 {MPa}
         Density <\rho> = 7800 {kg / m^3}
         
-Beam:
+define Beam:
     inputs:
         Section = Section()
-        Material = IsotropicMaterial(YieldStrength: 250 {MPa}) 
-    
-    AxialCapacity <N> = Section.Area * Material.YieldStrength
-    BendingCapacity <M> = Section.I_xx * Material.YieldStrength
-    Weight <w> = Section.Area * Material.Density
+        Material = IsotropicMaterial:
+            YieldStrength: 250 {MPa}
+    outputs:
+        AxialCapacity <N> = Section.Area * Material.YieldStrength
+        BendingCapacity <M> = Section.I_xx * Material.YieldStrength
+        Weight <w> = Section.Area * Material.Density
 ```
 
 Note that for elements used as variables, they do not need to define a symbol as there is no straightforward way of

@@ -32,6 +32,8 @@ public class ReferenceChecker
             GroupingExpression groupingExpression => Visit(groupingExpression, visited),
             NameExpression nameExpression => Visit(nameExpression, visited),
             IfExpression ifExpression => Visit(ifExpression, visited),
+            CallExpression callExpression => Visit(callExpression, visited),
+            Argument argument => Visit(argument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             UnitConstant unitConstant => Visit(unitConstant, visited),
             IScope scope => Visit(scope, visited),
@@ -93,6 +95,31 @@ public class ReferenceChecker
     private HashSet<IDeclaration> Visit(IfExpression dest, HashSet<IDeclaration> visited)
     {
         throw new NotImplementedException();
+    }
+
+    private HashSet<IDeclaration> Visit(CallExpression dest, HashSet<IDeclaration> visited)
+    {
+        // Get the resolved declaration from the call target
+        var targetDeclaration = dest.Target.GetResolvedDeclaration();
+        // Get the references from the call target and the arguments
+        var callReferences = Visit(dest.Target,
+            targetDeclaration == null ? [..visited] : [..visited, targetDeclaration]);
+        var argumentReferences = dest.Arguments
+            .Select(argument => Visit(argument, visited))
+            .Aggregate(new HashSet<IDeclaration>(), (acc, next) => acc.Union(next ?? []).ToHashSet());
+        var references = (callReferences ?? []).Union(argumentReferences).ToHashSet();
+        // Cache the references
+        dest.SetReferences(references);
+        return references;
+    }
+
+    private HashSet<IDeclaration>? Visit(Argument dest, HashSet<IDeclaration> visited)
+    {
+        var argumentDeclaration = dest.GetResolvedDeclaration();
+        var references = Visit(dest.Expression,
+            argumentDeclaration == null ? [..visited] : [..visited, argumentDeclaration]);
+        dest.SetReferences(references);
+        return references;
     }
 
     private HashSet<IDeclaration> Visit(VariableDeclaration dest, HashSet<IDeclaration> visited)

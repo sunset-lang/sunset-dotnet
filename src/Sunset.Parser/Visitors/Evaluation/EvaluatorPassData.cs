@@ -6,8 +6,6 @@ namespace Sunset.Parser.Visitors.Evaluation;
 
 public class EvaluatorPassData : IPassData
 {
-    public IResult? DefaultResult { get; set; }
-
     /// <summary>
     /// A dictionary containing the results of each function when evaluated in each scope.
     /// </summary>

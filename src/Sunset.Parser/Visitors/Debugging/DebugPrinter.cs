@@ -7,7 +7,9 @@ using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors.Evaluation;
 using Environment = Sunset.Parser.Scopes.Environment;
 
 namespace Sunset.Parser.Visitors.Debugging;
@@ -37,6 +39,7 @@ public class DebugPrinter : IVisitor<string>
             NameExpression name => Visit(name),
             IfExpression ifExpression => Visit(ifExpression),
             UnitAssignmentExpression unitAssignment => Visit(unitAssignment),
+            CallExpression callExpression => Visit(callExpression),
             NumberConstant number => Visit(number),
             StringConstant str => Visit(str),
             UnitConstant unit => Visit(unit),
@@ -78,6 +81,14 @@ public class DebugPrinter : IVisitor<string>
         return "(assign " + dest.Value.Accept(this) + " " + dest.UnitExpression.Accept(this) + ")";
     }
 
+    private string Visit(CallExpression dest)
+    {
+        var args = string.Join(", ", dest.Arguments.Select(argument =>
+            argument.ArgumentName.Name.ToString() + " = " + Visit(argument.Expression)).ToArray());
+        var element = dest.GetResolvedDeclaration() as ElementDeclaration;
+        return "(new " + (element?.FullPath ?? "ERROR") + " args (" + args + "))";
+    }
+
     private string Visit(NumberConstant dest)
     {
         return dest.Token.ToString();
@@ -98,13 +109,32 @@ public class DebugPrinter : IVisitor<string>
         var references = (dest.GetReferences() ?? []).Select(x => x.FullPath).ToArray();
         var referenceNames = string.Join(", ", references);
 
+        var results = string.Join("\r\n",
+            dest.GetResults().Select(pair => $"""
+                                                        {pair.Key.FullPath}: {Visit(pair.Value)}
+                                              """));
+
         return $"""
                     {dest.FullPath}:
                         Unit: {dest.GetAssignedUnit()}
                         Symbol: {dest.Variable.Symbol}
                         Expression: {Visit(dest.Expression)}
                         References: {referenceNames}
+                        Results:
+                {results}
                 """;
+    }
+
+    private string Visit(IResult? dest)
+    {
+        return dest switch
+        {
+            QuantityResult quantityResult => quantityResult.Result.ToString() ?? "ERROR!",
+            StringResult stringResult => stringResult.Result,
+            UnitResult unitResult => unitResult.Result.ToString(),
+            ElementResult => "Element instance",
+            _ => "ERROR!"
+        };
     }
 
     private string Visit(FileScope dest)

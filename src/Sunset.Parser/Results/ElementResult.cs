@@ -8,7 +8,7 @@ namespace Sunset.Parser.Results;
 /// <summary>
 /// An instance of an element, implemented as the result of an expression.
 /// </summary>
-public class ElementResult(ElementDeclaration declaration, VariableDeclaration parent) : IResult, IScope
+public class ElementResult(ElementDeclaration declaration, IScope parentScope) : IResult, IScope
 {
     /// <summary>
     /// The child values of this instance.
@@ -20,18 +20,15 @@ public class ElementResult(ElementDeclaration declaration, VariableDeclaration p
     /// </summary>
     public ElementDeclaration Declaration { get; } = declaration;
 
-    /// <summary>
-    /// The variable declaration that this instance is bound to.
-    /// </summary>
-    public VariableDeclaration Parent { get; } = parent;
-
     public string Name { get; }
 
     public Dictionary<string, IPassData> PassData { get; } = [];
     public List<IError> Errors { get; } = [];
-    public IScope? ParentScope { get; init; }
+    public IScope? ParentScope { get; init; } = parentScope;
 
-    public string FullPath { get; } = parent.FullPath + ".$instance";
+    // TODO: Reference the variable that this instance is bound to
+    // Note that this path is not required as the instance is held as a direct reference in the results of the VariableDeclaration
+    public string FullPath { get; } = parentScope.FullPath + ".$instance";
 
     // Pass through the declarations of the child elements
     public Dictionary<string, IDeclaration> ChildDeclarations => Declaration.ChildDeclarations;

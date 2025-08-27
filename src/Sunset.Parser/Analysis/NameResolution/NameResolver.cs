@@ -69,25 +69,28 @@ public class NameResolver : INameResolver
             // TODO: Consider other possible uses of the access operator
             if (dest.Left is NameExpression leftNameExpression)
             {
-                var leftScope = leftNameExpression.GetResolvedDeclaration()?.ParentScope;
-                if (leftScope == null)
+                // Pass through from the name to the variable declaration to the element declaration, if a call expression is used to create a new element instance.
+                if (leftNameExpression.GetResolvedDeclaration() is VariableDeclaration variableDeclaration)
                 {
-                    throw new Exception("Parent scope not found for the left name expression.");
+                    if (variableDeclaration.GetResolvedDeclaration() is ElementDeclaration elementDeclaration)
+                    {
+                        // Use the left scope as the parent scope for the right name expression.
+                        if (dest.Right is NameExpression rightNameExpression)
+                        {
+                            Visit(rightNameExpression, elementDeclaration);
+                            return;
+                        }
+                    }
                 }
 
-                // Use the left scope as the parent scope for the right name expression.
-                if (dest.Right is NameExpression rightNameExpression)
-                {
-                    Visit(rightNameExpression, leftScope);
-                }
-            }
-            else
-            {
-                // TODO: Make this an error rather than an exception
-                throw new Exception("Expected a name expression at the left hand side of the dot operator");
+                // TODO: Handle other cases like libraries, modules and files.
+
+                // TODO: Handle this error properly
+                throw new Exception("Left name expression was not a scope.");
             }
 
-            return;
+            // TODO: Make this an error rather than an exception
+            throw new Exception("Expected a name expression at the left hand side of the dot operator");
         }
 
         // Otherwise, resolve each operand separately with the same parent scope.
@@ -164,6 +167,11 @@ public class NameResolver : INameResolver
         Visit(dest.Target, parentScope);
         // If the target is an element, the argument names should be resolved within the scope of the element
         var parentElement = dest.Target.GetResolvedDeclaration() as ElementDeclaration;
+
+        // Only resolve the arguments if the parent element is a valid resolved element
+        if (parentElement == null) return;
+
+        dest.SetResolvedDeclaration(parentElement);
         foreach (var argument in dest.Arguments)
         {
             Visit(argument, parentScope, parentElement);
@@ -186,6 +194,14 @@ public class NameResolver : INameResolver
 
         // Resolve all names within the expression.
         Visit(dest.Expression, dest.ParentScope);
+
+        // If the variable is declaring a new instance through a CallExpression, set the resolved declaration to the element declaration
+        // This acts something like a proxy for the element type
+        if (dest.Expression is not CallExpression callExpression) return;
+        if (callExpression.Target.GetResolvedDeclaration() is ElementDeclaration element)
+        {
+            dest.SetResolvedDeclaration(element);
+        }
     }
 
     /// <summary>

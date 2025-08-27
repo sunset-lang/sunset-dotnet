@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Analysis.NameResolution;
+﻿using System.Runtime.CompilerServices;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -51,9 +52,10 @@ public class Evaluator : IVisitor<IResult?>
             IfExpression ifExpression => Visit(ifExpression, currentScope),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, currentScope),
             VariableDeclaration variableAssignmentExpression => Visit(variableAssignmentExpression, currentScope),
-            NumberConstant numberConstant => Visit(numberConstant, currentScope),
-            StringConstant stringConstant => Visit(stringConstant, currentScope),
-            UnitConstant unitConstant => Visit(unitConstant, currentScope),
+            CallExpression callExpression => Visit(callExpression, currentScope),
+            NumberConstant numberConstant => Visit(numberConstant),
+            StringConstant stringConstant => Visit(stringConstant),
+            UnitConstant unitConstant => Visit(unitConstant),
             ElementDeclaration element => Visit(element, currentScope),
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
@@ -63,12 +65,25 @@ public class Evaluator : IVisitor<IResult?>
     private IResult? Visit(BinaryExpression dest, IScope? currentScope)
     {
         var leftResult = Visit(dest.Left, currentScope);
+
+        // TODO: Access can be performed in an earlier pass. Note that this would require modifying the AST to replace the access operator and operands with a reference.
+        // Catch access operator
+        if (dest.Operator == TokenType.Dot && leftResult is ElementResult elementResult)
+        {
+            if (dest.Right is NameExpression nameExpression)
+            {
+                // Evaluate the name expression within the element scope
+                return Visit(nameExpression, elementResult);
+            }
+        }
+
         var rightResult = Visit(dest.Right, currentScope);
         if (leftResult == null || rightResult == null)
         {
             return null;
         }
 
+        // Arithmetic operations
         if (leftResult is QuantityResult leftQuantityResult
             && rightResult is QuantityResult rightQuantityResult)
         {
@@ -120,6 +135,14 @@ public class Evaluator : IVisitor<IResult?>
 
     private IResult? Visit(NameExpression dest, IScope? currentScope)
     {
+        // Check if there is an existing result available
+        if (currentScope != null)
+        {
+            var result = dest.GetResult(currentScope);
+            if (result != null) return result;
+        }
+
+        // Otherwise, evaluate the expression in the current scope
         var declaration = dest.GetResolvedDeclaration();
         if (declaration != null) return Visit(declaration, currentScope);
 
@@ -149,41 +172,57 @@ public class Evaluator : IVisitor<IResult?>
         dest.AddError(new UnitAssignmentError(dest));
         return null;
     }
-    /*
-     * Example:
-     * define element:
-     *  input:
-     *      x = 5
-     *  output:
-     *      y = x * 2
-     * end
-     *
-     * z = element(x: 5)
-     * a = z.y
-     */
 
     private IResult? Visit(VariableDeclaration dest, IScope? currentScope)
     {
+        // Get the cached result if there already is one
+        if (currentScope != null)
+        {
+            var result = dest.GetResult(currentScope);
+            if (result != null) return result;
+        }
+
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);
 
-        // Store the result in the pass data relevant to the scope provided
-        // TODO: Is this correct, or does an instance need to be declared as a new scope?
-        if (currentScope == null)
-        {
-            dest.SetDefaultResult(value);
-        }
-        else
-        {
-            dest.SetResult(currentScope, value);
-        }
+        dest.SetResult(currentScope, value);
 
-        if (value is QuantityResult quantityResult)
+        if (value is QuantityResult quantityResult && currentScope is not ElementResult)
         {
             dest.Variable.DefaultValue = quantityResult.Result;
         }
 
         return value;
+    }
+
+    private IResult? Visit(CallExpression dest, IScope? currentScope)
+    {
+        var elementDeclaration = dest.GetResolvedDeclaration() as ElementDeclaration;
+        if (elementDeclaration == null)
+        {
+            // TODO: Handle error better
+            throw new Exception("Could not resolve element declaration.");
+            return null;
+        }
+
+        // Create a new element instance
+        var elementResult = new ElementResult(elementDeclaration, currentScope);
+        foreach (var argument in dest.Arguments)
+        {
+            // Evaluate the right-hand side expression of the argument
+            var argumentResult = Visit(argument.Expression, currentScope);
+            if (argumentResult == null)
+            {
+                // TODO: Attach error to argument result
+                throw new Exception("Could not resolve argument.");
+            }
+
+            var argumentDeclaration = argument.ArgumentName.GetResolvedDeclaration();
+            // Set the result of the declaration with the element instance as the scope
+            argumentDeclaration?.SetResult(elementResult, argumentResult);
+        }
+
+        return elementResult;
     }
 
     private IResult? Visit(IScope dest, IScope? currentScope)
@@ -196,17 +235,17 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult Visit(NumberConstant dest, IScope? currentScope)
+    private IResult Visit(NumberConstant dest)
     {
         return new QuantityResult(dest.Value, DefinedUnits.Dimensionless);
     }
 
-    private IResult? Visit(StringConstant dest, IScope? currentScope)
+    private IResult? Visit(StringConstant dest)
     {
         return new StringResult(dest.Token.ToString());
     }
 
-    private IResult? Visit(UnitConstant dest, IScope? currentScope)
+    private IResult? Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
     }

@@ -2,8 +2,11 @@
 using Serilog;
 using Sunset.Markdown.Extensions;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Sunset.Parser.Visitors.Evaluation;
+using Sunset.Quantities.Quantities;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
 
@@ -39,10 +42,6 @@ public class ElementTests
     [Test]
     public void Parse_SingleElementWithInstanceAndAccess_CorrectResult()
     {
-        using var log = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-        Log.Logger = log;
-        Log.Information("Starting test");
-        // TODO: Appears to be an error in tokenising the input
         var sourceFile = SourceFile.FromString("""
                                                define Square:
                                                    inputs:
@@ -64,7 +63,10 @@ public class ElementTests
 
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
-        // TODO: Add assertions
-        Assert.Fail();
+
+        var fileScope = environment.ChildScopes["$file"] as FileScope;
+        var resultDeclaration = environment.ChildScopes["$file"].ChildDeclarations["Result"] as VariableDeclaration;
+        var result = resultDeclaration?.GetResult(fileScope!) as QuantityResult;
+        Assert.That(result?.Result, Is.EqualTo(new Quantity(0.07, DefinedUnits.Metre * DefinedUnits.Metre)));
     }
 }

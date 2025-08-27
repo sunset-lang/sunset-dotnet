@@ -110,7 +110,7 @@ public class Environment : IScope
         var quantityEvaluator = new Evaluator();
         foreach (var scope in ChildScopes.Values)
         {
-            quantityEvaluator.Visit(scope);
+            quantityEvaluator.Visit(scope, scope);
         }
     }
 

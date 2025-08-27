@@ -46,14 +46,17 @@ public class BaseCoherentUnitTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(0,
-                Is.EqualTo((double)unitProduct.UnitDimensions[(int)DimensionName.Mass].Power).Within(0.0001));
-            Assert.That(2,
-                Is.EqualTo((double)unitProduct.UnitDimensions[(int)DimensionName.Length].Power).Within(0.0001));
+            Assert.That((double)unitProduct.UnitDimensions[(int)DimensionName.Mass].Power,
+                Is.EqualTo(0).Within(0.0001));
+            Assert.That((double)unitProduct.UnitDimensions[(int)DimensionName.Length].Power,
+                Is.EqualTo(2).Within(0.0001));
+            Assert.That(unitProduct.UnitDimensions[(int)DimensionName.Length].Factor,
+                Is.EqualTo(0.001).Within(0.00001));
+            Assert.That((double)unitProduct.UnitDimensions[(int)DimensionName.Time].Power,
+                Is.EqualTo(0).Within(0.0001));
+            Assert.That((double)unitProduct.UnitDimensions[(int)DimensionName.Angle].Power,
+                Is.EqualTo(0).Within(0.0001));
         });
-        Assert.That(0.001, Is.EqualTo(unitProduct.UnitDimensions[(int)DimensionName.Length].Factor).Within(0.00001));
-        Assert.That(0, Is.EqualTo((double)unitProduct.UnitDimensions[(int)DimensionName.Time].Power).Within(0.0001));
-        Assert.That(0, Is.EqualTo((double)unitProduct.UnitDimensions[(int)DimensionName.Angle].Power).Within(0.0001));
     }
 
     [Test]

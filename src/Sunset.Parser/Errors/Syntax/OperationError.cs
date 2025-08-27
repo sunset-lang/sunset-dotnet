@@ -3,9 +3,19 @@ using Sunset.Parser.Lexing.Tokens;
 
 namespace Sunset.Parser.Errors.Syntax;
 
-public class OperationError(IExpression token) : ISemanticError
+public class OperationError : ISemanticError
 {
+    public OperationError(IExpression token)
+    {
+        Tokens = token switch
+        {
+            BinaryExpression binaryExpression => [binaryExpression.OperatorToken],
+            UnaryExpression unaryExpression => [unaryExpression.OperatorToken],
+            _ => Tokens
+        };
+    }
+
     public string Message => "Cannot perform operation on types.";
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [];
+    public IToken[]? Tokens { get; }
 }

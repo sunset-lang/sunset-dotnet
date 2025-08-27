@@ -198,15 +198,15 @@ public class Evaluator : IVisitor<IResult?>
         return value;
     }
 
-    private IResult? Visit(CallExpression dest, IScope? currentScope)
+    private ElementResult Visit(CallExpression dest, IScope? currentScope)
     {
-        var elementDeclaration = dest.GetResolvedDeclaration() as ElementDeclaration;
-        if (elementDeclaration == null)
+        if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
             // TODO: Handle error better
             throw new Exception("Could not resolve element declaration.");
-            return null;
         }
+
+        ArgumentNullException.ThrowIfNull(currentScope);
 
         // Create a new element instance
         var elementResult = new ElementResult(elementDeclaration, currentScope);
@@ -238,17 +238,17 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult Visit(NumberConstant dest)
+    private static QuantityResult Visit(NumberConstant dest)
     {
         return new QuantityResult(dest.Value, DefinedUnits.Dimensionless);
     }
 
-    private IResult? Visit(StringConstant dest)
+    private static StringResult Visit(StringConstant dest)
     {
         return new StringResult(dest.Token.ToString());
     }
 
-    private IResult? Visit(UnitConstant dest)
+    private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
     }

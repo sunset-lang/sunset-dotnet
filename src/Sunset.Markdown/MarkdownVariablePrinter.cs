@@ -37,17 +37,10 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     /// <param name="settings">PrinterSettings that are used to determine the printed output.</param>
     public MarkdownVariablePrinter(PrinterSettings settings) : base(settings, MarkdownEquationComponents.Instance)
     {
-        Settings = settings;
         var valuePrinter = new MarkdownValueExpressionPrinter(Settings);
         ValuePrinter = valuePrinter;
         SymbolPrinter = new MarkdownSymbolExpressionPrinter(Settings, valuePrinter);
     }
-
-    /// <summary>
-    /// Settings that are used to print the report.
-    /// </summary>
-    public PrinterSettings Settings { get; }
-
 
     /// <summary>
     /// Prints out the value of a variable using the default print settings.

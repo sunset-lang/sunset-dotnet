@@ -88,7 +88,7 @@ public class Environment : IScope
                 continue;
             }
 
-            nameResolver.Visit(scope, scope.ParentScope);
+            nameResolver.Visit(scope);
         }
 
         // Cycle checking

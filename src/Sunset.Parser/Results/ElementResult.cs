@@ -20,7 +20,8 @@ public class ElementResult(ElementDeclaration declaration, IScope parentScope) :
     /// </summary>
     public ElementDeclaration Declaration { get; } = declaration;
 
-    public string Name { get; }
+    // Element results do not require a name as they are not bound to an instance.
+    public string Name => string.Empty;
 
     public Dictionary<string, IPassData> PassData { get; } = [];
     public List<IError> Errors { get; } = [];

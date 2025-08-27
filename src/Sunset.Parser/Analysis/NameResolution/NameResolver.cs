@@ -41,7 +41,7 @@ public class NameResolver : INameResolver
                 Visit(variableAssignmentExpression, parentScope);
                 break;
             case IScope scope:
-                Visit(scope, parentScope);
+                Visit(scope);
                 break;
             case UnitConstant unitConstant:
                 Visit(unitConstant, parentScope);
@@ -216,7 +216,7 @@ public class NameResolver : INameResolver
         }
     }
 
-    public void Visit(IScope dest, IScope parentScope)
+    public void Visit(IScope dest)
     {
         foreach (var children in dest.ChildDeclarations.Values)
         {

@@ -19,7 +19,7 @@ public class LexerMultiTokenTests
                        (Number, 2)
                        (Identifier, hello)
                        (EndOfFile)
-                       
+
                        """;
 
         var stringRepresentation = lex.ToDebugString();

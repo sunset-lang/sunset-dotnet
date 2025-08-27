@@ -1,6 +1,5 @@
 ﻿using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
-using Sunset.Quantities.Quantities;
 
 namespace Sunset.Parser.Visitors.Evaluation;
 

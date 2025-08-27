@@ -7,7 +7,7 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Expressions;
 
 /// <summary>
-/// An expression that can be evaluated.
+///     An expression that can be evaluated.
 /// </summary>
 public interface IExpression : IVisitable, IErrorContainer
 {
@@ -47,9 +47,11 @@ public interface IExpression : IVisitable, IErrorContainer
         {
             // Simplify the expression (a / b) * (c / d) = (a * c) / (b * d)
             if (right is BinaryExpression { Operator: TokenType.Divide } rightDivisionExpression)
+            {
                 return new BinaryExpression(TokenType.Divide,
                     leftDivisionExpression.Left * rightDivisionExpression.Left,
                     leftDivisionExpression.Right * rightDivisionExpression.Right);
+            }
 
             // Simplify the resulting expression where (a / b) * c = (a * c) / b
             return new BinaryExpression(TokenType.Divide,
@@ -59,8 +61,10 @@ public interface IExpression : IVisitable, IErrorContainer
 
         // Simplify the expression a * (b / c) = (a * b) / c
         if (right is BinaryExpression { Operator: TokenType.Divide } rightOnlyDivisionExpression)
+        {
             return new BinaryExpression(TokenType.Divide, left * rightOnlyDivisionExpression.Left,
                 rightOnlyDivisionExpression.Right);
+        }
 
         return new BinaryExpression(TokenType.Multiply, left, right);
     }
@@ -69,9 +73,11 @@ public interface IExpression : IVisitable, IErrorContainer
     {
         // Simplify the resulting expression where (a / b) * c = (a * c) / b
         if (left is BinaryExpression { Operator: TokenType.Divide } leftDivisionExpression)
+        {
             return new BinaryExpression(TokenType.Divide,
                 leftDivisionExpression.Left * new NumberConstant(right),
                 leftDivisionExpression.Right);
+        }
 
         return new BinaryExpression(TokenType.Multiply, left, new NumberConstant(right));
     }
@@ -80,9 +86,11 @@ public interface IExpression : IVisitable, IErrorContainer
     {
         // Simplify the resulting expression where (a / b) * c = (a * c) / b
         if (left is BinaryExpression { Operator: TokenType.Divide } leftDivisionExpression)
+        {
             return new BinaryExpression(TokenType.Divide,
                 leftDivisionExpression.Left * new NumberConstant(right),
                 leftDivisionExpression.Right);
+        }
 
         return new BinaryExpression(TokenType.Multiply, left, new NumberConstant(right));
     }
@@ -104,9 +112,11 @@ public interface IExpression : IVisitable, IErrorContainer
         {
             // Simplify the expression (a / b) / (c / d) = (a * d) / (b * c)
             if (right is BinaryExpression { Operator: TokenType.Divide } rightDivisionExpression)
+            {
                 return new BinaryExpression(TokenType.Divide,
                     leftDivisionExpression.Left * rightDivisionExpression.Right,
                     leftDivisionExpression.Right * rightDivisionExpression.Left);
+            }
 
             return new BinaryExpression(TokenType.Divide,
                 leftDivisionExpression.Left,
@@ -115,8 +125,10 @@ public interface IExpression : IVisitable, IErrorContainer
 
         // Simplify the expression a / (b / c) = (a * c) / b
         if (right is BinaryExpression { Operator: TokenType.Divide } rightOnlyDivisionExpression)
+        {
             return new BinaryExpression(TokenType.Divide, left * rightOnlyDivisionExpression.Right,
                 rightOnlyDivisionExpression.Left);
+        }
 
         return new BinaryExpression(TokenType.Divide, left, right);
     }
@@ -125,9 +137,11 @@ public interface IExpression : IVisitable, IErrorContainer
     {
         // Simplify the resulting expression where (a / b) / c = a / (b * c)
         if (left is BinaryExpression { Operator: TokenType.Divide } leftDivisionExpression)
+        {
             return new BinaryExpression(TokenType.Divide,
                 leftDivisionExpression.Left,
                 leftDivisionExpression.Right * new NumberConstant(right));
+        }
 
         return new BinaryExpression(TokenType.Divide, left, new NumberConstant(right));
     }
@@ -136,9 +150,11 @@ public interface IExpression : IVisitable, IErrorContainer
     {
         // Simplify the resulting expression where (a / b) / c = a / (b * c)
         if (left is BinaryExpression { Operator: TokenType.Divide } leftDivisionExpression)
+        {
             return new BinaryExpression(TokenType.Divide,
                 leftDivisionExpression.Left,
                 leftDivisionExpression.Right * new NumberConstant(right));
+        }
 
         return new BinaryExpression(TokenType.Divide, left, new NumberConstant(right));
     }

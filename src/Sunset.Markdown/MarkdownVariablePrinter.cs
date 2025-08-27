@@ -1,8 +1,4 @@
 using Sunset.Markdown.Extensions;
-using Sunset.Parser.Analysis.ReferenceChecking;
-using Sunset.Parser.Analysis.TypeChecking;
-using Sunset.Parser.Expressions;
-using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
 using Sunset.Parser.Visitors.Evaluation;
@@ -12,27 +8,24 @@ using Sunset.Reporting.Visitors;
 namespace Sunset.Markdown;
 
 /// <summary>
-/// Prints a variable, including its expression and resulting value.
+///     Prints a variable, including its expression and resulting value.
 /// </summary>
 public class MarkdownVariablePrinter : VariablePrinterBase
 {
     /// <summary>
-    /// Singleton that can be used to print a variable if particular print settings are not required.
+    ///     Singleton that can be used to print a variable if particular print settings are not required.
     /// </summary>
     private static readonly MarkdownVariablePrinter Singleton = new();
 
-    public override SymbolExpressionPrinter SymbolPrinter { get; }
-    public override ValueExpressionPrinter ValuePrinter { get; }
-
     /// <summary>
-    /// Initialises a new printer with default print settings.
+    ///     Initialises a new printer with default print settings.
     /// </summary>
     public MarkdownVariablePrinter() : this(PrinterSettings.Default)
     {
     }
 
     /// <summary>
-    /// Prints a variable, including its expression and resulting value.
+    ///     Prints a variable, including its expression and resulting value.
     /// </summary>
     /// <param name="settings">PrinterSettings that are used to determine the printed output.</param>
     public MarkdownVariablePrinter(PrinterSettings settings) : base(settings, MarkdownEquationComponents.Instance)
@@ -42,8 +35,11 @@ public class MarkdownVariablePrinter : VariablePrinterBase
         SymbolPrinter = new MarkdownSymbolExpressionPrinter(Settings, valuePrinter);
     }
 
+    public override SymbolExpressionPrinter SymbolPrinter { get; }
+    public override ValueExpressionPrinter ValuePrinter { get; }
+
     /// <summary>
-    /// Prints out the value of a variable using the default print settings.
+    ///     Prints out the value of a variable using the default print settings.
     /// </summary>
     /// <param name="variable">Variable to be printed.</param>
     /// <returns>String representation of the variable, formatted in Markdown.</returns>
@@ -53,7 +49,7 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     }
 
     /// <summary>
-    /// Prints out the value of a variable using the provided print settings.
+    ///     Prints out the value of a variable using the provided print settings.
     /// </summary>
     /// <param name="variable">Variable to be printed.</param>
     /// <param name="settings">PrinterSettings to use.</param>
@@ -64,7 +60,7 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     }
 
     /// <summary>
-    /// Generates a Markdown report for the value represented by the given variable.
+    ///     Generates a Markdown report for the value represented by the given variable.
     /// </summary>
     /// <param name="variable">The variable whose value is to be reported.</param>
     /// <returns>A string containing the Markdown representation of the variable's value.</returns>
@@ -81,9 +77,7 @@ public class MarkdownVariablePrinter : VariablePrinterBase
             // Show an error if a quantity cannot be calculated
             return quantityResult.Result.ToLatexString();
         }
-        else
-        {
-            return "Error!";
-        }
+
+        return "Error!";
     }
 }

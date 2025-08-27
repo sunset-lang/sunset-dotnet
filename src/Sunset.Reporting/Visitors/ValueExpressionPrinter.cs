@@ -4,14 +4,13 @@ using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
 using Sunset.Parser.Visitors.Evaluation;
-using Sunset.Quantities;
 using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Quantities;
 
 namespace Sunset.Reporting.Visitors;
 
 /// <summary>
-/// Prints the result of expressions with the numeric values included.
+///     Prints the result of expressions with the numeric values included.
 /// </summary>
 public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationComponents components)
     : ExpressionPrinterBase(settings, components)
@@ -27,7 +26,10 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         {
             case VariableDeclaration variableDeclaration:
                 if (variableDeclaration.Variable.DefaultValue != null)
+                {
                     return ReportQuantity(variableDeclaration.Variable.DefaultValue);
+                }
+
                 return Eq.Text("Error!");
             default:
                 throw new ArgumentOutOfRangeException();
@@ -49,7 +51,9 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         if (evaluationResult is QuantityResult quantityResult)
         {
             if (dest.Value is NumberConstant numberConstant)
+            {
                 return ReportQuantity(quantityResult.Result);
+            }
         }
         else
         {

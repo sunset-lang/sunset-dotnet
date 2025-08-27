@@ -3,12 +3,12 @@ using System.Collections.Immutable;
 namespace Sunset.Quantities.Units;
 
 /// <summary>
-/// Contains a collections of predefined units, including base units, derived units, and their multiples.
+///     Contains a collections of predefined units, including base units, derived units, and their multiples.
 /// </summary>
 public static class DefinedUnits
 {
     /// <summary>
-    /// Gets the named unit by its symbol (e.g. "m" for metre).
+    ///     Gets the named unit by its symbol (e.g. "m" for metre).
     /// </summary>
     /// <param name="unitSymbol">The string representation of the unit's symbol.</param>
     /// <returns>The NamedUnit corresponding to the symbol, or null if such a unit cannot be found.</returns>
@@ -21,7 +21,7 @@ public static class DefinedUnits
 
     // Base units
     /// <summary>
-    /// The dimensionless unit, which is used for quantities that do not have a physical dimension.
+    ///     The dimensionless unit, which is used for quantities that do not have a physical dimension.
     /// </summary>
     public static readonly Unit Dimensionless = new();
 
@@ -166,28 +166,31 @@ public static class DefinedUnits
     ];
 
     /// <summary>
-    ///     This list contains all the base units, including the coherent units and multiples of the base units (e.g. metre, millimetres, etc.).
+    ///     This list contains all the base units, including the coherent units and multiples of the base units (e.g. metre,
+    ///     millimetres, etc.).
     /// </summary>
     public static readonly List<NamedUnit> BaseUnits =
         UnitList.Where(unit => unit is { IsBaseUnit: true })
             .ToList();
 
     /// <summary>
-    ///     All the standard coherent base coherent units (i.e. the base units that are not multiples of other units), arranged by their primary dimension.
+    ///     All the standard coherent base coherent units (i.e. the base units that are not multiples of other units), arranged
+    ///     by their primary dimension.
     /// </summary>
     public static readonly Dictionary<DimensionName, BaseCoherentUnit> BaseCoherentUnits =
         UnitList.OfType<BaseCoherentUnit>()
             .ToDictionary(unit => unit.PrimaryDimension, unit => unit);
 
     /// <summary>
-    ///     This list contains all the named derived coherent units (i.e. pascals, newtowns, etc.) 
+    ///     This list contains all the named derived coherent units (i.e. pascals, newtowns, etc.)
     /// </summary>
     public static readonly List<NamedUnit> DerivedCoherentUnits =
         UnitList.Where(unit => unit is { IsDerivedUnit: true, IsCoherentUnit: true })
             .ToList();
 
     /// <summary>
-    ///     This list contains all the named coherent units, including the base units and derived units (e.g. Pascal and Kilogram).
+    ///     This list contains all the named coherent units, including the base units and derived units (e.g. Pascal and
+    ///     Kilogram).
     /// </summary>
     public static readonly List<NamedUnit> CoherentUnits =
         UnitList.Where(unit => unit is { IsCoherentUnit: true }).ToList();

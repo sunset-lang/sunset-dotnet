@@ -217,7 +217,9 @@ public class MarkdownReportPrinter : IReportPrinter
                     // Otherwise, assume that the equation block is still open
                     if (previousItem is not VariableReportItem)
                         // Use \begin{alignedat}{2} to align the equal signs and the references
+                    {
                         builder.AppendLine("$$\n\\begin{alignedat}{2}");
+                    }
 
                     builder.Append(_variablePrinter.ReportVariable(variableItem.Variable));
                     quantities.Add(variableItem.Variable);
@@ -230,7 +232,9 @@ public class MarkdownReportPrinter : IReportPrinter
                         builder.AppendLine("\n\\end{alignedat}\n$$");
                         // Print a glossary of all the printed quantities
                         if (Settings.ShowQuantityDescriptionsAfterCalculations)
+                        {
                             PrintVariableInformation(quantities, builder);
+                        }
 
                         quantities.Clear();
                     }

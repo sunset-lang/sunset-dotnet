@@ -1,5 +1,4 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
-using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -13,16 +12,12 @@ using Sunset.Quantities.Units;
 namespace Sunset.Parser.Analysis.TypeChecking;
 
 /// <summary>
-///     Checks that the units defined in the Sunset code are valid, and evaluates the resulting units from expressions along the way.
+///     Checks that the units defined in the Sunset code are valid, and evaluates the resulting units from expressions
+///     along the way.
 /// </summary>
 public class UnitTypeChecker : IVisitor<Unit?>
 {
     private static readonly UnitTypeChecker Singleton = new();
-
-    public static Unit? EvaluateExpressionUnits(IExpression expression)
-    {
-        return Singleton.Visit(expression);
-    }
 
     public Unit? Visit(IVisitable dest)
     {
@@ -54,6 +49,11 @@ public class UnitTypeChecker : IVisitor<Unit?>
         };
     }
 
+    public static Unit? EvaluateExpressionUnits(IExpression expression)
+    {
+        return Singleton.Visit(expression);
+    }
+
     private Unit? Visit(BinaryExpression dest)
     {
         var leftResult = Visit(dest.Left);
@@ -69,7 +69,9 @@ public class UnitTypeChecker : IVisitor<Unit?>
         // It was considered whether a non-number constant could be allowed (e.g. a dimensionless quantity), however this
         // would result in static type checking being impossible and as such has been strictly disallowed.
         if (dest is { Operator: TokenType.Power, Right: NumberConstant numberConstant })
+        {
             return leftResult.Pow(numberConstant.Value);
+        }
 
         switch (dest.Operator)
         {

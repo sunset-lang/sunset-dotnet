@@ -1,7 +1,7 @@
 ﻿namespace Sunset.Quantities.Units;
 
 /// <summary>
-/// The names of the fundamental dimensions used in the unit system. Used as an index in the set of dimensions.
+///     The names of the fundamental dimensions used in the unit system. Used as an index in the set of dimensions.
 /// </summary>
 public enum DimensionName
 {

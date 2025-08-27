@@ -2,12 +2,11 @@
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Visitors;
 
 namespace Sunset.Reporting.Visitors;
 
 /// <summary>
-/// Prints the symbolic representation of an expression.
+///     Prints the symbolic representation of an expression.
 /// </summary>
 public abstract class SymbolExpressionPrinter(
     PrinterSettings settings,
@@ -78,12 +77,14 @@ public abstract class SymbolExpressionPrinter(
     }
 
     /// <summary>
-    /// Sets the resolved symbol expression within a variable declaration. Overridden in implementing classes depending on the reporting type.
+    ///     Sets the resolved symbol expression within a variable declaration. Overridden in implementing classes depending on
+    ///     the reporting type.
     /// </summary>
     protected abstract void SetResolvedSymbolExpression(VariableDeclaration declaration, string symbolExpression);
 
     /// <summary>
-    /// Gets the resolved symbol expression within a variable declaration. Overridden in implementing classes depending on the reporting type.
+    ///     Gets the resolved symbol expression within a variable declaration. Overridden in implementing classes depending on
+    ///     the reporting type.
     /// </summary>
     /// <param name="declaration"></param>
     protected abstract string? GetResolvedSymbolExpression(VariableDeclaration declaration);

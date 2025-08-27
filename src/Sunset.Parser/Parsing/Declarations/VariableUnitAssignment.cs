@@ -1,13 +1,12 @@
 ﻿using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
-using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
-/// Assigns a unit to a variable directly.
+///     Assigns a unit to a variable directly.
 /// </summary>
 /// <param name="open">Open bracket token.</param>
 /// <param name="close">Close bracket token.</param>

@@ -6,17 +6,17 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Results;
 
 /// <summary>
-/// An instance of an element, implemented as the result of an expression.
+///     An instance of an element, implemented as the result of an expression.
 /// </summary>
 public class ElementResult(ElementDeclaration declaration, IScope parentScope) : IResult, IScope
 {
     /// <summary>
-    /// The child values of this instance.
+    ///     The child values of this instance.
     /// </summary>
     public Dictionary<IDeclaration, IResult> Values { get; } = [];
 
     /// <summary>
-    /// The ElementDeclaration that this is an instance of.
+    ///     The ElementDeclaration that this is an instance of.
     /// </summary>
     public ElementDeclaration Declaration { get; } = declaration;
 

@@ -1,10 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Reflection.Metadata.Ecma335;
-using Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
 using Sunset.Parser.Parsing.Constants;
-using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Parsing;
 
@@ -101,7 +98,10 @@ public partial class Parser
     private static BinaryExpression ImplicitMultiplication(Parser parser, IExpression left)
     {
         if (parser._current is not StringToken && parser._current.Type != TokenType.NamedUnit)
+        {
             throw new Exception("Expected a string token of type NamedUnit");
+        }
+
         var right = parser.GetExpression(GetInfixTokenPrecedence(TokenType.Multiply));
 
         var implicitMultiplicationToken = new Token(TokenType.Multiply,

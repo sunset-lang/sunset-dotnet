@@ -9,19 +9,13 @@ using Sunset.Quantities.Units;
 namespace Sunset.Parser.Parsing.Declarations;
 
 /// <summary>
-/// Declares a new variable assigned with a calculation expression.
+///     Declares a new variable assigned with a calculation expression.
 /// </summary>
 [DebuggerDisplay("{FullPath}")]
 public class VariableDeclaration : IDeclaration, IExpression, INamed
 {
-    public VariableUnitAssignment? UnitAssignment { get; }
-
     // TODO: Add symbolic expression at compile/parse time
     private readonly SymbolName? _symbolExpression;
-
-    public StringToken NameToken { get; }
-    public string Name { get; }
-    public string FullPath { get; }
 
     public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
     {
@@ -79,15 +73,22 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
             labelToken?.ToString() ?? "");
     }
 
+    public VariableUnitAssignment? UnitAssignment { get; }
+
+    public StringToken NameToken { get; }
+
     /// <summary>
-    /// The variable defined in this declaration. Contains all the relevant metadata.
+    ///     The variable defined in this declaration. Contains all the relevant metadata.
     /// </summary>
     public IVariable Variable { get; }
 
     /// <summary>
-    /// The expression that defines the value of the variable.
+    ///     The expression that defines the value of the variable.
     /// </summary>
     public IExpression Expression { get; }
+
+    public string Name { get; }
+    public string FullPath { get; }
 
     public IScope? ParentScope { get; init; }
 

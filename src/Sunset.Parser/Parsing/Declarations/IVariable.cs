@@ -12,18 +12,18 @@ public interface IVariable
     public string Name { get; }
 
     /// <summary>
-    /// The expression that defines the value of the variable.
+    ///     The expression that defines the value of the variable.
     /// </summary>
     public IExpression Expression { get; }
 
     /// <summary>
-    /// The declaration of the variable, which contains the name, unit assignment and other metadata.
+    ///     The declaration of the variable, which contains the name, unit assignment and other metadata.
     /// </summary>
     public VariableDeclaration Declaration { get; }
 
     /// <summary>
-    /// The default value of the variable, which is set directly for input variables or calculated from the expression
-    /// using default values for calculation variables.
+    ///     The default value of the variable, which is set directly for input variables or calculated from the expression
+    ///     using default values for calculation variables.
     /// </summary>
     public IQuantity? DefaultValue { get; internal set; }
 
@@ -49,7 +49,7 @@ public interface IVariable
     public string Reference { get; }
 
     /// <summary>
-    /// The label of the variable, which is used in generated user interfaces.
+    ///     The label of the variable, which is used in generated user interfaces.
     /// </summary>
     public string Label { get; }
 

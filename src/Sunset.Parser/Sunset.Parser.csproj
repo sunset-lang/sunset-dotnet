@@ -9,13 +9,13 @@
 
     <ItemGroup>
         <PackageReference Include="Markdig" Version="0.39.1"/>
-        <PackageReference Include="Serilog" Version="4.3.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
     </ItemGroup>
 
 
     <ItemGroup>
-      <ProjectReference Include="..\Sunset.Quantities\Sunset.Quantities.csproj" />
+        <ProjectReference Include="..\Sunset.Quantities\Sunset.Quantities.csproj"/>
     </ItemGroup>
 
 </Project>

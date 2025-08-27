@@ -6,8 +6,8 @@ namespace Sunset.Quantities.Units;
 public partial class Unit
 {
     /// <summary>
-    /// Gets a list of the base units that make up the current unit. This includes all base units and does not include
-    /// any multiples or derived units. Also returns the factor and power of each base unit in the unit.
+    ///     Gets a list of the base units that make up the current unit. This includes all base units and does not include
+    ///     any multiples or derived units. Also returns the factor and power of each base unit in the unit.
     /// </summary>
     public List<(NamedUnit unit, Rational exponent)> GetBaseCoherentUnits()
     {
@@ -53,10 +53,12 @@ public partial class Unit
         // Attempt to keep named units (e.g. m, N) in the same unit if the value is appropriately small,
         // i.e. between 0.1 and 999.
         if (this is NamedUnit)
+        {
             if (NumberUtilities.Magnitude(value) is >= -1 and <= 2)
             {
                 return this;
             }
+        }
 
         // If the unit is a calculated unit, attempt to simplify it with the following algorithm:
         // 1. Work out the constituent coherent derived units that can "fit" into the current unit.
@@ -114,14 +116,20 @@ public partial class Unit
         var bestMultipleUnit = symbols.First().unit.Pow(symbols.First().exponent);
 
         if (symbols.Count > 1)
+        {
             for (var i = 1; i < symbols.Count; i++)
+            {
                 bestMultipleUnit *= symbols[i].unit.Pow(symbols[i].exponent);
+            }
+        }
 
         bestMultipleUnit._definedUnits = symbols;
 
         // Do a final check on the dimensions of the best multiple unit and show an error if there is a problem.
         if (!EqualDimensions(bestMultipleUnit, this))
+        {
             return UnitError("The dimensions of the simplified unit do not match the original unit.");
+        }
 
         return bestMultipleUnit;
     }
@@ -147,9 +155,13 @@ public partial class Unit
         // TODO: Think about how time and angle units are considered
 
         foreach ((Unit unit, _) in units)
+        {
             if (!unit.IsCoherentUnit)
+            {
                 throw new Exception(
                     "Best multiple algorithm only works with a list of base and derived units that are all coherent.");
+            }
+        }
 
         // The following algorithm for selecting the best unit is based on the mathjs library
         // See https://github.com/josdejong/mathjs/blob/develop/src/type/unit/Unit.js
@@ -224,7 +236,9 @@ public partial class Unit
             // is not divisible by the divisor. For example, m^2 is not divisible by kg as the mass dimension of m^2 is zero
             // but the mass dimension of kg is 1.
             if (divisor.UnitDimensions[i].Power == 0)
+            {
                 continue;
+            }
 
             if (UnitDimensions[i].Power == 0) return 0;
 
@@ -267,7 +281,9 @@ public partial class Unit
             // is not divisible by the divisor. For example, m^2 is not divisible by kg as the mass dimension of m^2 is zero
             // but the mass dimension of kg is 1.
             if (divisor.UnitDimensions[i].Power.Numerator == 0)
+            {
                 continue;
+            }
 
             if (UnitDimensions[i].Power.Numerator == 0) return 0;
 

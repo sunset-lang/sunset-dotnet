@@ -4,7 +4,7 @@ namespace Sunset.Markdown;
 
 public class MarkdownEquationComponents : EquationComponents
 {
-    public static MarkdownEquationComponents Instance { get; } = new MarkdownEquationComponents();
+    public static MarkdownEquationComponents Instance { get; } = new();
 
     public override string LeftParenthesis => "\\left(";
     public override string RightParenthesis => "\\right)";

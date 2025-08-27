@@ -16,16 +16,6 @@ public class Variable : IVariable,
     IMultiplyOperators<Variable, Variable, IExpression?>,
     IDivisionOperators<Variable, Variable, IExpression?>
 {
-    public IQuantity? DefaultValue { get; set; }
-    public Unit Unit { get; } = DefinedUnits.Dimensionless;
-    public string Symbol { get; private set; } = "";
-    public string Name { get; private set; } = "";
-    public string Description { get; private set; } = "";
-    public string Reference { get; private set; } = "";
-    public string Label { get; private set; } = "";
-    public IExpression Expression => Declaration;
-    public VariableDeclaration Declaration { get; }
-
     public Variable(double value, Unit unit, string symbol = "", string name = "",
         string description = "",
         string reference = "",
@@ -90,6 +80,16 @@ public class Variable : IVariable,
         return left.Expression - right.Expression;
     }
 
+    public IQuantity? DefaultValue { get; set; }
+    public Unit Unit { get; } = DefinedUnits.Dimensionless;
+    public string Symbol { get; private set; } = "";
+    public string Name { get; private set; } = "";
+    public string Description { get; private set; } = "";
+    public string Reference { get; private set; } = "";
+    public string Label { get; private set; } = "";
+    public IExpression Expression => Declaration;
+    public VariableDeclaration Declaration { get; }
+
 
     public IVariable AssignSymbol(string symbol)
     {
@@ -139,7 +139,9 @@ public class Variable : IVariable,
     {
         // If the expression provided is already a VariableDeclaration, no need for additional redirection
         if (expression is VariableDeclaration variableDeclaration)
+        {
             return variableDeclaration;
+        }
 
         // It not, wrap the expression in a new VariableDeclaration to allow for printing.
         return new VariableDeclaration(this, expression, null);

@@ -11,12 +11,12 @@ public class BaseCoherentUnitTests
         var units = DefinedUnits.UnitList;
 
         List<string> keywords = [];
-        foreach (NamedUnit unit in units.OfType<NamedUnit>())
+        foreach (var unit in units.OfType<NamedUnit>())
         {
             keywords.Add("'" + unit.Symbol + "'");
         }
 
-        Console.WriteLine(String.Join(", ", keywords));
+        Console.WriteLine(string.Join(", ", keywords));
     }
 
 

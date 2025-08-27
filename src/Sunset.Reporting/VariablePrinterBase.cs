@@ -12,10 +12,10 @@ namespace Sunset.Reporting;
 /// </summary>
 public abstract class VariablePrinterBase(PrinterSettings settings, EquationComponents components)
 {
+    private readonly EquationComponents _eq = components;
+
     // TODO: Generalise this into an abstract class with EquationComponents
     public PrinterSettings Settings { get; } = settings;
-
-    private readonly EquationComponents _eq = components;
     public abstract SymbolExpressionPrinter SymbolPrinter { get; }
     public abstract ValueExpressionPrinter ValuePrinter { get; }
 
@@ -80,7 +80,7 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
 
 
     /// <summary>
-    /// Prints the symbolic expression of a variable.
+    ///     Prints the symbolic expression of a variable.
     /// </summary>
     public string ReportSymbolExpression(IVariable variable)
     {
@@ -103,7 +103,7 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
     }
 
     /// <summary>
-    ///  Report the default value of a variable.
+    ///     Report the default value of a variable.
     /// </summary>
     /// <param name="variable">Variable to be reported.</param>
     /// <returns>String representation of the value.</returns>

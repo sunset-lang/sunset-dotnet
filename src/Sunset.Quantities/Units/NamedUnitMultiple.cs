@@ -11,9 +11,12 @@ public class NamedUnitMultiple : NamedUnit
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of the unit multiple.</param>
     /// <param name="unitSymbol">New symbol to override the parent unit's symbol.</param>
-    /// <param name="latexPrefixSymbol">The prefix of the unit multiple in LaTeX format.
-    /// If empty, the prefix symbol is used.</param>
-    public NamedUnitMultiple(NamedUnit namedCoherentUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
+    /// <param name="latexPrefixSymbol">
+    ///     The prefix of the unit multiple in LaTeX format.
+    ///     If empty, the prefix symbol is used.
+    /// </param>
+    public NamedUnitMultiple(NamedUnit namedCoherentUnitParent, UnitName unitName, string prefixSymbol,
+        string unitSymbol,
         string latexPrefixSymbol = ""
     ) : base(unitName, prefixSymbol, unitSymbol, latexPrefixSymbol)
     {
@@ -29,8 +32,10 @@ public class NamedUnitMultiple : NamedUnit
     /// <param name="unitName">Name of the unit.</param>
     /// <param name="prefixSymbol">Prefix of unit multiple.</param>
     /// <param name="namedCoherentUnitParent">Parent of this NamedUnitMultiple.</param>
-    /// <param name="latexPrefixSymbol">The prefix of the unit multiple in LaTeX format.
-    /// If empty, the prefix symbol is used.</param>
+    /// <param name="latexPrefixSymbol">
+    ///     The prefix of the unit multiple in LaTeX format.
+    ///     If empty, the prefix symbol is used.
+    /// </param>
     public NamedUnitMultiple(NamedUnit namedCoherentUnitParent, UnitName unitName, string prefixSymbol,
         string latexPrefixSymbol = ""
     ) : base(unitName, prefixSymbol, namedCoherentUnitParent.UnitSymbol, latexPrefixSymbol)
@@ -48,7 +53,8 @@ public class NamedUnitMultiple : NamedUnit
     /// <param name="prefixSymbol">Prefix of the unit multiple.</param>
     /// <param name="unitSymbol">New symbol to override the parent unit's symbol.</param>
     /// <param name="factor">Factor to be applied to the unit.</param>
-    public NamedUnitMultiple(BaseCoherentUnit baseCoherentUnitParent, UnitName unitName, string prefixSymbol, string unitSymbol,
+    public NamedUnitMultiple(BaseCoherentUnit baseCoherentUnitParent, UnitName unitName, string prefixSymbol,
+        string unitSymbol,
         double factor)
         : base(unitName, prefixSymbol, unitSymbol)
     {

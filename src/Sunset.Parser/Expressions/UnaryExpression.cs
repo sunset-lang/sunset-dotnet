@@ -1,5 +1,4 @@
 ﻿using Sunset.Parser.Lexing.Tokens;
-using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.SymbolStore;
-using Sunset.Parser.Errors;
-using Sunset.Parser.Errors.Syntax;
+﻿using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing;
 using Sunset.Parser.Lexing.Tokens;
@@ -19,6 +17,8 @@ public partial class Parser
     private readonly ReadOnlyMemory<char> _source;
     private readonly IToken[] _tokens;
 
+    public readonly List<IDeclaration> SyntaxTree = [];
+
     private IToken _current;
     private bool _inUnitExpression;
 
@@ -26,8 +26,6 @@ public partial class Parser
     private IToken? _peek;
     private IToken? _peekNext;
     private int _position;
-
-    public readonly List<IDeclaration> SyntaxTree = [];
 
     /// <summary>
     ///     Generates a parser from a source string.
@@ -109,12 +107,14 @@ public partial class Parser
         var end = range.End.Value;
         for (var i = start; i < range.End.Value; i++)
             // Must also check for close parentheses and braces as these can be in an expression but do not have parsing rules
+        {
             if (!ParsingRules.ContainsKey(_tokens[i].Type) &&
                 _tokens[i].Type is not (TokenType.CloseParenthesis or TokenType.CloseBrace))
             {
                 end = i;
                 break;
             }
+        }
 
         return new Range(start, end);
     }
@@ -132,7 +132,9 @@ public partial class Parser
 
         if (prefixParsingRule.prefixParse == null)
             // TODO: Handle this error a bit better
+        {
             throw new Exception("Error parsing expression");
+        }
 
         var leftExpression = prefixParsingRule.prefixParse(this);
 
@@ -146,17 +148,23 @@ public partial class Parser
                 or TokenType.CloseParenthesis
                 or TokenType.CloseBrace
                 or TokenType.Comma)
+            {
                 break;
+            }
 
             // Particular logic for avoiding implicit multiplication outside of unit expressions despite it being returned within
             // the parsing rules.
             if (!_inUnitExpression && _current.Type == TokenType.Identifier)
+            {
                 throw new Exception("Implicit multiplication is not allowed outside unit expressions");
+            }
 
             var infixParsingRule = GetParsingRule(_current.Type);
 
             if (infixParsingRule.infixParse == null)
+            {
                 throw new Exception("Error parsing expression, expected an infix parse rule");
+            }
 
             if (infixParsingRule.infixPrecedence <= minPrecedence) break;
 
@@ -174,7 +182,7 @@ public partial class Parser
             new Dictionary<TokenType, List<IDeclaration>>
             {
                 { TokenType.Input, [] },
-                { TokenType.Output, [] },
+                { TokenType.Output, [] }
             };
 
         var defineToken = Consume(TokenType.Define);
@@ -233,7 +241,7 @@ public partial class Parser
 
 
     /// <summary>
-    /// Gets a new variable declaration, starting at the current 
+    ///     Gets a new variable declaration, starting at the current
     /// </summary>
     /// <param name="parentScope"></param>
     /// <returns></returns>
@@ -283,7 +291,9 @@ public partial class Parser
             var closeBrace = Consume(TokenType.CloseBrace);
 
             if (openBrace != null)
+            {
                 unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
+            }
         }
 
         Consume(TokenType.Assignment);
@@ -348,13 +358,15 @@ public partial class Parser
     {
         // Skip errors while parsing, and advance to the next valid token. Stop before the end of the array.
         for (var i = _position + 1; i < _tokens.Length; i++)
-            if (_tokens[i].HasErrors == false)
+        {
+            if (!_tokens[i].HasErrors)
             {
                 // TODO: Do something about this error
                 _panicMode = true;
                 _position = i;
                 break;
             }
+        }
 
         _current = _tokens[_position];
         _peek = Peek();
@@ -390,7 +402,7 @@ public partial class Parser
     }
 
     /// <summary>
-    /// Consumes all new line tokens until a non-new line token is found.
+    ///     Consumes all new line tokens until a non-new line token is found.
     /// </summary>
     private void ConsumeNewlines()
     {

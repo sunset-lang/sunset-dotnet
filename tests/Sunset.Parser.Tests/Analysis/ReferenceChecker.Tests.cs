@@ -1,6 +1,4 @@
-﻿using Sunset.Markdown;
-using Sunset.Markdown.Extensions;
-using Sunset.Parser.Analysis.ReferenceChecking;
+﻿using Sunset.Markdown.Extensions;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Scopes;

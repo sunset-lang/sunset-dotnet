@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Sunset.Parser\Sunset.Parser.csproj" />
+        <ProjectReference Include="..\Sunset.Parser\Sunset.Parser.csproj"/>
     </ItemGroup>
 
 </Project>

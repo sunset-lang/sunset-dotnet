@@ -1,8 +1,4 @@
-﻿using Sunset.Parser.Expressions;
-using Sunset.Parser.Parsing.Constants;
-using Sunset.Parser.Parsing.Declarations;
-
-namespace Sunset.Parser.Visitors;
+﻿namespace Sunset.Parser.Visitors;
 
 /// <summary>
 ///     Interface for visitors that return a value.

@@ -9,17 +9,8 @@ using Environment = Sunset.Parser.Scopes.Environment;
 namespace Sunset.Markdown.Tests;
 
 [TestFixture]
-public class MarkdownVariablePrinterTests()
+public class MarkdownVariablePrinterTests
 {
-    private readonly MarkdownVariablePrinter _markdownVariablePrinter = new();
-    private readonly IVariable _length = new Variable(100, DefinedUnits.Millimetre, "l", "length");
-    private readonly IVariable _width = new Variable(200, DefinedUnits.Millimetre, "w", "width");
-    private readonly IVariable _height = new Variable(300, DefinedUnits.Millimetre, "h", "height");
-    private readonly IVariable _mass = new Variable(20, DefinedUnits.Kilogram, "m", "mass");
-
-    private IVariable? _volume;
-    private IVariable? _density;
-
     [SetUp]
     public void Setup()
     {
@@ -32,6 +23,15 @@ public class MarkdownVariablePrinterTests()
         Evaluator.EvaluateExpression(_volume.Expression);
         Evaluator.EvaluateExpression(_density.Expression);
     }
+
+    private readonly MarkdownVariablePrinter _markdownVariablePrinter = new();
+    private readonly IVariable _length = new Variable(100, DefinedUnits.Millimetre, "l", "length");
+    private readonly IVariable _width = new Variable(200, DefinedUnits.Millimetre, "w", "width");
+    private readonly IVariable _height = new Variable(300, DefinedUnits.Millimetre, "h", "height");
+    private readonly IVariable _mass = new Variable(20, DefinedUnits.Kilogram, "m", "mass");
+
+    private IVariable? _volume;
+    private IVariable? _density;
 
     [Test]
     public void ReportValue_BaseUnit_ShouldReportCorrectValue()

@@ -5,12 +5,13 @@ namespace Sunset.Parser.Parsing.Declarations;
 public class SymbolName
 {
     public readonly string Name;
-    public readonly IToken[] Tokens;
 
     /// <summary>
-    /// If the symbol can also be used as a name, use it
+    ///     If the symbol can also be used as a name, use it
     /// </summary>
     public readonly StringToken? NameToken;
+
+    public readonly IToken[] Tokens;
 
     public SymbolName(IEnumerable<IToken> tokens)
     {

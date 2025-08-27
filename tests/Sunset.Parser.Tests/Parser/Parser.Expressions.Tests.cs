@@ -5,11 +5,11 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserExpressionsTests
 {
-    private DebugPrinter _printer = new DebugPrinter();
+    private readonly DebugPrinter _printer = new();
 
     private string PrintParsedExpression(string expression)
     {
-        var parser = new Parsing.Parser(expression, false);
+        var parser = new Parsing.Parser(expression);
         var stringRepresentation = _printer.Visit(parser.GetExpression());
         Console.WriteLine(stringRepresentation);
         return stringRepresentation;

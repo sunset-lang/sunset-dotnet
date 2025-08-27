@@ -14,12 +14,20 @@ public class Token : TokenBase
     public override string ToString()
     {
         foreach (var keyValuePair in TokenDefinitions.SingleCharacterTokens)
+        {
             if (keyValuePair.Value == Type)
+            {
                 return keyValuePair.Key.ToString();
+            }
+        }
 
         foreach (var keyValuePair in TokenDefinitions.DoubleCharacterTokens)
+        {
             if (keyValuePair.Value == Type)
+            {
                 return keyValuePair.Key.firstCharacter + keyValuePair.Key.secondCharacter.ToString();
+            }
+        }
 
         return string.Empty;
     }

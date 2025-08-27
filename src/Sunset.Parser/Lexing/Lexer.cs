@@ -226,8 +226,10 @@ public class Lexer
         while (_current != '\n' && _current != '\0') Advance();
 
         if (isDocumentation)
+        {
             return new StringToken(_source[(start + 2).._position], TokenType.Documentation, start, _position, _line,
                 _column);
+        }
 
         return new StringToken(_source[(start + 1).._position], TokenType.Comment, start, _position, _line, _column);
     }
@@ -304,9 +306,11 @@ public class Lexer
         }
 
         if (foundDecimalPlace || foundExponent)
+        {
             return new DoubleToken(
                 double.Parse(_source[start.._position].Span),
                 start, _position, _line, _column);
+        }
 
         return new IntToken(int.Parse(_source[start.._position].Span), start, _position, _line, _column);
     }
@@ -443,10 +447,14 @@ public class Lexer
             start, _position, _line, _column);
 
         if (subscriptError)
+        {
             identifierSymbolToken.AddError(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
+        }
 
         if (_current == '_')
+        {
             identifierSymbolToken.AddError(new IdentifierSymbolEndsInUnderscoreError(identifierSymbolToken));
+        }
 
         return identifierSymbolToken;
     }

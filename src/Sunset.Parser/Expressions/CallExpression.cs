@@ -1,5 +1,4 @@
 ﻿using Sunset.Parser.Errors;
-using Sunset.Parser.Parsing;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;

@@ -20,6 +20,8 @@ public class SymbolName
 
         CheckSymbol();
         Name = string.Join(" ", enumerable.Select(t => t.ToString()));
+        // Remove spaces if they occur after a backslash
+        Name = Name.Replace("\\ ", "\\");
 
         // If the symbol can also be used as a name (i.e. it is made up of a single token, note that it can also be used as a name.
         if (Tokens.Length == 1 && Tokens.First() is StringToken nameToken)

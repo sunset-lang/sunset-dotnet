@@ -30,4 +30,15 @@ public class ParserVariableDeclarationTests
         Assert.That(stringRepresentation,
             Is.EqualTo("force <F> {kN} = (/ (* (assign 100 kg) (assign 200 m)) (^ (assign 400 s) 2))"));
     }
+
+    [Test]
+    public void GetVariableDeclaration_WithGreekLetter_CorrectDeclaration()
+    {
+        var parser = new Parsing.Parser("""
+                                        phi <\phi> = 35
+                                        """);
+        var variable = parser.GetVariableDeclaration(new FileScope("$", null));
+
+        Assert.That(variable.Variable.Symbol, Is.EqualTo("\\phi"));
+    }
 }

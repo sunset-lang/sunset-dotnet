@@ -97,6 +97,10 @@ public class Evaluator : IVisitor<IResult?>
                 TokenType.Power => leftQuantity.Pow(rightQuantity.Value),
                 _ => throw new NotImplementedException()
             };
+            // Occurs whenever the results are not valid
+            // Assumes that a typing error is picked up in the type checker
+            if (binaryResult == null) return null;
+
             return new QuantityResult(binaryResult);
         }
 

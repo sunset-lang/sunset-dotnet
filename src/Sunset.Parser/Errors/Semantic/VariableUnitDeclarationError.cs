@@ -11,3 +11,13 @@ public class VariableUnitDeclarationError(VariableDeclaration variable) : ISeman
 
     public IToken[]? Tokens { get; } = [variable.NameToken];
 }
+
+public class VariableUnitEvaluationError(VariableDeclaration variable) : ISemanticError
+{
+    public string Message =>
+        $"The expression in the variable {variable.Name} doesn't evaluate to a valid set of units.";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+
+    public IToken[]? Tokens { get; } = [variable.NameToken];
+}

@@ -32,12 +32,12 @@ public interface IQuantity
 
     public Quantity ToQuantity();
 
-    public static IQuantity operator +(IQuantity q1, IQuantity q2)
+    public static IQuantity? operator +(IQuantity q1, IQuantity q2)
     {
         return q1.ToQuantity() + q2.ToQuantity();
     }
 
-    public static IQuantity operator -(IQuantity q1, IQuantity q2)
+    public static IQuantity? operator -(IQuantity q1, IQuantity q2)
     {
         return q1.ToQuantity() - q2.ToQuantity();
     }

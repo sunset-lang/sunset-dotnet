@@ -82,7 +82,7 @@
 
             var sourceFile = SourceFile.FromString(code);
             var environment = sourceFile.CreateEnvironment();
-            environment.Parse();
+            environment.Analyse();
 
             // Render output wrapped in LaTeX align block
             var output = "\\begin{aligned}\r\n" + ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues() + @"\end{aligned}";

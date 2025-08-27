@@ -239,6 +239,12 @@ public class UnitTypeChecker : IVisitor<Unit?>
             dest.AddError(new VariableUnitDeclarationError(dest));
         }
 
+        // If the expression units don't evaluate, this should bubble up as an error.
+        if (expressionUnit == null)
+        {
+            dest.AddError(new VariableUnitEvaluationError(dest));
+        }
+
         // If both of the units are null, the units could match and would otherwise need to be picked up by the type checker.
         // TODO: Consider whether there are any edge cases for this.
         return null;

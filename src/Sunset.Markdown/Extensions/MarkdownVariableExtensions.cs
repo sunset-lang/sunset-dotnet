@@ -19,7 +19,9 @@ public static class MarkdownVariableExtensions
         // Only print the symbol if it exists
         if (variable.Symbol == "" ||
             variable is { Description: "", Reference: "" })
+        {
             return "";
+        }
 
         builder.Append($"- ${variable.Symbol}$");
 

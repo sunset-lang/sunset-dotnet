@@ -1,6 +1,4 @@
-﻿using System.Net.NetworkInformation;
-using Sunset.Parser.Errors;
-using Sunset.Parser.Errors.Semantic;
+﻿using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
@@ -41,7 +39,7 @@ public class NameResolver : INameResolver
                 Visit(variableAssignmentExpression, parentScope);
                 break;
             case IScope scope:
-                Visit(scope, parentScope);
+                Visit(scope);
                 break;
             case UnitConstant unitConstant:
                 Visit(unitConstant, parentScope);
@@ -135,7 +133,7 @@ public class NameResolver : INameResolver
     }
 
     /// <summary>
-    /// Recursively search a scope and all of its parents for a name.
+    ///     Recursively search a scope and all of its parents for a name.
     /// </summary>
     /// <param name="name">Name to search for in the scope.</param>
     /// <param name="scope">Scope to search through.</param>
@@ -205,7 +203,7 @@ public class NameResolver : INameResolver
     }
 
     /// <summary>
-    /// Visits the entry point, where there are no parents to the FileScope.
+    ///     Visits the entry point, where there are no parents to the FileScope.
     /// </summary>
     /// <param name="dest"></param>
     public void VisitEntryPoint(FileScope dest)
@@ -216,7 +214,7 @@ public class NameResolver : INameResolver
         }
     }
 
-    public void Visit(IScope dest, IScope parentScope)
+    public void Visit(IScope dest)
     {
         foreach (var children in dest.ChildDeclarations.Values)
         {

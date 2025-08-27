@@ -1,6 +1,5 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens.Numbers;
-using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Parsing.Constants;
 

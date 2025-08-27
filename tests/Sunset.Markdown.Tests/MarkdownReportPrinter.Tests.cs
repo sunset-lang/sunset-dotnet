@@ -122,10 +122,10 @@ public class MarkdownReportPrinterTests
         combinedReport.AddSubsection(axialReport);
         combinedReport.AddSubsection(bendingReport);
 
-        var settings = new PrinterSettings()
+        var settings = new PrinterSettings
         {
             PrintTableOfContents = true,
-            ShowQuantityDescriptionsAfterCalculations = true,
+            ShowQuantityDescriptionsAfterCalculations = true
         };
         var printer = new MarkdownReportPrinter(settings);
         var printedReport = printer.PrintReport(combinedReport);
@@ -190,9 +190,9 @@ public class MarkdownReportPrinterTests
         combinedReport.AddSubsection(axialReport);
         combinedReport.AddSubsection(bendingReport);
 
-        var settings = new PrinterSettings()
+        var settings = new PrinterSettings
         {
-            PrintTableOfContents = true,
+            PrintTableOfContents = true
         };
         var printer = new MarkdownReportPrinter(settings);
         var printedTableOfContents = printer.PrintTableOfContents(combinedReport);

@@ -9,7 +9,7 @@ public class Library(string name) : IScope
     public string Name { get; } = name;
 
     /// <summary>
-    /// The full path of a library is the name of the library, as it is its own root scope.
+    ///     The full path of a library is the name of the library, as it is its own root scope.
     /// </summary>
     public string FullPath { get; } = name;
 
@@ -21,7 +21,7 @@ public class Library(string name) : IScope
     }
 
     /// <summary>
-    /// Libraries are a root scope.
+    ///     Libraries are a root scope.
     /// </summary>
     public IScope? ParentScope { get; init; } = null;
 

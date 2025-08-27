@@ -79,5 +79,5 @@ public enum TokenType
     // Elements
     Define,
     Input,
-    Output,
+    Output
 }

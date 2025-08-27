@@ -1,7 +1,7 @@
-﻿@using MudBlazor
+﻿@using MudBlazor.Utilities
 @inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="true"/>
+<MudThemeProvider Theme="_sunsetTheme" IsDarkMode="true"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
@@ -9,7 +9,7 @@
 <MudLayout>
     <MudAppBar>
         <MudText>
-            The Sunset Language
+            <img src="assets/logo.svg" height="24px" class="mt-2 mr-2" alt=""/> The Sunset Language
         </MudText>
         <MudSpacer/>
         <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/">Home</MudButton>
@@ -25,3 +25,28 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+
+@code{
+
+    readonly MudTheme _sunsetTheme = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Background = new MudColor("#1E1E1E"),
+            TextPrimary = new MudColor("#FFFFFF")
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Noto Sans", "sans-serif"]
+            },
+            Body1 = new Body1Typography
+            {
+                FontWeight = "300",
+                FontSize = "12pt"
+            }
+        }
+    };
+
+}

@@ -1,7 +1,7 @@
 ﻿namespace Sunset.Reporting;
 
 /// <summary>
-/// Abstract class representing various components of an equation
+///     Abstract class representing various components of an equation
 /// </summary>
 public abstract class EquationComponents
 {
@@ -15,12 +15,12 @@ public abstract class EquationComponents
     public abstract string EqualsSymbol { get; }
 
     /// <summary>
-    /// Displays a value as text
+    ///     Displays a value as text
     /// </summary>
     public abstract string Text(string text);
 
     /// <summary>
-    /// Displays units after a variable
+    ///     Displays units after a variable
     /// </summary>
     public abstract string Unit(string unit);
 

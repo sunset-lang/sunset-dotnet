@@ -25,7 +25,9 @@ public partial class Unit
         var dimensions = left.UnitDimensions.ToArray();
 
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        {
             dimensions[i].Power -= right.UnitDimensions[i].Power;
+        }
 
         return new Unit
         {
@@ -45,7 +47,9 @@ public partial class Unit
         var dimensions = left.UnitDimensions.ToArray();
 
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        {
             dimensions[i].Power += right.UnitDimensions[i].Power;
+        }
 
         return new Unit
         {
@@ -82,7 +86,7 @@ public partial class Unit
     public Unit Pow(int power)
     {
         if (power == 1) return this;
-        
+
         var dimensions = UnitDimensions.ToArray();
 
         for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power *= power;

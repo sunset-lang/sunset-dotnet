@@ -136,9 +136,9 @@ public class LexerSingleTokenTests
         if (token is StringToken stringToken)
         {
             Assert.That(stringToken.Value.ToString(), Is.EqualTo("""
-                            Hello, world
-                            How are you doing today?
-                            """));
+                                                                 Hello, world
+                                                                 How are you doing today?
+                                                                 """));
         }
     }
 

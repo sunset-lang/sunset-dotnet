@@ -10,25 +10,20 @@ using Sunset.Parser.Visitors.Evaluation;
 namespace Sunset.Parser.Scopes;
 
 /// <summary>
-/// # Environments
-/// An execution environment for an IDeclaration, containing a set of values that are associated with the execution of the
-/// contained functions. Any IDeclaration can be evaluated by passing in an Environment, at which point it will be evaluated using
-/// the values within the Environment.
-///
-/// If not found, the default values of the IDeclaration will be used in the evaluation. This allows the parallel execution
-/// of multiple environments.
+///     # Environments
+///     An execution environment for an IDeclaration, containing a set of values that are associated with the execution of
+///     the
+///     contained functions. Any IDeclaration can be evaluated by passing in an Environment, at which point it will be
+///     evaluated using
+///     the values within the Environment.
+///     If not found, the default values of the IDeclaration will be used in the evaluation. This allows the parallel
+///     execution
+///     of multiple environments.
 /// </summary>
 public class Environment : IScope
 {
     /// <summary>
-    /// The scopes contained within this environment.
-    /// </summary>
-    public Dictionary<string, IScope> ChildScopes { get; } = [];
-
-    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
-
-    /// <summary>
-    /// Represents an execution environment for evaluating declarations and their associated values.
+    ///     Represents an execution environment for evaluating declarations and their associated values.
     /// </summary>
     public Environment(SourceFile entryPoint)
     {
@@ -36,9 +31,30 @@ public class Environment : IScope
     }
 
     /// <summary>
-    /// Adds a source file to the environment.
+    ///     The scopes contained within this environment.
     /// </summary>
-    /// <param name="source"><see cref="SourceFile"/> to be added to the environment.</param>
+    public Dictionary<string, IScope> ChildScopes { get; } = [];
+
+    public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
+
+    public string Name => "$env";
+    public IScope? ParentScope { get; init; } = null;
+    public string FullPath => "$env";
+
+    public List<IError> Errors { get; } = [];
+
+    public IDeclaration? TryGetDeclaration(string name)
+    {
+        // The environment scope does not contain any declarations, only child scopes.
+        return null;
+    }
+
+    public Dictionary<string, IPassData> PassData { get; } = [];
+
+    /// <summary>
+    ///     Adds a source file to the environment.
+    /// </summary>
+    /// <param name="source"><see cref="SourceFile" /> to be added to the environment.</param>
     public void AddSource(SourceFile source)
     {
         if (!ChildScopes.ContainsKey(source.Name))
@@ -58,7 +74,7 @@ public class Environment : IScope
     }
 
     /// <summary>
-    /// Adds a source file to the environment by its file path.
+    ///     Adds a source file to the environment by its file path.
     /// </summary>
     /// <param name="filePath">Path to the file containing the source code.</param>
     public void AddFile(string filePath)
@@ -68,7 +84,7 @@ public class Environment : IScope
     }
 
     /// <summary>
-    /// Performs static analysis on the source. This includes checking of all types and default quantity evaluation.
+    ///     Performs static analysis on the source. This includes checking of all types and default quantity evaluation.
     /// </summary>
     public void Parse()
     {
@@ -88,7 +104,7 @@ public class Environment : IScope
                 continue;
             }
 
-            nameResolver.Visit(scope, scope.ParentScope);
+            nameResolver.Visit(scope);
         }
 
         // Cycle checking
@@ -113,18 +129,4 @@ public class Environment : IScope
             quantityEvaluator.Visit(scope, scope);
         }
     }
-
-    public string Name => "$env";
-    public IScope? ParentScope { get; init; } = null;
-    public string FullPath => "$env";
-
-    public List<IError> Errors { get; } = [];
-
-    public IDeclaration? TryGetDeclaration(string name)
-    {
-        // The environment scope does not contain any declarations, only child scopes.
-        return null;
-    }
-
-    public Dictionary<string, IPassData> PassData { get; } = [];
 }

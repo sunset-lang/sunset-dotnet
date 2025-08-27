@@ -23,9 +23,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Sunset.Markdown\Sunset.Markdown.csproj" />
-      <ProjectReference Include="..\..\src\Sunset.Parser\Sunset.Parser.csproj" />
-      <ProjectReference Include="..\Sunset.TestHelpers\Sunset.TestHelpers.csproj" />
+        <ProjectReference Include="..\..\src\Sunset.Markdown\Sunset.Markdown.csproj"/>
+        <ProjectReference Include="..\..\src\Sunset.Parser\Sunset.Parser.csproj"/>
+        <ProjectReference Include="..\Sunset.TestHelpers\Sunset.TestHelpers.csproj"/>
     </ItemGroup>
 
 </Project>

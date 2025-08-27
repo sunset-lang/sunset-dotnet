@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Sunset.Parser.Analysis.NameResolution;
+﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -10,26 +9,25 @@ using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
-using Sunset.Quantities.Quantities;
 using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Visitors.Evaluation;
 
 /// <summary>
-/// Evaluates expressions and returns the result, storing it along the way.
+///     Evaluates expressions and returns the result, storing it along the way.
 /// </summary>
 public class Evaluator : IVisitor<IResult?>
 {
     private static readonly Evaluator Singleton = new();
 
-    public static IResult? EvaluateExpression(IExpression expression)
-    {
-        return Singleton.Visit(expression);
-    }
-
     public IResult? Visit(IVisitable dest)
     {
         return Visit(dest, null);
+    }
+
+    public static IResult? EvaluateExpression(IExpression expression)
+    {
+        return Singleton.Visit(expression);
     }
 
     public IResult? Visit(IVisitable dest, IScope? currentScope)
@@ -89,7 +87,7 @@ public class Evaluator : IVisitor<IResult?>
         {
             var leftQuantity = leftQuantityResult.Result;
             var rightQuantity = rightQuantityResult.Result;
-            IQuantity binaryResult = dest.Operator switch
+            var binaryResult = dest.Operator switch
             {
                 TokenType.Plus => leftQuantity + rightQuantity,
                 TokenType.Minus => leftQuantity - rightQuantity,
@@ -198,15 +196,15 @@ public class Evaluator : IVisitor<IResult?>
         return value;
     }
 
-    private IResult? Visit(CallExpression dest, IScope? currentScope)
+    private ElementResult Visit(CallExpression dest, IScope? currentScope)
     {
-        var elementDeclaration = dest.GetResolvedDeclaration() as ElementDeclaration;
-        if (elementDeclaration == null)
+        if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
             // TODO: Handle error better
             throw new Exception("Could not resolve element declaration.");
-            return null;
         }
+
+        ArgumentNullException.ThrowIfNull(currentScope);
 
         // Create a new element instance
         var elementResult = new ElementResult(elementDeclaration, currentScope);
@@ -238,17 +236,17 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult Visit(NumberConstant dest)
+    private static QuantityResult Visit(NumberConstant dest)
     {
         return new QuantityResult(dest.Value, DefinedUnits.Dimensionless);
     }
 
-    private IResult? Visit(StringConstant dest)
+    private static StringResult Visit(StringConstant dest)
     {
         return new StringResult(dest.Token.ToString());
     }
 
-    private IResult? Visit(UnitConstant dest)
+    private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
     }

@@ -6,12 +6,12 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserVariableDeclarationTests
 {
-    private DebugPrinter _printer = new();
+    private readonly DebugPrinter _printer = new();
 
     [Test]
     public void GetVariableDeclaration_WithValidInput_CorrectDeclaration()
     {
-        var parser = new Parsing.Parser("area <A> {mm^2} = 100 {mm} * 200 {mm}", false);
+        var parser = new Parsing.Parser("area <A> {mm^2} = 100 {mm} * 200 {mm}");
 
         var variable = parser.GetVariableDeclaration(new FileScope("$", null));
         var stringRepresentation = _printer.PrintVariableDeclaration(variable);
@@ -22,7 +22,7 @@ public class ParserVariableDeclarationTests
     [Test]
     public void GetVariableDeclaration_WithComplexUnit_CorrectDeclaration()
     {
-        var parser = new Parsing.Parser("force <F> {kN} = 100 {kg} * 200 {m} / (400 {s})^2", false);
+        var parser = new Parsing.Parser("force <F> {kN} = 100 {kg} * 200 {m} / (400 {s})^2");
 
         var variable = parser.GetVariableDeclaration(new FileScope("$", null));
         var stringRepresentation = _printer.PrintVariableDeclaration(variable);

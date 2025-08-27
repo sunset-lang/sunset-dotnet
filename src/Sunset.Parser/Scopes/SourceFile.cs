@@ -1,29 +1,12 @@
 ﻿namespace Sunset.Parser.Scopes;
 
 /// <summary>
-/// Represents a single file containing Sunset source code.
-/// Parses the source within it and returns a tree.
+///     Represents a single file containing Sunset source code.
+///     Parses the source within it and returns a tree.
 /// </summary>
 public class SourceFile
 {
-    /// <summary>
-    /// The name of the file.
-    /// </summary>
-    public string Name { get; }
-
-    /// <summary>
-    /// The path to the source file.
-    /// </summary>
-    public string FilePath { get; private init; } = string.Empty;
-
-    /// <summary>
-    ///  The source code contained in the file.
-    /// </summary>
-    public string SourceCode { get; }
-
-    private Parsing.Parser? _parser;
-
-    public IScope? ParentScope { get; set; }
+    private readonly Parsing.Parser? _parser;
 
     private SourceFile(string name, string source)
     {
@@ -33,7 +16,24 @@ public class SourceFile
     }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="SourceFile"/> class from a string containing source code.
+    ///     The name of the file.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    ///     The path to the source file.
+    /// </summary>
+    public string FilePath { get; private init; } = string.Empty;
+
+    /// <summary>
+    ///     The source code contained in the file.
+    /// </summary>
+    public string SourceCode { get; }
+
+    public IScope? ParentScope { get; set; }
+
+    /// <summary>
+    ///     Creates a new instance of the <see cref="SourceFile" /> class from a string containing source code.
     /// </summary>
     /// <param name="source">The source code that is to be contained in the virtual file.</param>
     public static SourceFile FromString(string source)
@@ -43,7 +43,7 @@ public class SourceFile
     }
 
     /// <summary>
-    /// Loads the source code from the specified file path.
+    ///     Loads the source code from the specified file path.
     /// </summary>
     /// <param name="path">File path containing source code to be loaded.</param>
     /// <exception cref="FileNotFoundException">Thrown if the file cannot be found.</exception>
@@ -61,12 +61,12 @@ public class SourceFile
 
         return new SourceFile(fileName, fileContents)
         {
-            FilePath = path,
+            FilePath = path
         };
     }
 
     /// <summary>
-    /// Creates a new environment, using the current source file as the root.
+    ///     Creates a new environment, using the current source file as the root.
     /// </summary>
     /// <returns>A new environment which can be used to evaluate results.</returns>
     public Environment CreateEnvironment()

@@ -1,6 +1,5 @@
 ﻿using Sunset.Parser.Errors;
 using Sunset.Parser.Lexing.Tokens;
-using Sunset.Parser.Parsing.Statements;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
 
@@ -12,9 +11,11 @@ namespace Sunset.Parser.Parsing.Declarations;
 public class ElementDeclaration(StringToken nameToken, IScope parentScope) : IScope, INamed
 {
     /// <summary>
-    /// An array of the token types that represent the various declaration containers that an element has, in order.
+    ///     An array of the token types that represent the various declaration containers that an element has, in order.
     /// </summary>
     public static readonly TokenType[] VariableContainerTokens = [TokenType.Input, TokenType.Output];
+
+    private Dictionary<TokenType, List<IDeclaration>>? _containers;
 
     /// <summary>
     ///     The group of inputs for the element.
@@ -26,34 +27,13 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
     /// </summary>
     public List<IDeclaration>? Outputs { get; private set; }
 
-    private Dictionary<TokenType, List<IDeclaration>>? _containers;
-
     /// <summary>
-    /// All declaration containers within the element
+    ///     All declaration containers within the element
     /// </summary>
     public Dictionary<TokenType, List<IDeclaration>> Containers
     {
         get => _containers ??= [];
         set => SetContainer(value);
-    }
-
-    /// <summary>
-    /// Updates the set of containers in this element declaration, including the input container,
-    /// output container and total child declaration dictionary.
-    /// </summary>
-    /// <param name="containers"></param>
-    private void SetContainer(Dictionary<TokenType, List<IDeclaration>> containers)
-    {
-        _containers = containers;
-        Inputs = containers[TokenType.Input];
-        Outputs = containers[TokenType.Output];
-        var allContainers = containers?.Values
-            .SelectMany(container => container)
-            .ToDictionary(declaration => declaration.Name);
-        if (allContainers != null)
-        {
-            ChildDeclarations = allContainers;
-        }
     }
 
     /// <summary>
@@ -79,5 +59,24 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
     public IDeclaration? TryGetDeclaration(string name)
     {
         return ChildDeclarations.GetValueOrDefault(name);
+    }
+
+    /// <summary>
+    ///     Updates the set of containers in this element declaration, including the input container,
+    ///     output container and total child declaration dictionary.
+    /// </summary>
+    /// <param name="containers"></param>
+    private void SetContainer(Dictionary<TokenType, List<IDeclaration>> containers)
+    {
+        _containers = containers;
+        Inputs = containers[TokenType.Input];
+        Outputs = containers[TokenType.Output];
+        var allContainers = containers?.Values
+            .SelectMany(container => container)
+            .ToDictionary(declaration => declaration.Name);
+        if (allContainers != null)
+        {
+            ChildDeclarations = allContainers;
+        }
     }
 }

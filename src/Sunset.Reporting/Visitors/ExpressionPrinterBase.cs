@@ -6,13 +6,12 @@ using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
-using Sunset.Quantities;
 using Sunset.Quantities.MathUtilities;
 
 namespace Sunset.Reporting.Visitors;
 
 /// <summary>
-/// Base class for printing expressions in Markdown.
+///     Base class for printing expressions in Markdown.
 /// </summary>
 public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationComponents components) : IVisitor<string>
 {

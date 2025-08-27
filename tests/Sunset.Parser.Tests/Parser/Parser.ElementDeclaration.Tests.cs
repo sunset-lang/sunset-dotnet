@@ -7,7 +7,7 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserElementDeclarationTests
 {
-    private DebugPrinter _printer = new();
+    private readonly DebugPrinter _printer = new();
 
     [Test]
     public void GetElementDeclaration_WithValidInput_CorrectDeclaration()
@@ -20,7 +20,7 @@ public class ParserElementDeclarationTests
                                             outputs:
                                                 Area <A> {mm^2} = Width * Length
                                         end
-                                        """, false);
+                                        """);
 
         var element = parser.GetElementDeclaration(new FileScope("$", null));
 
@@ -52,7 +52,7 @@ public class ParserElementDeclarationTests
                                                 Area <A> {mm^2} = 3.14 * Diameter ^ 2 / 4 
                                                 Circumference <c> {mm} = 3.14 * Diameter
                                         end
-                                        """, false);
+                                        """);
 
         var elements = parser.Parse(new FileScope("$", null));
 

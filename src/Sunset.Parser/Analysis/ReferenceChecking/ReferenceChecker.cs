@@ -11,13 +11,13 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Analysis.ReferenceChecking;
 
 /// <summary>
-/// Checks references in each function and whether there are cyclic references.
+///     Checks references in each function and whether there are cyclic references.
 /// </summary>
 public class ReferenceChecker
 {
     /// <summary>
-    /// The Visit functions pass down the visited nodes as parameters, which is used for cyclic reference checking.
-    /// They return the references which are cached when paths are visited multiple times.
+    ///     The Visit functions pass down the visited nodes as parameters, which is used for cyclic reference checking.
+    ///     They return the references which are cached when paths are visited multiple times.
     /// </summary>
     /// <param name="dest">The destination node of the visitor.</param>
     /// <param name="visited">The set of visited nodes.</param>
@@ -48,7 +48,9 @@ public class ReferenceChecker
         // For the dot operator only return the right most reference.
         // TODO: Double check whether this is the case or if parents should be considered as references as well
         if (dest.Operator == TokenType.Dot)
+        {
             return Visit(dest.Right, visited);
+        }
 
 
         // Return the union of the references from both sides of the expression

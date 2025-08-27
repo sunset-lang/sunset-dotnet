@@ -17,8 +17,10 @@ public class QuantityTests
         Assert.Multiple(() =>
         {
             Assert.That(additionResult.Value, Is.EqualTo(4).Within(0.001));
-            Assert.That((double)additionResult.Unit.UnitDimensions[(int)DimensionName.Length].Power, Is.EqualTo(1).Within(0.0001));
-            Assert.That(additionResult.Unit.UnitDimensions[(int)DimensionName.Length].Factor, Is.EqualTo(1).Within(0.001));
+            Assert.That((double)additionResult.Unit.UnitDimensions[(int)DimensionName.Length].Power,
+                Is.EqualTo(1).Within(0.0001));
+            Assert.That(additionResult.Unit.UnitDimensions[(int)DimensionName.Length].Factor,
+                Is.EqualTo(1).Within(0.001));
         });
     }
 
@@ -36,8 +38,10 @@ public class QuantityTests
             // Check value
             Assert.That(multiplicationResult.Value, Is.EqualTo(1750000).Within(0.001));
             // Check unit power and factor
-            Assert.That((double)multiplicationResult.Unit.UnitDimensions[(int)DimensionName.Length].Power, Is.EqualTo(2).Within(0.0001));
-            Assert.That(multiplicationResult.Unit.UnitDimensions[(int)DimensionName.Length].Factor, Is.EqualTo(0.001).Within(0.001));
+            Assert.That((double)multiplicationResult.Unit.UnitDimensions[(int)DimensionName.Length].Power,
+                Is.EqualTo(2).Within(0.0001));
+            Assert.That(multiplicationResult.Unit.UnitDimensions[(int)DimensionName.Length].Factor,
+                Is.EqualTo(0.001).Within(0.001));
 
             // Check overall quantity
             Assert.That(multiplicationResult, Is.EqualTo(expectedResult));

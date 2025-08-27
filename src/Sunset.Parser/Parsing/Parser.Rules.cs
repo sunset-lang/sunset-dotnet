@@ -1,10 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Reflection.Metadata.Ecma335;
-using Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
 using Sunset.Parser.Parsing.Constants;
-using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Parsing;
 
@@ -45,32 +42,38 @@ public partial class Parser
         throw new Exception($"Token type {type} not found in parsing rules");
     }
 
-    private static IExpression Grouping(Parser parser)
+    private static GroupingExpression Grouping(Parser parser)
     {
         var openToken = parser.Consume(TokenType.OpenParenthesis);
         var expression = parser.GetExpression();
         var closeToken = parser.Consume(TokenType.CloseParenthesis);
+        if (openToken == null)
+        {
+            throw new Exception("Expected an opening parenthesis");
+        }
+
         return new GroupingExpression(openToken, closeToken, expression);
     }
 
-    private static IExpression Unary(Parser parser)
+    private static UnaryExpression Unary(Parser parser)
     {
         if (parser.Consume(TokenType.Minus) is not Token operatorToken) throw new Exception("Expected a minus token");
         var operand = parser.GetExpression(Precedence.Unary);
         return new UnaryExpression(operatorToken, operand);
     }
 
-    private static IExpression Access(Parser parser, IExpression left)
+    private static BinaryExpression Access(Parser parser, IExpression left)
     {
         if (parser.Consume(TokenType.Dot) is not Token operatorToken) throw new Exception("Expected a dot token");
         var operand = parser.GetExpression(Precedence.Call);
         return new BinaryExpression(operatorToken, left, operand);
     }
 
-    private static IExpression UnitAssignment(Parser parser, IExpression left)
+    private static UnitAssignmentExpression UnitAssignment(Parser parser, IExpression left)
     {
         parser._inUnitExpression = true;
         var openToken = parser.Consume(TokenType.OpenBrace);
+        if (openToken == null) throw new Exception("Expected an opening parenthesis");
         var expression = parser.GetExpression();
         var closeToken = parser.Consume(TokenType.CloseBrace);
         parser._inUnitExpression = false;
@@ -83,7 +86,7 @@ public partial class Parser
         throw new NotImplementedException();
     }
 
-    private static IExpression Binary(Parser parser, IExpression left)
+    private static BinaryExpression Binary(Parser parser, IExpression left)
     {
         if (parser._current is not Token operatorToken) throw new Exception("Expected an operator token");
 
@@ -92,10 +95,13 @@ public partial class Parser
         return new BinaryExpression(operatorToken, left, right);
     }
 
-    private static IExpression ImplicitMultiplication(Parser parser, IExpression left)
+    private static BinaryExpression ImplicitMultiplication(Parser parser, IExpression left)
     {
         if (parser._current is not StringToken && parser._current.Type != TokenType.NamedUnit)
+        {
             throw new Exception("Expected a string token of type NamedUnit");
+        }
+
         var right = parser.GetExpression(GetInfixTokenPrecedence(TokenType.Multiply));
 
         var implicitMultiplicationToken = new Token(TokenType.Multiply,
@@ -109,21 +115,21 @@ public partial class Parser
             right);
     }
 
-    private static IExpression Name(Parser parser)
+    private static NameExpression Name(Parser parser)
     {
         if (parser.Consume(TokenType.Identifier) is StringToken token) return new NameExpression(token);
 
         throw new Exception("Expected a string token");
     }
 
-    private static IExpression Unit(Parser parser)
+    private static UnitConstant Unit(Parser parser)
     {
         if (parser.Consume(TokenType.NamedUnit) is StringToken token) return new UnitConstant(token);
 
         throw new Exception("Expected a string token");
     }
 
-    private static IExpression Call(Parser parser, IExpression left)
+    private static CallExpression Call(Parser parser, IExpression left)
     {
         // Consume opening parenthesis
         parser.Consume(TokenType.OpenParenthesis, false, true);
@@ -147,14 +153,14 @@ public partial class Parser
         return new CallExpression(left, arguments);
     }
 
-    private static IExpression String(Parser parser)
+    private static StringConstant String(Parser parser)
     {
         if (parser.Consume(TokenType.String) is StringToken token) return new StringConstant(token);
 
         throw new Exception("Expected a string token");
     }
 
-    private static IExpression Number(Parser parser)
+    private static NumberConstant Number(Parser parser)
     {
         if (parser.Consume(TokenType.Number) is INumberToken token) return new NumberConstant(token);
 

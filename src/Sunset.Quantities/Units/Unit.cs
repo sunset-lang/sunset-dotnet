@@ -67,7 +67,7 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
 
     /// <summary>
     ///     The dimensions of the unit. Each dimension has a power and a factor.
-    ///     <seealso cref="Dimension"/>
+    ///     <seealso cref="Dimension" />
     /// </summary>
     public ImmutableArray<Dimension> UnitDimensions { get; protected internal set; } = [..Dimension.DimensionlessSet()];
 
@@ -97,7 +97,7 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     }
 
     /// <summary>
-    /// The units that apply to only one dimensions, e.g. metres, kilograms, millimetres.
+    ///     The units that apply to only one dimensions, e.g. metres, kilograms, millimetres.
     /// </summary>
     public bool IsBaseUnit
     {
@@ -111,17 +111,17 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     }
 
     /// <summary>
-    /// The units that have been assigned a special name, e.g. metres, millimetres, pascals, kilopascals.
+    ///     The units that have been assigned a special name, e.g. metres, millimetres, pascals, kilopascals.
     /// </summary>
     public bool IsNamedUnit => this is NamedUnit;
 
     /// <summary>
-    /// Units where there are no multipliers applied to the dimensions, e.g. metres, kilograms, pascals
+    ///     Units where there are no multipliers applied to the dimensions, e.g. metres, kilograms, pascals
     /// </summary>
     public bool IsCoherentUnit => UnitDimensions.All(d => d.Factor - 1 < 1e-14);
 
     /// <summary>
-    /// All units that have more than one active dimension, e.g. newtons, pascals, joules.
+    ///     All units that have more than one active dimension, e.g. newtons, pascals, joules.
     /// </summary>
     public bool IsDerivedUnit => !IsBaseUnit;
 
@@ -168,8 +168,12 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     public static bool EqualDimensions(Unit left, Unit right)
     {
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        {
             if (left.UnitDimensions[i].Power != right.UnitDimensions[i].Power)
+            {
                 return false;
+            }
+        }
 
         return true;
     }
@@ -199,9 +203,13 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         // (LengthFactor = 1), the factor should be (1/0.001)^2 = 1,000,000
 
         for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        {
             if (UnitDimensions[i].Power != 0)
+            {
                 factor *= Math.Pow(UnitDimensions[i].Factor / target.UnitDimensions[i].Factor,
                     UnitDimensions[i].Power);
+            }
+        }
 
         return factor;
     }

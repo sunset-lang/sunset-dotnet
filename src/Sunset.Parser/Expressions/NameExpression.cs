@@ -1,13 +1,11 @@
 ﻿using System.Diagnostics;
-using Sunset.Parser.Errors;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Declarations;
-using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
 /// <summary>
-/// A name that can be resolved to point to a declaration.
+///     A name that can be resolved to point to a declaration.
 /// </summary>
 /// <param name="nameToken">Token containing the name.</param>
 [DebuggerDisplay("{Name}")]

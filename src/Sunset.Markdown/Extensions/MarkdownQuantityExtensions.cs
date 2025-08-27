@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
-using Sunset.Quantities;
 using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Quantities;
 using Sunset.Reporting;
@@ -64,7 +63,7 @@ public static class MarkdownQuantityExtensions
     }
 
     /// <summary>
-    /// Prints all variables within a scope, showing the evaluated default values.
+    ///     Prints all variables within a scope, showing the evaluated default values.
     /// </summary>
     public static string PrintDefaultValues(this IScope scope)
     {

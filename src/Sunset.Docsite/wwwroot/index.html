@@ -3,19 +3,22 @@
 
 <head>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>The Sunset Language</title>
     <base href="/"/>
-    <link rel="stylesheet" href="css/app.css"/>
-    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link href="css/app.css" rel="stylesheet"/>
+    <link href="favicon.png" rel="icon" type="image/png"/>
     <link href="Sunset.Docsite.styles.css" rel="stylesheet"/>
 
     <!-- Load KaTeX -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.css"
-          integrity="sha384-o3WH+1yEhq+grOgz1BVYTZPyTlMXrDxnjN1By9/ba94JqJhva6wFm2Hb+URQX53v" crossorigin="anonymous">
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.css"
+          integrity="sha384-o3WH+1yEhq+grOgz1BVYTZPyTlMXrDxnjN1By9/ba94JqJhva6wFm2Hb+URQX53v" rel="stylesheet">
 
     <!-- Load MudBlazor -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+          rel="stylesheet">
     <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
     <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet"/>
 </head>
@@ -23,15 +26,15 @@
 <body>
 <div id="app">
     <svg class="loading-progress">
-        <circle r="40%" cx="50%" cy="50%"/>
-        <circle r="40%" cx="50%" cy="50%"/>
+        <circle cx="50%" cy="50%" r="40%"/>
+        <circle cx="50%" cy="50%" r="40%"/>
     </svg>
     <div class="loading-progress-text"></div>
 </div>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
+    <a class="reload" href=".">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
 <script src="_framework/blazor.webassembly.js"></script>

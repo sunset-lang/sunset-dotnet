@@ -1,12 +1,12 @@
 ﻿namespace Sunset.Parser.Visitors;
 
 /// <summary>
-/// Extension methods for accessing the pass data dictionary within AST nodes.
+///     Extension methods for accessing the pass data dictionary within AST nodes.
 /// </summary>
 public static class PassDataExtensions
 {
     /// <summary>
-    /// Gets pass data from an AST node or creates a new instance of the pass data if required.
+    ///     Gets pass data from an AST node or creates a new instance of the pass data if required.
     /// </summary>
     /// <param name="node">Node to get data from.</param>
     /// <param name="passDataKey">Key to use for accessing pass data.</param>

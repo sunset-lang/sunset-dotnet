@@ -1,5 +1,4 @@
-﻿using Sunset.Parser.Errors;
-using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.ReferenceChecking;
@@ -9,7 +8,7 @@ public static class ReferenceCheckExtensions
     private const string PassDataKey = "ReferenceChecker";
 
     /// <summary>
-    /// Returns a shallow copy of the references stored in the node's metadata.
+    ///     Returns a shallow copy of the references stored in the node's metadata.
     /// </summary>
     public static HashSet<IDeclaration>? GetReferences(this IVisitable dest)
     {
@@ -20,7 +19,7 @@ public static class ReferenceCheckExtensions
     }
 
     /// <summary>
-    /// Sets the reference metadata.
+    ///     Sets the reference metadata.
     /// </summary>
     public static void SetReferences(this IVisitable dest, HashSet<IDeclaration>? references)
     {

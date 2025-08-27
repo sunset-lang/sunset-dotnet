@@ -5,7 +5,7 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Scopes;
 
 /// <summary>
-/// The scope that is contained within a file.
+///     The scope that is contained within a file.
 /// </summary>
 /// <param name="name">Name of the file.</param>
 /// <param name="parentScope">The parent scope to this file, which can be either a module or library.</param>

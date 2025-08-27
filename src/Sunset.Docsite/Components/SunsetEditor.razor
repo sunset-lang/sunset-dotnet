@@ -1,11 +1,9 @@
-﻿@using BlazorMonaco
-@using BlazorMonaco.Editor
-@using Sunset.Markdown
-@using Sunset.Markdown.Extensions
-@using Sunset.Parser
-@using Sunset.Parser.Scopes
-@inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 
+@using BlazorMonaco
+@using BlazorMonaco.Editor
+@using Sunset.Markdown.Extensions
+@using Sunset.Parser.Scopes
 @implements IAsyncDisposable
 
 <MudCard Class="mb-4 mud-background-gray">
@@ -28,27 +26,27 @@
 @code{
 
     /// <summary>
-    /// The code editor
+    ///     The code editor
     /// </summary>
     private StandaloneCodeEditor _editor = new();
 
     /// <summary>
-    /// The output text
+    ///     The output text
     /// </summary>
     private string _outputText = string.Empty;
 
     /// <summary>
-    /// The interop module containing the KaTeX rendering code.
+    ///     The interop module containing the KaTeX rendering code.
     /// </summary>
     private IJSObjectReference? _module;
 
     /// <summary>
-    /// The element to which KaTeX renders the equations.
+    ///     The element to which KaTeX renders the equations.
     /// </summary>
     private ElementReference? _renderedOutputElement;
 
     /// <summary>
-    /// Loads the rendering interop module.
+    ///     Loads the rendering interop module.
     /// </summary>
     /// <param name="firstRender"></param>
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -62,19 +60,19 @@
     }
 
     /// <summary>
-    /// Assemble editor options.
+    ///     Assemble editor options.
     /// </summary>
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
         return new StandaloneEditorConstructionOptions
         {
             AutomaticLayout = true,
-            Value = "x = 12",
+            Value = "x = 12"
         };
     }
 
     /// <summary>
-    /// Compiles and executes the code in the editor.
+    ///     Compiles and executes the code in the editor.
     /// </summary>
     private async Task RunCode()
     {
@@ -104,7 +102,7 @@
     }
 
     /// <summary>
-    /// Clean up imported module.
+    ///     Clean up imported module.
     /// </summary>
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
@@ -121,7 +119,7 @@
     }
 
     /// <summary>
-    /// Render the raw output to the screen.
+    ///     Render the raw output to the screen.
     /// </summary>
     /// <param name="output">Raw output to be rendered.</param>
     /// <returns></returns>
@@ -132,7 +130,7 @@
     }
 
     /// <summary>
-    /// Re-run the code and display the output whenever there is a keypress in the editor.
+    ///     Re-run the code and display the output whenever there is a keypress in the editor.
     /// </summary>
     private async Task EditorKeyUp(KeyboardEvent arg)
     {

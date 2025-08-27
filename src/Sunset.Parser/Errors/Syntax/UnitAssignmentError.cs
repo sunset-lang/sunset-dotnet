@@ -5,10 +5,6 @@ namespace Sunset.Parser.Errors.Syntax;
 
 public class UnitAssignmentError : ISemanticError
 {
-    public string Message => "Cannot assign units to anything other than a variable that calculates a number.";
-    public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; }
-
     public UnitAssignmentError(UnitAssignmentExpression expression)
     {
         var tokens = new List<IToken>();
@@ -26,4 +22,8 @@ public class UnitAssignmentError : ISemanticError
 
         Tokens = tokens.ToArray();
     }
+
+    public string Message => "Cannot assign units to anything other than a variable that calculates a number.";
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken[]? Tokens { get; }
 }

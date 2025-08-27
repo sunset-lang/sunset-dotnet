@@ -34,6 +34,9 @@ public class NameResolver : INameResolver
             case CallExpression callExpression:
                 Visit(callExpression, parentScope);
                 break;
+            case Argument argument:
+                Visit(argument, parentScope);
+                break;
             case VariableDeclaration variableAssignmentExpression:
                 Visit(variableAssignmentExpression, parentScope);
                 break;
@@ -163,9 +166,15 @@ public class NameResolver : INameResolver
         var parentElement = dest.Target.GetResolvedDeclaration() as ElementDeclaration;
         foreach (var argument in dest.Arguments)
         {
-            Visit(argument.ArgumentName, parentElement ?? parentScope);
-            Visit(argument.Expression, parentScope);
+            Visit(argument, parentScope, parentElement);
         }
+    }
+
+    private void Visit(Argument dest, IScope parentScope, IScope? parentElement = null)
+    {
+        // TODO: Consider edge cases where this doesn't apply
+        Visit(dest.ArgumentName, parentElement ?? parentScope);
+        Visit(dest.Expression, parentScope);
     }
 
     private void Visit(VariableDeclaration dest, IScope parentScope)

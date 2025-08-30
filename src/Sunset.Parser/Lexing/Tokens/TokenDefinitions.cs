@@ -10,7 +10,7 @@ public static class TokenDefinitions
         { '/', TokenType.Divide },
         { '%', TokenType.Modulo },
         { '^', TokenType.Power },
-        { '=', TokenType.Assignment },
+        { '=', TokenType.Equal },
         { '<', TokenType.OpenAngleBracket },
         { '>', TokenType.CloseAngleBracket },
         { '(', TokenType.OpenParenthesis },
@@ -30,7 +30,6 @@ public static class TokenDefinitions
     public static readonly Dictionary<(char firstCharacter, char secondCharacter), TokenType> DoubleCharacterTokens =
         new()
         {
-            { ('=', '='), TokenType.Equal },
             { ('!', '='), TokenType.NotEqual },
             { ('#', '#'), TokenType.Documentation },
             { ('s', ':'), TokenType.SymbolAssignment },
@@ -40,13 +39,25 @@ public static class TokenDefinitions
             { ('\r', '\n'), TokenType.Newline }
         };
 
+
+    /// <summary>
+    /// Additional string representation of tokens that are not used in lexer but require a string representation.
+    /// </summary>
+    public static readonly Dictionary<TokenType, string> AliasedTokens = new()
+    {
+        { TokenType.LessThan, "<" },
+        { TokenType.GreaterThan, ">" },
+        { TokenType.LessThanOrEqual, "<=" },
+        { TokenType.GreaterThanOrEqual, ">=" }
+    };
+
     public static readonly Dictionary<string, TokenType> Keywords = new()
     {
         { "define", TokenType.Define },
         { "inputs", TokenType.Input },
         { "outputs", TokenType.Output },
         { "if", TokenType.If },
-        { "else", TokenType.Else },
+        { "otherwise", TokenType.Otherwise },
         { "end", TokenType.End },
         { "is", TokenType.TypeEquality },
         { "not", TokenType.TypeInequalityModifier },

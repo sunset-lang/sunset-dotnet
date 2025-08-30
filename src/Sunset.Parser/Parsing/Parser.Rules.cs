@@ -14,8 +14,10 @@ public partial class Parser
         {
             { TokenType.Equal, (null, Binary, Precedence.Equality) },
             { TokenType.NotEqual, (null, Binary, Precedence.Equality) },
+            { TokenType.OpenAngleBracket, (null, Binary, Precedence.Comparison) },
             { TokenType.LessThan, (null, Binary, Precedence.Comparison) },
             { TokenType.LessThanOrEqual, (null, Binary, Precedence.Comparison) },
+            { TokenType.CloseAngleBracket, (null, Binary, Precedence.Comparison) },
             { TokenType.GreaterThan, (null, Binary, Precedence.Comparison) },
             { TokenType.GreaterThanOrEqual, (null, Binary, Precedence.Comparison) },
             { TokenType.Plus, (null, Binary, Precedence.Addition) },
@@ -45,7 +47,7 @@ public partial class Parser
     private static GroupingExpression Grouping(Parser parser)
     {
         var openToken = parser.Consume(TokenType.OpenParenthesis);
-        var expression = parser.GetExpression();
+        var expression = parser.GetArithmeticExpression();
         var closeToken = parser.Consume(TokenType.CloseParenthesis);
         if (openToken == null)
         {
@@ -58,14 +60,14 @@ public partial class Parser
     private static UnaryExpression Unary(Parser parser)
     {
         if (parser.Consume(TokenType.Minus) is not Token operatorToken) throw new Exception("Expected a minus token");
-        var operand = parser.GetExpression(Precedence.Unary);
+        var operand = parser.GetArithmeticExpression(Precedence.Unary);
         return new UnaryExpression(operatorToken, operand);
     }
 
     private static BinaryExpression Access(Parser parser, IExpression left)
     {
         if (parser.Consume(TokenType.Dot) is not Token operatorToken) throw new Exception("Expected a dot token");
-        var operand = parser.GetExpression(Precedence.Call);
+        var operand = parser.GetArithmeticExpression(Precedence.Call);
         return new BinaryExpression(operatorToken, left, operand);
     }
 
@@ -74,7 +76,7 @@ public partial class Parser
         parser._inUnitExpression = true;
         var openToken = parser.Consume(TokenType.OpenBrace);
         if (openToken == null) throw new Exception("Expected an opening parenthesis");
-        var expression = parser.GetExpression();
+        var expression = parser.GetArithmeticExpression();
         var closeToken = parser.Consume(TokenType.CloseBrace);
         parser._inUnitExpression = false;
         return new UnitAssignmentExpression(openToken, closeToken, left, expression);
@@ -88,10 +90,47 @@ public partial class Parser
 
     private static BinaryExpression Binary(Parser parser, IExpression left)
     {
+        // TODO: This could be handled better with Consume
         if (parser._current is not Token operatorToken) throw new Exception("Expected an operator token");
 
+        // Check for <= and >= operators. This is not a double character token to avoid issues with symbol assignments next 
+        // to the assignment operators, e.g. <x> = 1 being different to <x>=1
+        if (operatorToken.Type is TokenType.OpenAngleBracket or TokenType.CloseAngleBracket)
+        {
+            var nextToken = parser.Peek();
+            if (nextToken is { Type: TokenType.Equal })
+            {
+                operatorToken = operatorToken.Type switch
+
+                {
+                    TokenType.OpenAngleBracket =>
+                        new Token(TokenType.LessThanOrEqual, operatorToken.PositionStart,
+                            nextToken.PositionStart, operatorToken.LineStart, operatorToken.ColumnStart),
+                    TokenType.CloseAngleBracket =>
+                        new Token(TokenType.GreaterThanOrEqual, operatorToken.PositionStart,
+                            nextToken.PositionStart, operatorToken.LineStart, operatorToken.ColumnStart),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                // Move one step forward to avoid consuming the equal sign
+                parser.Advance();
+            }
+            else
+            {
+                // Change the operator token type to less than or greater than to avoid issues with the parser
+                operatorToken = operatorToken.Type switch
+                {
+                    TokenType.OpenAngleBracket => new Token(TokenType.LessThan, operatorToken.PositionStart,
+                        operatorToken.PositionEnd, operatorToken.LineStart, operatorToken.ColumnStart),
+                    TokenType.CloseAngleBracket => new Token(TokenType.GreaterThan, operatorToken.PositionStart,
+                        operatorToken.PositionEnd, operatorToken.LineStart, operatorToken.ColumnStart),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+        }
+
         parser.Advance();
-        var right = parser.GetExpression(GetInfixTokenPrecedence(operatorToken.Type));
+        var right = parser.GetArithmeticExpression(GetInfixTokenPrecedence(operatorToken.Type));
         return new BinaryExpression(operatorToken, left, right);
     }
 
@@ -102,7 +141,7 @@ public partial class Parser
             throw new Exception("Expected a string token of type NamedUnit");
         }
 
-        var right = parser.GetExpression(GetInfixTokenPrecedence(TokenType.Multiply));
+        var right = parser.GetArithmeticExpression(GetInfixTokenPrecedence(TokenType.Multiply));
 
         var implicitMultiplicationToken = new Token(TokenType.Multiply,
             parser._current.PositionStart,

@@ -18,7 +18,7 @@ public enum TokenType
 
     // Keywords
     If, // if
-    Else, // else
+    Otherwise, // otherwise
     End, // end
 
     String, // ".*"
@@ -38,10 +38,9 @@ public enum TokenType
     Divide, // /
     Modulo, // %
     Power, // ^
-    Assignment, // =
+    Equal, // =
 
     // Equality
-    Equal, // ==
     NotEqual, // !=
     GreaterThan, // >
     GreaterThanOrEqual, // >=

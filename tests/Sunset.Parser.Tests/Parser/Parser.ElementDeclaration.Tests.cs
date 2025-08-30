@@ -25,10 +25,13 @@ public class ParserElementDeclarationTests
         var element = parser.GetElementDeclaration(new FileScope("$", null));
 
         Assert.That(element, Is.Not.Null);
-        Assert.That(element.Name, Is.EqualTo("Square"));
-        Assert.That(element.ChildDeclarations.ContainsKey("Width"), Is.True);
-        Assert.That(element.ChildDeclarations.ContainsKey("Length"), Is.True);
-        Assert.That(element.ChildDeclarations.ContainsKey("Area"), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(element.Name, Is.EqualTo("Square"));
+            Assert.That(element.ChildDeclarations.ContainsKey("Width"), Is.True);
+            Assert.That(element.ChildDeclarations.ContainsKey("Length"), Is.True);
+            Assert.That(element.ChildDeclarations.ContainsKey("Area"), Is.True);
+        });
 
         Console.WriteLine(_printer.PrintElementDeclaration(element));
     }
@@ -58,17 +61,23 @@ public class ParserElementDeclarationTests
 
         var squareElement = elements.OfType<ElementDeclaration>().FirstOrDefault(e => e.Name == "Square");
         Assert.That(squareElement, Is.Not.Null);
-        Assert.That(squareElement.Name, Is.EqualTo("Square"));
-        Assert.That(squareElement.ChildDeclarations.ContainsKey("Width"), Is.True);
-        Assert.That(squareElement.ChildDeclarations.ContainsKey("Length"), Is.True);
-        Assert.That(squareElement.ChildDeclarations.ContainsKey("Area"), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(squareElement.Name, Is.EqualTo("Square"));
+            Assert.That(squareElement.ChildDeclarations.ContainsKey("Width"), Is.True);
+            Assert.That(squareElement.ChildDeclarations.ContainsKey("Length"), Is.True);
+            Assert.That(squareElement.ChildDeclarations.ContainsKey("Area"), Is.True);
+        });
 
         var circleElement = elements.OfType<ElementDeclaration>().FirstOrDefault(e => e.Name == "Circle");
         Assert.That(circleElement, Is.Not.Null);
-        Assert.That(circleElement.Name, Is.EqualTo("Circle"));
-        Assert.That(circleElement.ChildDeclarations.ContainsKey("Diameter"), Is.True);
-        Assert.That(circleElement.ChildDeclarations.ContainsKey("Area"), Is.True);
-        Assert.That(circleElement.ChildDeclarations.ContainsKey("Circumference"), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(circleElement.Name, Is.EqualTo("Circle"));
+            Assert.That(circleElement.ChildDeclarations.ContainsKey("Diameter"), Is.True);
+            Assert.That(circleElement.ChildDeclarations.ContainsKey("Area"), Is.True);
+            Assert.That(circleElement.ChildDeclarations.ContainsKey("Circumference"), Is.True);
+        });
 
         Console.WriteLine(_printer.PrintElementDeclaration(squareElement));
         Console.WriteLine(_printer.PrintElementDeclaration(circleElement));

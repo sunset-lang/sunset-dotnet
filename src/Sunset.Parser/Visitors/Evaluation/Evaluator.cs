@@ -95,13 +95,23 @@ public class Evaluator : IVisitor<IResult?>
                 TokenType.Divide => leftQuantity / rightQuantity,
                 // TODO: Check types for the power operator
                 TokenType.Power => leftQuantity.Pow(rightQuantity.Value),
-                _ => throw new NotImplementedException()
+                _ => null
             };
+            if (binaryResult != null) return new QuantityResult(binaryResult);
+            bool? comparisonResult = dest.Operator switch
+            {
+                TokenType.Equal => Equals(leftQuantity, rightQuantity),
+                TokenType.NotEqual => !Equals(leftQuantity, rightQuantity),
+                TokenType.LessThan => leftQuantity < rightQuantity,
+                TokenType.LessThanOrEqual => leftQuantity <= rightQuantity,
+                TokenType.GreaterThan => leftQuantity > rightQuantity,
+                TokenType.GreaterThanOrEqual => leftQuantity >= rightQuantity,
+                _ => null
+            };
+            if (comparisonResult != null) return new BooleanResult(comparisonResult.Value);
             // Occurs whenever the results are not valid
             // Assumes that a typing error is picked up in the type checker
-            if (binaryResult == null) return null;
-
-            return new QuantityResult(binaryResult);
+            return null;
         }
 
         dest.AddError(new OperationError(dest));
@@ -152,9 +162,35 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult Visit(IfExpression dest, IScope? currentScope)
+    private IResult? Visit(IfExpression dest, IScope? currentScope)
     {
-        throw new NotImplementedException();
+        foreach (var branch in dest.Branches)
+        {
+            // Evaluate the conditions for the if branches first
+            if (branch is IfBranch ifBranch)
+            {
+                var result = Visit(ifBranch.Condition, currentScope);
+                if (result is not BooleanResult booleanResult)
+                {
+                    // TODO: Add typing error to deal with this
+                    throw new Exception("If condition is not a boolean");
+                }
+
+                // If true, the branch is executed and returned
+                if (booleanResult.Result)
+                {
+                    return Visit(ifBranch.Body);
+                }
+            }
+            // TODO: This should have an error if the otherwise branch is not the last branch
+            else if (branch is OtherwiseBranch otherwiseBranch)
+            {
+                return Visit(otherwiseBranch.Body);
+            }
+        }
+
+        // TODO: Throw an error if this is not reached
+        return null;
     }
 
     private IResult? Visit(UnitAssignmentExpression dest, IScope? currentScope)

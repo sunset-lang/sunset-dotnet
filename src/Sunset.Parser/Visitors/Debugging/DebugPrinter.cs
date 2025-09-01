@@ -73,6 +73,7 @@ public class DebugPrinter : IVisitor<string>
 
     private string Visit(IfExpression dest)
     {
+        return "IF!";
         throw new NotImplementedException();
     }
 

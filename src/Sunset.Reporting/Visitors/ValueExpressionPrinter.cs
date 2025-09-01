@@ -38,6 +38,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
 
     protected override string Visit(IfExpression dest)
     {
+        return "IF!";
         throw new NotImplementedException();
     }
 

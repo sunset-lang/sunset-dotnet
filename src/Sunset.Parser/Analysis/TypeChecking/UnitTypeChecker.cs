@@ -90,7 +90,7 @@ public class UnitTypeChecker : IVisitor<Unit?>
 
                 if (arithmeticResult.Valid) return arithmeticResult;
 
-                dest.AddError(new UnitMismatchError(dest));
+                dest.AddError(new BinaryUnitMismatchError(dest));
                 return null;
             }
             default:
@@ -122,9 +122,32 @@ public class UnitTypeChecker : IVisitor<Unit?>
         }
     }
 
-    private static Unit Visit(IfExpression dest)
+    private Unit? Visit(IfExpression dest)
     {
-        throw new NotImplementedException();
+        Unit? unit = null;
+        var error = false;
+        foreach (var branch in dest.Branches)
+        {
+            var branchUnit = Visit(branch.Body);
+            if (branchUnit == null) continue;
+            // TODO: Add error for null branch unit
+            if (unit == null)
+            {
+                unit = branchUnit;
+            }
+            else
+            {
+                // Check for unit compatibility
+                if (Unit.EqualDimensions(unit, branchUnit)) continue;
+
+                // If not compatible, add an error
+                dest.AddError(new IfUnitMismatchError(dest));
+                error = true;
+            }
+            // TODO: Check types of if branches
+        }
+
+        return error ? null : unit;
     }
 
     private Unit? Visit(UnitAssignmentExpression dest)

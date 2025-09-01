@@ -374,7 +374,7 @@ public partial class Parser
 
         Consume(TokenType.Equal);
 
-        var expression = GetArithmeticExpression();
+        var expression = GetExpression();
         // TODO: Get the metadata information after the expression
 
         // Always end a variable declaration with a new line.

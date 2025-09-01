@@ -35,6 +35,7 @@ public abstract class SymbolExpressionPrinter(
 
     protected override string Visit(IfExpression dest)
     {
+        return "IF!";
         throw new NotImplementedException();
     }
 

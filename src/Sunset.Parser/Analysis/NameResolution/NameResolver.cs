@@ -156,7 +156,14 @@ public class NameResolver : INameResolver
 
     private void Visit(IfExpression dest, IScope parentScope)
     {
-        throw new NotImplementedException();
+        foreach (var branch in dest.Branches)
+        {
+            Visit(branch.Body, parentScope);
+            if (branch is IfBranch ifBranch)
+            {
+                Visit(ifBranch.Condition, parentScope);
+            }
+        }
     }
 
     private void Visit(CallExpression dest, IScope parentScope)

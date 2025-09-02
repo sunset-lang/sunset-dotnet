@@ -1,6 +1,8 @@
 ﻿using Sunset.Markdown.Extensions;
+using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
 
@@ -24,7 +26,11 @@ public class IfExpressionTests
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
-        Assert.Fail();
-        // TODO: Finish off printing of expressions and debugging results
+        var fileScope = environment.ChildScopes["$file"];
+        var result = fileScope.ChildDeclarations["z"].GetResult(fileScope);
+        if (result is QuantityResult quantityResult)
+        {
+            Assert.That(quantityResult.Result.Value, Is.EqualTo(27));
+        }
     }
 }

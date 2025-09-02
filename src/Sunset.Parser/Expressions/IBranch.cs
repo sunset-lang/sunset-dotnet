@@ -1,9 +1,11 @@
-﻿namespace Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Visitors;
+
+namespace Sunset.Parser.Expressions;
 
 /// <summary>
 /// Represents a branch of an 'if' expression.
 /// </summary>
-public interface IBranch
+public interface IBranch : IVisitable
 {
     /// <summary>
     /// The body of the branch.

@@ -101,7 +101,11 @@ public class ReferenceChecker
 
         foreach (var branch in dest.Branches)
         {
-            references.UnionWith(Visit(branch.Body, visited) ?? []);
+            // Store the body references within the branch so that the symbol printing can skip constants
+            var bodyReferences = Visit(branch.Body, visited);
+            branch.SetReferences(bodyReferences);
+
+            references.UnionWith(bodyReferences ?? []);
             if (branch is IfBranch ifBranch)
             {
                 references.UnionWith(Visit(ifBranch.Condition, visited) ?? []);

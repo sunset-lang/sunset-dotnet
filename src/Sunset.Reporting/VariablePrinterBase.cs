@@ -4,6 +4,7 @@ using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Reporting.Visitors;
+using Environment = Sunset.Parser.Scopes.Environment;
 
 namespace Sunset.Reporting;
 
@@ -71,7 +72,7 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
             result += _eq.Newline;
         }
 
-
+        // TODO: Don't report constant value expressions
         result += _eq.AlignEquals + ReportValueExpression(variable) + _eq.Newline;
         result += _eq.AlignEquals + ReportDefaultValue(variable) + _eq.Linebreak;
 
@@ -86,7 +87,8 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
     {
         // Example output for density calculation
         // \frac{m}{V}
-        return SymbolPrinter.Visit(variable.Declaration.Expression);
+        return SymbolPrinter.Visit(variable.Declaration.Expression,
+            variable.Declaration.ParentScope ?? new Environment());
     }
 
     /// <summary>
@@ -99,7 +101,8 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
     {
         // Example output for density calculation
         // \frac{20 \text{ kg}}{10 \text{ m}^{3}}
-        return ValuePrinter.Visit(variable.Declaration.Expression);
+        return ValuePrinter.Visit(variable.Declaration.Expression,
+            variable.Declaration.ParentScope ?? new Environment());
     }
 
     /// <summary>

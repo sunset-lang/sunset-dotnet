@@ -39,7 +39,7 @@ public class IfExpressionTests
     {
         var sourceFile = SourceFile.FromString("""
                                                x = 30
-                                               y = 10 if x > 12
+                                               y = 10 if x < 12
                                                  = 15 if x >= 30
                                                  = 20 otherwise
                                                """);

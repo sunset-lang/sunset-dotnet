@@ -19,6 +19,7 @@ public abstract class EquationComponents
     public abstract string EndCases { get; }
     public abstract string GreaterThanOrEqual { get; }
     public abstract string LessThanOrEqual { get; }
+    public abstract string DoubleRightArrow { get; }
 
     /// <summary>
     ///     Displays a value as text
@@ -34,6 +35,6 @@ public abstract class EquationComponents
     public abstract string Power(string baseValue, string exponent);
     public abstract string WrapParenthesis(string expression);
     public abstract string Reference(string reference);
-    public abstract string IfBranch(string body, string condition);
+    public abstract string IfBranch(string body, string condition, string? evaluatedCondition, bool? result);
     public abstract string OtherwiseBranch(string body);
 }

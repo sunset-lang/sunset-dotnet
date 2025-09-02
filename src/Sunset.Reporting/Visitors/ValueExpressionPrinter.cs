@@ -1,8 +1,10 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Quantities;
@@ -15,12 +17,12 @@ namespace Sunset.Reporting.Visitors;
 public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationComponents components)
     : ExpressionPrinterBase(settings, components)
 {
-    protected override string Visit(BinaryExpression dest)
+    protected override string Visit(BinaryExpression dest, IScope currentScope)
     {
-        return VisitBinaryExpression(dest, false);
+        return VisitBinaryExpression(dest, currentScope, false);
     }
 
-    protected override string Visit(NameExpression dest)
+    protected override string Visit(NameExpression dest, IScope currentScope)
     {
         switch (dest.GetResolvedDeclaration())
         {
@@ -36,13 +38,18 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         }
     }
 
-    protected override string Visit(IfExpression dest)
+    protected override string Visit(IfExpression dest, IScope currentScope)
     {
-        return "IF!";
-        throw new NotImplementedException();
+        if (dest.GetResult(currentScope) is BranchResult evaluatedBranch)
+        {
+            // Note: reference checking is done in the variable printer as it can then choose not to display the equals sign
+            return Visit(evaluatedBranch.Result.Body, currentScope);
+        }
+
+        return "Error! No branch is evaluated.";
     }
 
-    protected override string Visit(UnitAssignmentExpression dest)
+    protected override string Visit(UnitAssignmentExpression dest, IScope currentScope)
     {
         // TODO: Don't do any evaluation here - just print the result.
 
@@ -63,9 +70,9 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
 
         // Otherwise, show the conversion factor to the target unit
         var sourceUnit = quantityResult.Result.Unit;
-        if (dest.Unit == null) return Visit(dest.Value);
+        if (dest.Unit == null) return Visit(dest.Value, currentScope);
 
-        return Visit(dest) + " \\times " +
+        return Visit(dest, currentScope) + " \\times " +
                NumberUtilities.ToNumberString(sourceUnit.GetConversionFactor(dest.Unit));
     }
 
@@ -79,7 +86,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         throw new NotImplementedException();
     }
 
-    protected override string Visit(VariableDeclaration dest)
+    protected override string Visit(VariableDeclaration dest, IScope currentScope)
     {
         if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
         {
@@ -96,7 +103,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
             }
         }
 
-        return Visit(dest.Expression);
+        return Visit(dest.Expression, currentScope);
         // TODO: Store result in pass data in addition to returning it
     }
 

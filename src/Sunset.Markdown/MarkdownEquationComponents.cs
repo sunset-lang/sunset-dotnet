@@ -52,23 +52,27 @@ public class MarkdownEquationComponents : EquationComponents
         return @" &\quad\text{(" + reference + ")}";
     }
 
-    /*
-    \begin{cases}
-    \exp{x} & \text{if } x \geq 0\\
-    1       & \text{otherwise}
-    \end{cases} \\
-    */
-
     public override string BeginCases => @"\begin{cases}";
-    public override string EndCases => @"\end{cases} \\";
+    public override string EndCases => @"\end{cases}";
 
-    public override string IfBranch(string body, string condition)
+    public override string DoubleRightArrow => @"\Rightarrow";
+
+    public override string IfBranch(string body, string condition, string? evaluatedCondition, bool? result)
     {
-        return body + @" & \text{ if} " + condition + Newline;
+        var text = $@"{body} & \text{{if}}\quad {condition}";
+        // If there is no evaluation of this branch (e.g. a previous branch is executed), don't show it
+        if (evaluatedCondition == null)
+        {
+            text += $" & & & \\text{{ignored}}{Newline}";
+            return text;
+        }
+
+        text += $" & {DoubleRightArrow} & {evaluatedCondition} & \\text{{is {result.ToString()?.ToLower()}}}{Newline}";
+        return text;
     }
 
     public override string OtherwiseBranch(string body)
     {
-        return body + @" & \text{ otherwise}";
+        return body + @" & \text{otherwise}\quad" + Newline;
     }
 }

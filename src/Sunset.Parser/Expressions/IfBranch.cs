@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
@@ -18,4 +19,6 @@ public class IfBranch(
     /// The token containing the 'if' keyword.
     /// </summary>
     public IToken IfToken { get; } = ifToken;
+
+    public Dictionary<string, IPassData> PassData { get; } = [];
 }

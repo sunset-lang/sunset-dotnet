@@ -30,6 +30,10 @@ public class Environment : IScope
         AddSource(entryPoint);
     }
 
+    public Environment()
+    {
+    }
+
     /// <summary>
     ///     The scopes contained within this environment.
     /// </summary>

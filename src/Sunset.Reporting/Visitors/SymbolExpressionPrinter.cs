@@ -1,8 +1,12 @@
 ﻿using System.Text;
 using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
+using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors.Evaluation;
 
 namespace Sunset.Reporting.Visitors;
 
@@ -17,7 +21,7 @@ public abstract class SymbolExpressionPrinter(
 {
     private readonly ValueExpressionPrinter _valuePrinter = valuePrinter;
 
-    protected override string Visit(NameExpression dest)
+    protected override string Visit(NameExpression dest, IScope currentScope)
     {
         return dest.GetResolvedDeclaration() switch
         {
@@ -29,36 +33,82 @@ public abstract class SymbolExpressionPrinter(
         };
     }
 
-    protected override string Visit(BinaryExpression dest)
+    protected override string Visit(BinaryExpression dest, IScope currentScope)
     {
-        return VisitBinaryExpression(dest, true);
+        return VisitBinaryExpression(dest, currentScope, true);
     }
 
-    protected override string Visit(IfExpression dest)
+    protected override string Visit(IfExpression dest, IScope currentScope)
     {
         var builder = new StringBuilder();
         builder.AppendLine(Eq.BeginCases);
 
+        IBranch? evaluatedBranch = null;
         foreach (var branch in dest.Branches)
         {
-            var result = branch switch
+            string? result;
+            switch (branch)
             {
-                IfBranch ifBranch => Eq.IfBranch(Visit(ifBranch.Body), Visit(ifBranch.Condition)),
-                OtherwiseBranch otherwiseBranch => Eq.OtherwiseBranch(Visit(otherwiseBranch.Body)),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                case IfBranch ifBranch:
+                    // Check whether the branch has been evaluated and print the evaluated result if it has been
+                    if (ifBranch.GetResult(currentScope) is BooleanResult branchResult)
+                    {
+                        var evaluatedCondition = valuePrinter.Visit(ifBranch.Condition, currentScope);
+                        if (branchResult.Result)
+                        {
+                            evaluatedBranch = ifBranch;
+                        }
+
+                        result = Eq.IfBranch(Visit(ifBranch.Body, currentScope),
+                            Visit(ifBranch.Condition, currentScope),
+                            evaluatedCondition, branchResult?.Result);
+                        break;
+                    }
+
+                    // Otherwise, print the result without the condition
+                    result = Eq.IfBranch(Visit(ifBranch.Body, currentScope),
+                        Visit(ifBranch.Condition, currentScope),
+                        null, null);
+                    break;
+
+                case OtherwiseBranch otherwiseBranch:
+                    result = Eq.OtherwiseBranch(Visit(otherwiseBranch.Body, currentScope));
+                    // Set the evaluated branch as the otherwise branch only if it hasn't been evaluated otherwise
+                    // TODO: Perhaps this logic is better off being stored by the evaluator?
+                    evaluatedBranch ??= otherwiseBranch;
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
             builder.Append(result);
         }
 
-        builder.AppendLine(Eq.EndCases);
+        builder.Append(Eq.EndCases);
+        if (evaluatedBranch != null)
+        {
+            // TODO: Store references in the evaluated branch body
+            var references = evaluatedBranch.GetReferences();
+            if (references?.Count > 0)
+            {
+                builder.Append(Eq.Newline);
+                builder.Append(Eq.AlignEquals);
+                builder.Append(Visit(evaluatedBranch.Body, currentScope));
+            }
+        }
+        else
+        {
+            builder.Append(Eq.Text("Error! No evaluated branch!"));
+        }
+
         return builder.ToString();
     }
 
-    protected override string Visit(UnitAssignmentExpression dest)
+    protected override string Visit(UnitAssignmentExpression dest, IScope currentScope)
     {
         // If the expression's value is a constant (e.g. 10 kg), report the value using the ValueExpressionPrinter.
-        if (dest.Value is NumberConstant numberConstant) return _valuePrinter.Visit(dest);
-        return Visit(dest.Value);
+        return dest.Value is NumberConstant ? _valuePrinter.Visit(dest, currentScope) : Visit(dest.Value, currentScope);
     }
 
     protected override string Visit(StringConstant dest)
@@ -71,7 +121,7 @@ public abstract class SymbolExpressionPrinter(
         throw new NotImplementedException();
     }
 
-    protected override string Visit(VariableDeclaration dest)
+    protected override string Visit(VariableDeclaration dest, IScope currentScope)
     {
         // Get and return the cached expression if the visitor has already visited this node
         var cachedExpression = GetResolvedSymbolExpression(dest);
@@ -84,7 +134,7 @@ public abstract class SymbolExpressionPrinter(
         }
         else
         {
-            symbolExpression = Visit(dest.Expression);
+            symbolExpression = Visit(dest.Expression, currentScope);
         }
 
         // Cache the symbol expression for possible later usage

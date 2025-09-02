@@ -174,12 +174,13 @@ public class MarkdownVariablePrinterTests
 
         var environment = new Environment(sourceFile);
         environment.Analyse();
+        var fileScope = environment.ChildScopes["$file"];
         var test1 = environment.ChildScopes["$file"].ChildDeclarations["test1"] as VariableDeclaration;
         var test2 = environment.ChildScopes["$file"].ChildDeclarations["test2"] as VariableDeclaration;
         var test3 = environment.ChildScopes["$file"].ChildDeclarations["test3"] as VariableDeclaration;
-        _markdownVariablePrinter.SymbolPrinter.Visit(test1!);
-        _markdownVariablePrinter.SymbolPrinter.Visit(test2!);
-        _markdownVariablePrinter.SymbolPrinter.Visit(test3!);
+        _markdownVariablePrinter.SymbolPrinter.Visit(test1!, fileScope!);
+        _markdownVariablePrinter.SymbolPrinter.Visit(test2!, fileScope!);
+        _markdownVariablePrinter.SymbolPrinter.Visit(test3!, fileScope!);
 
         Assert.Multiple(() =>
         {

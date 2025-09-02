@@ -5,7 +5,7 @@ using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Errors.Semantic;
 
-public class UnitMismatchError(BinaryExpression expression) : ISemanticError
+public class BinaryUnitMismatchError(BinaryExpression expression) : ISemanticError
 {
     public string Message =>
         $"The left-hand side of the expression has units ?? and the right-hand side has units ??. " +
@@ -13,6 +13,18 @@ public class UnitMismatchError(BinaryExpression expression) : ISemanticError
 
     public Dictionary<Language, string> Translations { get; } = [];
     public IToken[]? Tokens { get; } = [expression.OperatorToken];
+}
+
+public class IfUnitMismatchError(IfExpression expression) : ISemanticError
+{
+    // TODO: Add unit readout for error
+    public string Message =>
+        $"The dimensions for all branches of an if expression must be the same.";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+
+    // TODO: Add error token for branch
+    public IToken[]? Tokens { get; } = [];
 }
 
 public class ArgumentUnitMismatchError(Argument argument) : ISemanticError

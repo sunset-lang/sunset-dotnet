@@ -120,12 +120,85 @@ public partial class Parser
     }
 
     /// <summary>
-    ///     Gets an expression starting with the token at the current position. Leaves the position at the next token.
+    /// Gets an expression starting at the current position. Leaves the position at the next token.
+    /// </summary>
+    public IExpression GetExpression()
+    {
+        var expression = GetArithmeticExpression();
+
+        // If not beginning an if expression, just return the expression
+        if (_current.Type is not (TokenType.If or TokenType.Otherwise))
+        {
+            return expression;
+        }
+
+        var ifExpression = GetIfExpression(expression);
+        if (ifExpression != null) return ifExpression;
+
+        throw new Exception("Could not get expression");
+    }
+
+    /// <summary>
+    /// Gets an if expression starting with the token at the first 'if' token. Leaves the position at the next token.
+    /// </summary>
+    /// <param name="firstBody">The body of the first branch.</param>
+    /// <returns>The 'if' expression or null if an expression couldn't be retrieved.</returns>
+    private IExpression? GetIfExpression(IExpression firstBody)
+    {
+        var expression = firstBody;
+        // Handle if expressions after an expression has been parsed
+        var branches = new List<IBranch>();
+        while (_position < _tokens.Length)
+        {
+            var otherwiseToken = Consume(TokenType.Otherwise);
+            if (otherwiseToken != null)
+            {
+                var branch = new OtherwiseBranch(expression, otherwiseToken);
+                branches.Add(branch);
+                ConsumeNewlines();
+                if (_current.Type == TokenType.Equal)
+                {
+                    Advance();
+                    expression = GetArithmeticExpression();
+                    continue;
+                }
+
+                break;
+            }
+
+            var ifToken = Consume(TokenType.If);
+            if (ifToken != null)
+            {
+                var condition = GetArithmeticExpression();
+                var branch = new IfBranch(expression, condition, ifToken);
+                branches.Add(branch);
+                ConsumeNewlines();
+                // If the next line starts with an '=' sign, it is the next branch
+                if (_current.Type == TokenType.Equal)
+                {
+                    Advance();
+                    expression = GetArithmeticExpression();
+                    continue;
+                }
+
+                // Otherwise, it is the end of the if expression
+                break;
+            }
+
+            // TODO: Handle this error properly
+            return null;
+        }
+
+        return new IfExpression(branches);
+    }
+
+    /// <summary>
+    ///     Gets an arithmetic expression starting with the token at the current position. Leaves the position at the next token.
     /// </summary>
     /// <param name="minPrecedence">The minimum precedence at which the infix expression loop breaks.</param>
     /// <returns>An IExpression.</returns>
     /// <exception cref="Exception"></exception>
-    public IExpression GetExpression(Precedence minPrecedence = Precedence.Assignment)
+    public IExpression GetArithmeticExpression(Precedence minPrecedence = Precedence.Assignment)
     {
         // Start by looking for a prefix expression
         var prefixParsingRule = GetParsingRule(_current.Type);
@@ -136,7 +209,7 @@ public partial class Parser
             throw new Exception("Error parsing expression");
         }
 
-        var leftExpression = prefixParsingRule.prefixParse(this);
+        var expression = prefixParsingRule.prefixParse(this);
 
         // Assume that the prefix parsing rule has advanced the position to the next token
         // Look for an infix expression
@@ -147,12 +220,14 @@ public partial class Parser
                 or TokenType.Newline
                 or TokenType.CloseParenthesis
                 or TokenType.CloseBrace
-                or TokenType.Comma)
+                or TokenType.Comma
+                or TokenType.If
+                or TokenType.Otherwise)
             {
                 break;
             }
 
-            // Particular logic for avoiding implicit multiplication outside of unit expressions despite it being returned within
+            // Particular logic for avoiding implicit multiplication outside unit expressions despite it being returned within
             // the parsing rules.
             if (!_inUnitExpression && _current.Type == TokenType.Identifier)
             {
@@ -168,10 +243,11 @@ public partial class Parser
 
             if (infixParsingRule.infixPrecedence <= minPrecedence) break;
 
-            leftExpression = infixParsingRule.infixParse(this, leftExpression);
+            expression = infixParsingRule.infixParse(this, expression);
         }
 
-        return leftExpression;
+
+        return expression;
     }
 
 
@@ -287,7 +363,7 @@ public partial class Parser
         if (_current.Type == TokenType.OpenBrace)
         {
             var openBrace = Consume(TokenType.OpenBrace);
-            var unitExpression = GetExpression();
+            var unitExpression = GetArithmeticExpression();
             var closeBrace = Consume(TokenType.CloseBrace);
 
             if (openBrace != null)
@@ -296,7 +372,7 @@ public partial class Parser
             }
         }
 
-        Consume(TokenType.Assignment);
+        Consume(TokenType.Equal);
 
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression
@@ -335,9 +411,9 @@ public partial class Parser
     public Argument? GetArgument()
     {
         if (Consume(TokenType.Identifier, false, true) is not StringToken name) return null;
-        var assignmentToken = Consume(TokenType.Assignment);
+        var assignmentToken = Consume(TokenType.Equal);
         if (assignmentToken == null) return null;
-        var expression = GetExpression();
+        var expression = GetArithmeticExpression();
         return new Argument(name, assignmentToken, expression);
     }
 
@@ -349,16 +425,15 @@ public partial class Parser
     /// <returns>The next token in the token array. Returns EndOfFile token if at the end of the array.</returns>
     private void Advance()
     {
-        // Skip errors while parsing, and advance to the next valid token. Stop before the end of the array.
+        // Skip errors while parsing and advance to the next valid token. Stop before the end of the array.
         for (var i = _position + 1; i < _tokens.Length; i++)
         {
-            if (!_tokens[i].HasErrors)
-            {
-                // TODO: Do something about this error
-                _panicMode = true;
-                _position = i;
-                break;
-            }
+            if (_tokens[i].HasErrors) continue;
+
+            // TODO: Do something about this error
+            _panicMode = true;
+            _position = i;
+            break;
         }
 
         _current = _tokens[_position];
@@ -392,6 +467,20 @@ public partial class Parser
         if (!optional) _current.AddError(new UnexpectedSymbolError(_current));
 
         return null;
+    }
+
+    /// <summary>
+    ///     Consumes a token and advances the position if the token is found, matching one in a list of tokens.
+    ///     If the token is not as expected, will add an error to the current token but not advance.
+    ///     Will only add an error if the <paramref name="optional" /> parameter is false.
+    /// </summary>
+    /// <param name="type">Expected token type to be consumed.</param>
+    /// <param name="optional">True if the token type is optional. Throws an error if the token type is not found and false.</param>
+    /// <param name="consumeNewLines">True if new lines are allowed between the target token and the current position.</param>
+    /// <returns>The consumed token, or null if the TokenType was not found.</returns>
+    private IToken? Consume(TokenType[] type, bool optional = false, bool consumeNewLines = false)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>

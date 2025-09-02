@@ -1,4 +1,6 @@
-﻿using Sunset.Reporting;
+﻿using System.Text;
+using Sunset.Parser.Expressions;
+using Sunset.Reporting;
 
 namespace Sunset.Markdown;
 
@@ -15,6 +17,9 @@ public class MarkdownEquationComponents : EquationComponents
     public override string AlignSymbol => "&";
     public override string AlignEquals => "&= ";
     public override string EqualsSymbol => "= ";
+
+    public override string LessThanOrEqual => "\\leq ";
+    public override string GreaterThanOrEqual => "\\geq ";
 
     public override string Text(string text)
     {
@@ -45,5 +50,29 @@ public class MarkdownEquationComponents : EquationComponents
     public override string Reference(string reference)
     {
         return @" &\quad\text{(" + reference + ")}";
+    }
+
+    public override string BeginCases => @"\begin{cases}";
+    public override string EndCases => @"\end{cases}";
+
+    public override string DoubleRightArrow => @"\Rightarrow";
+
+    public override string IfBranch(string body, string condition, string? evaluatedCondition, bool? result)
+    {
+        var text = $@"{body} & \text{{if}}\quad {condition}";
+        // If there is no evaluation of this branch (e.g. a previous branch is executed), don't show it
+        if (evaluatedCondition == null)
+        {
+            text += $" & & & \\text{{ignored}}{Newline}";
+            return text;
+        }
+
+        text += $" & {DoubleRightArrow} & {evaluatedCondition} & \\text{{is {result.ToString()?.ToLower()}}}{Newline}";
+        return text;
+    }
+
+    public override string OtherwiseBranch(string body)
+    {
+        return body + @" & \text{otherwise}\quad" + Newline;
     }
 }

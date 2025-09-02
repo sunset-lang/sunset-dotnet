@@ -10,7 +10,7 @@ public class ParserExpressionsTests
     private string PrintParsedExpression(string expression)
     {
         var parser = new Parsing.Parser(expression);
-        var stringRepresentation = _printer.Visit(parser.GetExpression());
+        var stringRepresentation = _printer.Visit(parser.GetArithmeticExpression());
         Console.WriteLine(stringRepresentation);
         return stringRepresentation;
     }
@@ -48,5 +48,33 @@ public class ParserExpressionsTests
     {
         var stringRepresentation = PrintParsedExpression("12.5 {kg mm / s ^ 2} * 45 {kN m}");
         Assert.That(stringRepresentation, Is.EqualTo("(* (assign 12.5 (/ (* kg mm) (^ s 2))) (assign 45 (* kN m)))"));
+    }
+
+    [Test]
+    public void Parse_LessThan_CorrectTree()
+    {
+        var stringRepresentation = PrintParsedExpression("a < b");
+        Assert.That(stringRepresentation, Is.EqualTo("(< a! b!)"));
+    }
+
+    [Test]
+    public void Parse_GreaterThan_CorrectTree()
+    {
+        var stringRepresentation = PrintParsedExpression("a > b");
+        Assert.That(stringRepresentation, Is.EqualTo("(> a! b!)"));
+    }
+
+    [Test]
+    public void Parse_LessThanEqualTo_CorrectTree()
+    {
+        var stringRepresentation = PrintParsedExpression("a <= b");
+        Assert.That(stringRepresentation, Is.EqualTo("(<= a! b!)"));
+    }
+
+    [Test]
+    public void Parse_GreaterThanEqualTo_CorrectTree()
+    {
+        var stringRepresentation = PrintParsedExpression("a >= b");
+        Assert.That(stringRepresentation, Is.EqualTo("(>= a! b!)"));
     }
 }

@@ -73,7 +73,26 @@ public class DebugPrinter : IVisitor<string>
 
     private string Visit(IfExpression dest)
     {
-        throw new NotImplementedException();
+        var builder = new StringBuilder();
+        builder.Append("(if \r\n");
+        foreach (var branch in dest.Branches)
+        {
+            builder.AppendIndented(Visit(branch.Body), 3);
+            if (branch is IfBranch ifBranch)
+            {
+                builder.Append(" (cond: ");
+                builder.Append(Visit(ifBranch.Condition));
+                builder.AppendLine(")");
+            }
+
+            else
+            {
+                builder.AppendLine(" (otherwise)");
+            }
+        }
+
+        builder.AppendIndented(')', 3);
+        return builder.ToString();
     }
 
     private string Visit(UnitAssignmentExpression dest)

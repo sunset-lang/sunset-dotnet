@@ -10,27 +10,23 @@ using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
 using Sunset.Quantities.Units;
+using Environment = Sunset.Parser.Scopes.Environment;
 
 namespace Sunset.Parser.Visitors.Evaluation;
 
 /// <summary>
 ///     Evaluates expressions and returns the result, storing it along the way.
 /// </summary>
-public class Evaluator : IVisitor<IResult?>
+public class Evaluator : IScopedVisitor<IResult?>
 {
     private static readonly Evaluator Singleton = new();
 
-    public IResult? Visit(IVisitable dest)
-    {
-        return Visit(dest, null);
-    }
-
     public static IResult? EvaluateExpression(IExpression expression)
     {
-        return Singleton.Visit(expression);
+        return Singleton.Visit(expression, new Environment());
     }
 
-    public IResult? Visit(IVisitable dest, IScope? currentScope)
+    public IResult? Visit(IVisitable dest, IScope currentScope)
     {
         // Stop execution on circular references
         if (dest is IErrorContainer errorContainer)
@@ -60,7 +56,7 @@ public class Evaluator : IVisitor<IResult?>
         };
     }
 
-    private IResult? Visit(BinaryExpression dest, IScope? currentScope)
+    private IResult? Visit(BinaryExpression dest, IScope currentScope)
     {
         var leftResult = Visit(dest.Left, currentScope);
 
@@ -95,20 +91,30 @@ public class Evaluator : IVisitor<IResult?>
                 TokenType.Divide => leftQuantity / rightQuantity,
                 // TODO: Check types for the power operator
                 TokenType.Power => leftQuantity.Pow(rightQuantity.Value),
-                _ => throw new NotImplementedException()
+                _ => null
             };
+            if (binaryResult != null) return new QuantityResult(binaryResult);
+            bool? comparisonResult = dest.Operator switch
+            {
+                TokenType.Equal => Equals(leftQuantity, rightQuantity),
+                TokenType.NotEqual => !Equals(leftQuantity, rightQuantity),
+                TokenType.LessThan => leftQuantity < rightQuantity,
+                TokenType.LessThanOrEqual => leftQuantity <= rightQuantity,
+                TokenType.GreaterThan => leftQuantity > rightQuantity,
+                TokenType.GreaterThanOrEqual => leftQuantity >= rightQuantity,
+                _ => null
+            };
+            if (comparisonResult != null) return new BooleanResult(comparisonResult.Value);
             // Occurs whenever the results are not valid
             // Assumes that a typing error is picked up in the type checker
-            if (binaryResult == null) return null;
-
-            return new QuantityResult(binaryResult);
+            return null;
         }
 
         dest.AddError(new OperationError(dest));
         return null;
     }
 
-    private IResult? Visit(UnaryExpression dest, IScope? currentScope)
+    private IResult? Visit(UnaryExpression dest, IScope currentScope)
     {
         var operandValue = Visit(dest.Operand, currentScope);
         if (operandValue == null)
@@ -130,19 +136,16 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult? Visit(GroupingExpression dest, IScope? currentScope)
+    private IResult? Visit(GroupingExpression dest, IScope currentScope)
     {
         return Visit(dest.InnerExpression, currentScope);
     }
 
-    private IResult? Visit(NameExpression dest, IScope? currentScope)
+    private IResult? Visit(NameExpression dest, IScope currentScope)
     {
         // Check if there is an existing result available
-        if (currentScope != null)
-        {
-            var result = dest.GetResult(currentScope);
-            if (result != null) return result;
-        }
+        var result = dest.GetResult(currentScope);
+        if (result != null) return result;
 
         // Otherwise, evaluate the expression in the current scope
         var declaration = dest.GetResolvedDeclaration();
@@ -152,12 +155,44 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult Visit(IfExpression dest, IScope? currentScope)
+    private IResult? Visit(IfExpression dest, IScope currentScope)
     {
-        throw new NotImplementedException();
+        foreach (var branch in dest.Branches)
+        {
+            // Evaluate the conditions for the if branches first
+            if (branch is IfBranch ifBranch)
+            {
+                var result = Visit(ifBranch.Condition, currentScope);
+                if (result is not BooleanResult booleanResult)
+                {
+                    // TODO: Add typing error to deal with this
+                    throw new Exception("If condition is not a boolean");
+                }
+
+                // Store the result of the boolean result in the branch for this scope
+                ifBranch.SetResult(currentScope, booleanResult);
+                // If true, the branch is executed and returned
+                if (booleanResult.Result)
+                {
+                    // Store the resulting branch in the "if" expression, but return the evaluated body of the result
+                    dest.SetResult(currentScope, new BranchResult(ifBranch));
+                    return Visit(ifBranch.Body, currentScope);
+                }
+            }
+            // TODO: This should have an error if the otherwise branch is not the last branch
+            else if (branch is OtherwiseBranch otherwiseBranch)
+            {
+                // Store the otherwise branch in the "if" expression, but return the evaluated body of the result
+                dest.SetResult(currentScope, new BranchResult(otherwiseBranch));
+                return Visit(otherwiseBranch.Body, currentScope);
+            }
+        }
+
+        // TODO: Throw an error if this is not reached
+        return null;
     }
 
-    private IResult? Visit(UnitAssignmentExpression dest, IScope? currentScope)
+    private IResult? Visit(UnitAssignmentExpression dest, IScope currentScope)
     {
         // Evaluate the units of the expression before return the quantity with units included
         var unit = UnitTypeChecker.EvaluateExpressionUnits(dest.UnitExpression);
@@ -175,22 +210,15 @@ public class Evaluator : IVisitor<IResult?>
         return null;
     }
 
-    private IResult? Visit(VariableDeclaration dest, IScope? currentScope)
+    private IResult? Visit(VariableDeclaration dest, IScope currentScope)
     {
         // Get the cached result if there already is one
-        if (currentScope != null)
-        {
-            var result = dest.GetResult(currentScope);
-            if (result != null) return result;
-        }
+        var result = dest.GetResult(currentScope);
+        if (result != null) return result;
 
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);
-
-        if (currentScope != null)
-        {
-            dest.SetResult(currentScope, value);
-        }
+        dest.SetResult(currentScope, value);
 
         if (value is QuantityResult quantityResult && currentScope is not ElementResult)
         {
@@ -200,7 +228,7 @@ public class Evaluator : IVisitor<IResult?>
         return value;
     }
 
-    private ElementResult Visit(CallExpression dest, IScope? currentScope)
+    private ElementResult Visit(CallExpression dest, IScope currentScope)
     {
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
@@ -230,7 +258,7 @@ public class Evaluator : IVisitor<IResult?>
         return elementResult;
     }
 
-    private IResult? Visit(IScope dest, IScope? currentScope)
+    private IResult? Visit(IScope dest, IScope currentScope)
     {
         foreach (var declaration in dest.ChildDeclarations.Values)
         {

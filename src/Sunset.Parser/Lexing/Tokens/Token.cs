@@ -13,22 +13,19 @@ public class Token : TokenBase
 
     public override string ToString()
     {
-        foreach (var keyValuePair in TokenDefinitions.SingleCharacterTokens)
+        foreach (var keyValuePair in TokenDefinitions.SingleCharacterTokens.Where(keyValuePair =>
+                     keyValuePair.Value == Type))
         {
-            if (keyValuePair.Value == Type)
-            {
-                return keyValuePair.Key.ToString();
-            }
+            return keyValuePair.Key.ToString();
         }
 
-        foreach (var keyValuePair in TokenDefinitions.DoubleCharacterTokens)
+        foreach (var keyValuePair in TokenDefinitions.DoubleCharacterTokens.Where(keyValuePair =>
+                     keyValuePair.Value == Type))
         {
-            if (keyValuePair.Value == Type)
-            {
-                return keyValuePair.Key.firstCharacter + keyValuePair.Key.secondCharacter.ToString();
-            }
+            return keyValuePair.Key.firstCharacter + keyValuePair.Key.secondCharacter.ToString();
         }
 
-        return string.Empty;
+        // Look in list of tokens that are not used in lexing but generated in parsing 
+        return TokenDefinitions.AliasedTokens.GetValueOrDefault(Type, "Token not found");
     }
 }

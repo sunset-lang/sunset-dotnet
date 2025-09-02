@@ -70,6 +70,11 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
                 : $"{Visit(dest.Left)} {Eq.MultiplicationSymbol} {Visit(dest.Right)}",
             TokenType.Divide => Eq.Fraction(Visit(dest.Left), Visit(dest.Right)),
             TokenType.Power => Eq.Power(Visit(dest.Left), Visit(dest.Right)),
+            TokenType.LessThan => $"{Visit(dest.Left)} < {Visit(dest.Right)}",
+            TokenType.GreaterThan => $"{Visit(dest.Left)} > {Visit(dest.Right)}",
+            TokenType.Equal => $"{Visit(dest.Left)} = {Visit(dest.Right)}",
+            TokenType.LessThanOrEqual => $"{Visit(dest.Left)} {Eq.LessThanOrEqual} {Visit(dest.Right)}",
+            TokenType.GreaterThanOrEqual => $"{Visit(dest.Left)} {Eq.GreaterThanOrEqual} {Visit(dest.Right)}",
             _ => throw new Exception("Unexpected identifier found")
         };
 

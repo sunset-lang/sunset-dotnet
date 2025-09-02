@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Analysis.NameResolution;
+﻿using System.Text;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -35,8 +36,22 @@ public abstract class SymbolExpressionPrinter(
 
     protected override string Visit(IfExpression dest)
     {
-        return "IF!";
-        throw new NotImplementedException();
+        var builder = new StringBuilder();
+        builder.AppendLine(Eq.BeginCases);
+
+        foreach (var branch in dest.Branches)
+        {
+            var result = branch switch
+            {
+                IfBranch ifBranch => Eq.IfBranch(Visit(ifBranch.Body), Visit(ifBranch.Condition)),
+                OtherwiseBranch otherwiseBranch => Eq.OtherwiseBranch(Visit(otherwiseBranch.Body)),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            builder.Append(result);
+        }
+
+        builder.AppendLine(Eq.EndCases);
+        return builder.ToString();
     }
 
     protected override string Visit(UnitAssignmentExpression dest)

@@ -33,4 +33,26 @@ public class IfExpressionTests
             Assert.That(quantityResult.Result.Value, Is.EqualTo(27));
         }
     }
+
+    [Test]
+    public void Analyse_CalculationWithGreaterThanOrEquals_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               x = 30
+                                               y = 10 if x > 12
+                                                 = 15 if x >= 30
+                                                 = 20 otherwise
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        var printer = new DebugPrinter();
+        Console.WriteLine(printer.Visit(environment));
+        var fileScope = environment.ChildScopes["$file"];
+        var result = fileScope.ChildDeclarations["y"].GetResult(fileScope);
+        if (result is QuantityResult quantityResult)
+        {
+            Assert.That(quantityResult.Result.Value, Is.EqualTo(15));
+        }
+    }
 }

@@ -1,4 +1,6 @@
-﻿using Sunset.Reporting;
+﻿using System.Text;
+using Sunset.Parser.Expressions;
+using Sunset.Reporting;
 
 namespace Sunset.Markdown;
 
@@ -15,6 +17,9 @@ public class MarkdownEquationComponents : EquationComponents
     public override string AlignSymbol => "&";
     public override string AlignEquals => "&= ";
     public override string EqualsSymbol => "= ";
+
+    public override string LessThanOrEqual => "\\leq ";
+    public override string GreaterThanOrEqual => "\\geq ";
 
     public override string Text(string text)
     {
@@ -45,5 +50,25 @@ public class MarkdownEquationComponents : EquationComponents
     public override string Reference(string reference)
     {
         return @" &\quad\text{(" + reference + ")}";
+    }
+
+    /*
+    \begin{cases}
+    \exp{x} & \text{if } x \geq 0\\
+    1       & \text{otherwise}
+    \end{cases} \\
+    */
+
+    public override string BeginCases => @"\begin{cases}";
+    public override string EndCases => @"\end{cases} \\";
+
+    public override string IfBranch(string body, string condition)
+    {
+        return body + @" & \text{ if} " + condition + Newline;
+    }
+
+    public override string OtherwiseBranch(string body)
+    {
+        return body + @" & \text{ otherwise}";
     }
 }

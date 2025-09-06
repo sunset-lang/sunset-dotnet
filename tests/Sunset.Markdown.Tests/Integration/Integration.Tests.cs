@@ -67,4 +67,22 @@ public class IntegrationTests
                        """;
         AssertResultingReport(source, expected);
     }
+
+    [Test]
+    public void PrintDefaultValues_SquaredVariable_CorrectResult()
+    {
+        var source = """
+                     AirDensity <\rho> = 1.2 {kg / m^3}
+                     WindSpeed <V_s> = 45 {m / s}
+                     WindPressure <p> {kPa} = AirDensity * WindSpeed ^ 2
+                     """;
+        var expected = """
+                       \rho &= 1.2 \text{ kg m}^{-3} \\
+                       V_s &= 45 \text{ m s}^{-1} \\
+                       p &= \rho V_s^{2} \\
+                       &= 1.2 \text{ kg m}^{-3} \times \left(45 \text{ m s}^{-1}\right)^2 \\
+                       &= 2.43 \text{ kPa} \\
+                       """;
+        AssertResultingReport(source, expected);
+    }
 }

@@ -58,7 +58,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
 
         if (evaluationResult is QuantityResult quantityResult)
         {
-            if (dest.Value is NumberConstant numberConstant)
+            if (dest.Value is NumberConstant)
             {
                 return ReportQuantity(quantityResult.Result);
             }
@@ -70,10 +70,13 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
 
         // Otherwise, show the conversion factor to the target unit
         var sourceUnit = quantityResult.Result.Unit;
-        if (dest.Unit == null) return Visit(dest.Value, currentScope);
-
-        return Visit(dest, currentScope) + " \\times " +
-               NumberUtilities.ToNumberString(sourceUnit.GetConversionFactor(dest.Unit));
+        return dest.Unit switch
+        {
+            null when dest.Value != null => Visit(dest.Value, currentScope),
+            null => string.Empty,
+            _ => Visit(dest, currentScope) + " \\times " +
+                 NumberUtilities.ToNumberString(sourceUnit.GetConversionFactor(dest.Unit))
+        };
     }
 
     protected override string Visit(StringConstant dest)

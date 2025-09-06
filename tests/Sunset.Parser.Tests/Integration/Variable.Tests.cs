@@ -139,6 +139,25 @@ public class VariableTests
         });
     }
 
+    [Test]
+    public void Analyse_SquaredVariable_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               AirDensity <\rho> = 1.2 {kg / m^3}
+                                               WindSpeed <V_s> = 45 {m / s}
+                                               WindPressure <p> {kPa} = AirDensity * WindSpeed ^ 2
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+
+        AssertVariableDeclaration(environment.ChildScopes["$file"],
+            "WindPressure",
+            2.43,
+            DefinedUnits.Pascal,
+            ["AirDensity", "WindSpeed"]);
+    }
+
     private static void AssertVariableDeclaration(IScope scope, string variableName, double? expectedValue,
         Unit expectedUnit,
         string[]? referenceNames = null)

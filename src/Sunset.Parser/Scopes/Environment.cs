@@ -47,6 +47,8 @@ public class Environment : IScope
 
     public List<IError> Errors { get; } = [];
 
+    public IErrorLog ErrorLog { get; } = new ErrorLog();
+
     public IDeclaration? TryGetDeclaration(string name)
     {
         // The environment scope does not contain any declarations, only child scopes.

@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Visitors.Debugging;
+﻿using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.Visitors.Debugging;
 
 namespace Sunset.Parser.Test.Parser;
 
@@ -6,11 +7,13 @@ namespace Sunset.Parser.Test.Parser;
 public class ParserExpressionsTests
 {
     private readonly DebugPrinter _printer = new();
+    private readonly TypeChecker _typeChecker = new();
 
     private string PrintParsedExpression(string expression)
     {
         var parser = new Parsing.Parser(expression);
-        var stringRepresentation = _printer.Visit(parser.GetArithmeticExpression());
+        var parsedExpression = parser.GetArithmeticExpression();
+        var stringRepresentation = _printer.Visit(parsedExpression);
         Console.WriteLine(stringRepresentation);
         return stringRepresentation;
     }

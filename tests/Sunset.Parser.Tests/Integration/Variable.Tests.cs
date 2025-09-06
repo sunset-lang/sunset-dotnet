@@ -2,6 +2,7 @@
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results.Types;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
 using Sunset.Parser.Visitors.Evaluation;
@@ -69,7 +70,7 @@ public class VariableTests
         var printer = new DebugPrinter();
         Console.WriteLine(printer.Visit(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "length", 30, DefinedUnits.Millimetre);
-        AssertVariableDeclaration(environment.ChildScopes["$file"], "width", 0.4, DefinedUnits.Metre);
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "width", 400, DefinedUnits.Millimetre);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "area", 12000,
             DefinedUnits.Millimetre * DefinedUnits.Millimetre, ["length", "width"]);
     }
@@ -146,13 +147,13 @@ public class VariableTests
         {
             var defaultValue = variableDeclaration.Variable.DefaultValue?.Value;
             // This is only the evaluated unit in these tests due to the simplicity of the Sunset code being tested
-            var defaultUnit = variableDeclaration.GetAssignedUnit();
+            var defaultUnit = (variableDeclaration.GetAssignedType() as QuantityType)?.Unit;
 
             Assert.That(defaultValue, Is.Not.Null);
             Assert.That(defaultValue, Is.EqualTo(expectedValue));
             if (defaultUnit == null)
             {
-                Assert.Fail("Expected variable to have a unit, even if it is dimensionless.");
+                Assert.Fail($"Expected variable {variableName} to have a unit, even if it is dimensionless.");
                 return;
             }
 

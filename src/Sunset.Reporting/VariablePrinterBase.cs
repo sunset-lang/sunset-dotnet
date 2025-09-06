@@ -50,9 +50,9 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
                 {
                     Value: NumberConstant quantityConstant
                 } unitAssignmentExpression:
-                    var unit = unitAssignmentExpression.GetEvaluatedUnit();
+                    var unit = unitAssignmentExpression.GetEvaluatedType();
                     // If there are no units evaluated (e.g. due to this being defined in code), try to evaluate the units first
-                    if (unit == null) UnitTypeChecker.EvaluateExpressionUnits(unitAssignmentExpression);
+                    if (unit == null) TypeChecker.EvaluateExpressionType(unitAssignmentExpression);
                     return variableDisplayName + _eq.AlignEquals + quantityConstant.Value +
                            unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + _eq.Linebreak;
             }

@@ -33,7 +33,7 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
         StringToken nameToken,
         IExpression expression,
         IScope parentScope,
-        VariableUnitAssignment? unitAssignment = null,
+        UnitAssignmentExpression? unitAssignment = null,
         SymbolName? symbolExpression = null,
         StringToken? descriptionToken = null,
         StringToken? referenceToken = null,
@@ -73,7 +73,10 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
             labelToken?.ToString() ?? "");
     }
 
-    public VariableUnitAssignment? UnitAssignment { get; }
+    /// <summary>
+    /// The expression that defines the unit being assigned directly to the variable.
+    /// </summary>
+    public UnitAssignmentExpression? UnitAssignment { get; }
 
     public StringToken NameToken { get; }
 

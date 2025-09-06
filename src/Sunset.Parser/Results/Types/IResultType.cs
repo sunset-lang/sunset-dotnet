@@ -5,6 +5,24 @@ namespace Sunset.Parser.Results.Types;
 
 public interface IResultType
 {
+    /// <summary>
+    /// Checks whether two result types are equivalent.
+    /// </summary>
+    public static bool AreCompatible(IResultType? left, IResultType? right)
+    {
+        // Return false if either type is null - null types are not allowed.
+        if (left is null || right is null) return false;
+
+        return left switch
+        {
+            QuantityType leftQuantity when right is QuantityType rightQuantity => Unit.EqualDimensions(
+                leftQuantity.Unit, rightQuantity.Unit),
+            UnitType leftUnit when right is UnitType rightUnit => Unit.EqualDimensions(leftUnit.Unit, rightUnit.Unit),
+            QuantityType => false,
+            BooleanType when right is BooleanType => true,
+            _ => false
+        };
+    }
 }
 
 public class BranchType(IResultType evaluatedType) : IResultType
@@ -26,7 +44,13 @@ public class ElementType(ElementDeclaration elementDeclaration) : IResultType
 /// <param name="unit"></param>
 public class QuantityType(Unit unit) : IResultType
 {
+    public static readonly QuantityType Dimensionless = new QuantityType(DefinedUnits.Dimensionless);
     public Unit Unit { get; } = unit;
+    
+    public override string ToString()
+    {
+        return Unit.ToString();
+    }
 }
 
 public abstract class StaticType<T> : IResultType where T : IResultType, new()
@@ -38,4 +62,21 @@ public class BooleanType : StaticType<BooleanType>;
 
 public class StringType : StaticType<StringType>;
 
-public class UnitType : IResultType;
+public class UnitType(Unit unit) : IResultType
+{
+    public static readonly UnitType Dimensionless = new UnitType(DefinedUnits.Dimensionless);
+    public Unit Unit { get; } = unit;
+
+    /// <summary>
+    /// Elevates this unit type to a quantity type.
+    /// </summary>
+    public QuantityType ToQuantityType()
+    {
+        return new QuantityType(Unit);
+    }
+
+    public override string ToString()
+    {
+        return Unit.ToString();
+    }
+}

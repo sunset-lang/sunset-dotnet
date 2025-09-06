@@ -358,7 +358,7 @@ public partial class Parser
                 throw new Exception("Expected an identifier");
         }
 
-        VariableUnitAssignment? unitAssignment = null;
+        UnitAssignmentExpression? unitAssignment = null;
 
         if (_current.Type == TokenType.OpenBrace)
         {
@@ -368,7 +368,7 @@ public partial class Parser
 
             if (openBrace != null)
             {
-                unitAssignment = new VariableUnitAssignment(openBrace, closeBrace, unitExpression);
+                unitAssignment = new UnitAssignmentExpression(openBrace, closeBrace, unitExpression);
             }
         }
 

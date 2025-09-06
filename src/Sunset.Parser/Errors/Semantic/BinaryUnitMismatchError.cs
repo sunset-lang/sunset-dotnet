@@ -15,7 +15,7 @@ public class BinaryUnitMismatchError(BinaryExpression expression) : ISemanticErr
     public IToken[]? Tokens { get; } = [expression.OperatorToken];
 }
 
-public class IfUnitMismatchError(IfExpression expression) : ISemanticError
+public class IfTypeMismatchError(IfExpression expression) : ISemanticError
 {
     // TODO: Add unit readout for error
     public string Message =>
@@ -24,6 +24,16 @@ public class IfUnitMismatchError(IfExpression expression) : ISemanticError
     public Dictionary<Language, string> Translations { get; } = [];
 
     // TODO: Add error token for branch
+    public IToken[]? Tokens { get; } = [];
+}
+
+public class IfConditionError(IExpression expression) : ISemanticError
+{
+    public string Message =>
+        "The condition of an if expression must be a true or false result. Are you missing an =, <, >, <=, or >=?.";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+    // TODO: Add error tokens for entire expression
     public IToken[]? Tokens { get; } = [];
 }
 
@@ -58,7 +68,7 @@ public class DeclaredUnitMismatchError : ISemanticError
     }
 
     public string Message =>
-        $"The variable has a declared unit {_variable.GetAssignedUnit()} but the expression resolves to a unit {_variable.GetEvaluatedUnit()}. " +
+        $"The variable has a declared unit {_variable.GetAssignedType()} but the expression resolves to a unit {_variable.GetEvaluatedType()}. " +
         $"These units are not compatible.";
 
     public Dictionary<Language, string> Translations { get; } = [];

@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Scopes;
+﻿using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
 
 namespace Sunset.Parser.Test.Parser;
@@ -25,6 +26,7 @@ public class ParserVariableDeclarationTests
         var parser = new Parsing.Parser("force <F> {kN} = 100 {kg} * 200 {m} / (400 {s})^2");
 
         var variable = parser.GetVariableDeclaration(new FileScope("$", null));
+        TypeChecker.EvaluateExpressionType(variable);
         var stringRepresentation = _printer.PrintVariableDeclaration(variable);
 
         Assert.That(stringRepresentation,

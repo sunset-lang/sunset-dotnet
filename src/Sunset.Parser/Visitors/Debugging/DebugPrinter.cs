@@ -135,7 +135,7 @@ public class DebugPrinter : IVisitor<string>
 
         return $"""
                     {dest.FullPath}:
-                        Unit: {dest.GetAssignedUnit()}
+                        Unit: {dest.GetAssignedType()}
                         Symbol: {dest.Variable.Symbol}
                         Expression: {Visit(dest.Expression)}
                         References: {referenceNames}
@@ -216,6 +216,7 @@ public class DebugPrinter : IVisitor<string>
     public string PrintVariableDeclaration(VariableDeclaration variableDeclaration)
     {
         var variable = variableDeclaration.Variable;
+        TypeChecker.EvaluateExpressionType(variableDeclaration);
         return
             $"{variable.Name} <{variable.Symbol}> {{{variableDeclaration.UnitAssignment?.Unit}}} = {Visit(variableDeclaration.Expression)}";
     }

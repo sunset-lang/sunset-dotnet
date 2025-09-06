@@ -3,9 +3,9 @@ using Sunset.Parser.Lexing.Tokens;
 
 namespace Sunset.Parser.Errors.Semantic;
 
-public class UnitResolutionError : ISemanticError
+public class TypeResolutionError : ISemanticError
 {
-    public UnitResolutionError(IExpression expression)
+    public TypeResolutionError(IExpression expression)
     {
         var tokens = new List<IToken>();
         if (expression is UnitAssignmentExpression unitAssignmentExpression)

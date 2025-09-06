@@ -8,6 +8,7 @@ using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
+using Sunset.Parser.Results.Types;
 using Sunset.Parser.Scopes;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
@@ -195,14 +196,21 @@ public class Evaluator : IScopedVisitor<IResult?>
     private IResult? Visit(UnitAssignmentExpression dest, IScope currentScope)
     {
         // Evaluate the units of the expression before return the quantity with units included
-        var unit = UnitTypeChecker.EvaluateExpressionUnits(dest.UnitExpression);
-        if (unit == null) return null;
+        var unitType = TypeChecker.EvaluateExpressionType<UnitType>(dest.UnitExpression);
+        if (unitType == null) return null;
+
+        // If there is no value set within the expression, throw an exception
+        // This is likely caused by a unit expression that should be pointed at a variable declaration
+        if (dest.Value == null)
+        {
+            throw new Exception("Unit assignment does not target an expression.");
+        }
 
         var value = Visit(dest.Value, currentScope);
         // Units can only be set for quantities
         if (value is QuantityResult quantityResult)
         {
-            quantityResult.Result.SetUnits(unit);
+            quantityResult.Result.SetUnits(unitType.Unit);
             return value;
         }
 
@@ -218,12 +226,29 @@ public class Evaluator : IScopedVisitor<IResult?>
 
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);
+
+        if (value is QuantityResult quantityResult)
+        {
+            // If there is a unit assignment, evaluate it and set the result to the evaluated value.
+            // This may result in a different set of units.
+            var unit = (dest.GetAssignedType() as QuantityType)?.Unit;
+
+            if (unit != null)
+            {
+                quantityResult.Result.SetUnits(unit);
+            }
+
+            // Set the default value of the variable to the evaluated quantity
+            // TODO: Remove this, it is a legacy requirement from the implementation of Sunset as an API
+            if (currentScope is not ElementResult)
+            {
+                dest.Variable.DefaultValue = quantityResult.Result;
+            }
+        }
+
+
         dest.SetResult(currentScope, value);
 
-        if (value is QuantityResult quantityResult && currentScope is not ElementResult)
-        {
-            dest.Variable.DefaultValue = quantityResult.Result;
-        }
 
         return value;
     }

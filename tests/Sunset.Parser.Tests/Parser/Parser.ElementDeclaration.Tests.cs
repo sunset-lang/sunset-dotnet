@@ -33,7 +33,6 @@ public class ParserElementDeclarationTests
             Assert.That(element.ChildDeclarations.ContainsKey("Area"), Is.True);
         });
 
-        Console.WriteLine(_printer.PrintElementDeclaration(element));
     }
 
     [Test]
@@ -78,8 +77,5 @@ public class ParserElementDeclarationTests
             Assert.That(circleElement.ChildDeclarations.ContainsKey("Area"), Is.True);
             Assert.That(circleElement.ChildDeclarations.ContainsKey("Circumference"), Is.True);
         });
-
-        Console.WriteLine(_printer.PrintElementDeclaration(squareElement));
-        Console.WriteLine(_printer.PrintElementDeclaration(circleElement));
     }
 }

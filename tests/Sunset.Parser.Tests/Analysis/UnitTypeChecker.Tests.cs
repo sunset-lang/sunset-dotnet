@@ -4,9 +4,9 @@ using Sunset.Parser.Parsing.Declarations;
 namespace Sunset.Parser.Test.Analysis;
 
 [TestFixture]
-public class UnitTypeCheckerTests
+public class TypeCheckerTests
 {
-    private readonly UnitTypeChecker _typeChecker = new();
+    private readonly TypeChecker _typeChecker = new();
 
     public VariableDeclaration GetVariableDeclaration(string input)
     {
@@ -54,14 +54,14 @@ public class UnitTypeCheckerTests
     {
         var declaration = GetVariableDeclaration("area <A> {kN} = 100 {kg} * 200 {m} / (400 {s})^2");
 
-        var unit = _typeChecker.Visit(declaration);
-        if (unit is null)
+        var resultType = _typeChecker.Visit(declaration);
+        if (resultType is null)
         {
             Assert.Fail("Unit type checker did not return a unit.");
             return;
         }
 
-        Assert.That(unit.ToString(), Is.EqualTo("kN"));
+        Assert.That(resultType.ToString(), Is.EqualTo("kN"));
     }
 
     [Test]

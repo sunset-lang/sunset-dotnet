@@ -13,7 +13,8 @@ namespace Sunset.Reporting.Visitors;
 /// <summary>
 ///     Base class for printing expressions in Markdown.
 /// </summary>
-public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationComponents components) : IScopedVisitor<string>
+public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationComponents components)
+    : IScopedVisitor<string>
 {
     protected readonly EquationComponents Eq = components;
 

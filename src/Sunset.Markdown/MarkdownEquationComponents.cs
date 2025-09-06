@@ -37,9 +37,14 @@ public class MarkdownEquationComponents : EquationComponents
         return $"\\frac{{{numerator}}}{{{denominator}}}";
     }
 
+    private static readonly char[] Operators = { '+', '-', '/', '*', '^' };
+
     public override string Power(string baseValue, string exponent)
     {
-        return $"{baseValue}^{{{exponent}}}";
+        // Only add parentheses around a base value if it contains any operation symbols (e.g. +, -, *, /, ^)
+        return baseValue.IndexOfAny(Operators) >= 0
+            ? $"{WrapParenthesis(baseValue)}^{exponent}"
+            : $"{baseValue}^{{{exponent}}}";
     }
 
     public override string WrapParenthesis(string expression)

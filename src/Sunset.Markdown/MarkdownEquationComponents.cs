@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using Sunset.Parser.Expressions;
 using Sunset.Reporting;
 
@@ -37,14 +38,22 @@ public class MarkdownEquationComponents : EquationComponents
         return $"\\frac{{{numerator}}}{{{denominator}}}";
     }
 
-    private static readonly char[] Operators = { '+', '-', '/', '*', '^' };
+    /// <summary>
+    /// Regex used to detect whether a value is printed in LaTeX format.
+    /// </summary>
+    private static readonly Regex QuantityRegex =
+        new(@"^\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\s*(?:\\text\{[^}]*\}(?:\^\{[^}]*\})?)+$");
 
     public override string Power(string baseValue, string exponent)
     {
-        // Only add parentheses around a base value if it contains any operation symbols (e.g. +, -, *, /, ^)
-        return baseValue.IndexOfAny(Operators) >= 0
-            ? $"{WrapParenthesis(baseValue)}^{exponent}"
-            : $"{baseValue}^{{{exponent}}}";
+        // Add parentheses around a base value if it contains units
+        // Use a regular expression to recognise these cases
+        if (QuantityRegex.IsMatch(baseValue))
+        {
+            return $"{WrapParenthesis(baseValue)}^{{{exponent}}}";
+        }
+
+        return $"{baseValue}^{{{exponent}}}";
     }
 
     public override string WrapParenthesis(string expression)

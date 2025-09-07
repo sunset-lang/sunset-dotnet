@@ -8,6 +8,8 @@ public class SourceFile
 {
     private readonly Parsing.Parser? _parser;
 
+    public static SourceFile Anonymous { get; } = new SourceFile("$file", string.Empty);
+
     private SourceFile(string name, string source)
     {
         Name = name;

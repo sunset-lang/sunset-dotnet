@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Lexing.Tokens;
 
@@ -21,8 +22,9 @@ public abstract class TokenBase : IToken
     /// <param name="lineEnd">Line that the token ends on. Zero based.</param>
     /// <param name="columnStart">Column that the token starts on. Zero based.</param>
     /// <param name="columnEnd">Column that the token ends on. Zero based.</param>
+    /// <param name="file">The source file that this token was read from.</param>
     protected TokenBase(TokenType type, int positionStart, int positionEnd, int lineStart, int lineEnd,
-        int columnStart, int columnEnd)
+        int columnStart, int columnEnd, SourceFile file)
     {
         Type = type;
         PositionStart = positionStart;
@@ -32,6 +34,7 @@ public abstract class TokenBase : IToken
         _lineEnd = lineEnd;
         ColumnStart = columnStart;
         _columnEnd = columnEnd;
+        SourceFile = file;
     }
 
     /// <summary>
@@ -42,8 +45,9 @@ public abstract class TokenBase : IToken
     /// <param name="positionEnd">Position of the end of the token from the beginning of the source.</param>
     /// <param name="lineStart">Line that the token starts on. Zero based.</param>
     /// <param name="columnEnd">Column that the token ends on. Zero based.</param>
+    /// <param name="file">The source file that this token was read from.</param>
     protected TokenBase(TokenType type, int positionStart, int positionEnd, int lineStart,
-        int columnEnd)
+        int columnEnd, SourceFile file)
     {
         Type = type;
 
@@ -55,6 +59,8 @@ public abstract class TokenBase : IToken
 
         ColumnStart = columnEnd - (Length - 1);
         _columnEnd = columnEnd;
+        
+        SourceFile = file;
     }
 
     /// <summary>
@@ -64,14 +70,18 @@ public abstract class TokenBase : IToken
     /// <param name="position">Position of the token from the beginning of the source file.</param>
     /// <param name="lineStart">Line that the token starts on. Zero based.</param>
     /// <param name="column">Column the token is at. Zero based.</param>
-    protected TokenBase(TokenType type, int position, int lineStart, int column)
+    /// <param name="file">The source file that this token was read from.</param>
+    protected TokenBase(TokenType type, int position, int lineStart, int column, SourceFile file)
     {
         Type = type;
         PositionStart = position;
         LineStart = lineStart;
         ColumnStart = column;
         Length = 1;
+        SourceFile = file;
     }
+
+    public SourceFile SourceFile { get; }
 
     /// <summary>
     ///     The type of this token.
@@ -90,7 +100,7 @@ public abstract class TokenBase : IToken
     public int Length { get; }
 
     /// <summary>
-    ///     A list of the <see cref="Error" /> instances that this token contains.
+    ///     A list of the <see cref="IError" /> instances that this token contains.
     /// </summary>
     public List<IError> Errors { get; } = [];
 

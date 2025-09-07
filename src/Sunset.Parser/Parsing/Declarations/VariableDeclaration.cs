@@ -19,8 +19,10 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
 
     public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
     {
+        // Used for API methods
         ParentScope = parentScope;
-        NameToken = new StringToken(variable.Name.AsMemory(), TokenType.Identifier, 0, 0, 0, 0);
+        NameToken = new StringToken(variable.Name.AsMemory(), TokenType.Identifier,
+            0, 0, 0, 0, SourceFile.Anonymous);
 
         Name = variable.Name;
         FullPath = $"{parentScope?.FullPath ?? "$"}.{variable.Name}";

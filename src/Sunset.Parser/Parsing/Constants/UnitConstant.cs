@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Scopes;
 using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Parsing.Constants;
@@ -22,8 +23,9 @@ public class UnitConstant(Unit unit) : ExpressionBase, IConstant
 
     /// <summary>
     ///     The token representing the unit, if available.
+    ///     Used for API methods.
     /// </summary>
-    public StringToken Token { get; } = new(unit.ToString().AsMemory(), TokenType.String, 0, 0, 0, 0);
+    public StringToken Token { get; } = new(unit.ToString().AsMemory(), TokenType.String, 0, 0, 0, 0, SourceFile.Anonymous);
 
     /// <summary>
     ///     The unit of measurement generated for this constant.

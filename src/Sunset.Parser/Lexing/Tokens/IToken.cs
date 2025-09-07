@@ -1,9 +1,15 @@
 ﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Lexing.Tokens;
 
 public interface IToken : IErrorContainer
 {
+    /// <summary>
+    /// The source file that contains this token.
+    /// </summary>
+    SourceFile SourceFile { get; }
+
     /// <summary>
     ///     The type of this token.
     /// </summary>

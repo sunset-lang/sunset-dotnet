@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Lexing.Tokens.Numbers;
+﻿using Sunset.Parser.Scopes;
 
-public class IntToken(int value, int positionStart, int positionEnd, int lineStart, int columnEnd)
-    : NumberTokenBase<int>(value, positionStart, positionEnd, lineStart, columnEnd);
+namespace Sunset.Parser.Lexing.Tokens.Numbers;
+
+public class IntToken(int value, int positionStart, int positionEnd, int lineStart, int columnEnd, SourceFile file)
+    : NumberTokenBase<int>(value, positionStart, positionEnd, lineStart, columnEnd, file);

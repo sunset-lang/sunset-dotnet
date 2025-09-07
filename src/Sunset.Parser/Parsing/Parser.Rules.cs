@@ -105,10 +105,12 @@ public partial class Parser
                 {
                     TokenType.OpenAngleBracket =>
                         new Token(TokenType.LessThanOrEqual, operatorToken.PositionStart,
-                            nextToken.PositionStart, operatorToken.LineStart, operatorToken.ColumnStart),
+                            nextToken.PositionStart, operatorToken.LineStart, operatorToken.ColumnStart,
+                            operatorToken.SourceFile),
                     TokenType.CloseAngleBracket =>
                         new Token(TokenType.GreaterThanOrEqual, operatorToken.PositionStart,
-                            nextToken.PositionStart, operatorToken.LineStart, operatorToken.ColumnStart),
+                            nextToken.PositionStart, operatorToken.LineStart, operatorToken.ColumnStart,
+                            operatorToken.SourceFile),
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
@@ -121,9 +123,11 @@ public partial class Parser
                 operatorToken = operatorToken.Type switch
                 {
                     TokenType.OpenAngleBracket => new Token(TokenType.LessThan, operatorToken.PositionStart,
-                        operatorToken.PositionEnd, operatorToken.LineStart, operatorToken.ColumnStart),
+                        operatorToken.PositionEnd, operatorToken.LineStart, operatorToken.ColumnStart,
+                        operatorToken.SourceFile),
                     TokenType.CloseAngleBracket => new Token(TokenType.GreaterThan, operatorToken.PositionStart,
-                        operatorToken.PositionEnd, operatorToken.LineStart, operatorToken.ColumnStart),
+                        operatorToken.PositionEnd, operatorToken.LineStart, operatorToken.ColumnStart,
+                        operatorToken.SourceFile),
                     _ => throw new ArgumentOutOfRangeException()
                 };
             }
@@ -146,7 +150,7 @@ public partial class Parser
         var implicitMultiplicationToken = new Token(TokenType.Multiply,
             parser._current.PositionStart,
             parser._current.LineStart,
-            parser._current.ColumnStart);
+            parser._current.ColumnStart, parser._current.SourceFile);
 
         return new BinaryExpression(
             implicitMultiplicationToken,

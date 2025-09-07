@@ -1,4 +1,12 @@
-﻿namespace Sunset.Parser.Lexing.Tokens.Numbers;
+﻿using Sunset.Parser.Scopes;
 
-public class DoubleToken(double value, int positionStart, int positionEnd, int lineStart, int columnEnd)
-    : NumberTokenBase<double>(value, positionStart, positionEnd, lineStart, columnEnd);
+namespace Sunset.Parser.Lexing.Tokens.Numbers;
+
+public class DoubleToken(
+    double value,
+    int positionStart,
+    int positionEnd,
+    int lineStart,
+    int columnEnd,
+    SourceFile file)
+    : NumberTokenBase<double>(value, positionStart, positionEnd, lineStart, columnEnd, file);

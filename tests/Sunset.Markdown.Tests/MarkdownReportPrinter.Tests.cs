@@ -1,4 +1,5 @@
 using Sunset.Markdown.Extensions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities.Units;
 using Sunset.Reporting;
@@ -63,7 +64,7 @@ public class MarkdownReportPrinterTests
     public void PrintReport_AxialSectionCapacity_ShouldReportCorrectly()
     {
         var report = AxialSectionCapacity();
-        var printer = new MarkdownReportPrinter();
+        var printer = new MarkdownReportPrinter(new ErrorLog());
         var printedReport = printer.PrintReport(report);
 
         Console.WriteLine(printedReport);
@@ -90,7 +91,7 @@ public class MarkdownReportPrinterTests
     public void PrintReport_BendingSectionCapacity_ShouldReportCorrectly()
     {
         var report = BendingSectionCapacity();
-        var printer = new MarkdownReportPrinter();
+        var printer = new MarkdownReportPrinter(new ErrorLog());
         var printedReport = printer.PrintReport(report);
 
         Console.WriteLine(printedReport);
@@ -127,7 +128,7 @@ public class MarkdownReportPrinterTests
             PrintTableOfContents = true,
             ShowQuantityDescriptionsAfterCalculations = true
         };
-        var printer = new MarkdownReportPrinter(settings);
+        var printer = new MarkdownReportPrinter(settings, new ErrorLog());
         var printedReport = printer.PrintReport(combinedReport);
 
         Console.WriteLine(printedReport);
@@ -194,7 +195,7 @@ public class MarkdownReportPrinterTests
         {
             PrintTableOfContents = true
         };
-        var printer = new MarkdownReportPrinter(settings);
+        var printer = new MarkdownReportPrinter(settings, new ErrorLog());
         var printedTableOfContents = printer.PrintTableOfContents(combinedReport);
 
         Console.WriteLine(printedTableOfContents);

@@ -21,8 +21,7 @@ public class ReferenceCheckerTests
         environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"].ContainsError<CircularReferenceError>());
         Assert.That(environment.ChildScopes["$file"].ChildDeclarations["y"].ContainsError<CircularReferenceError>());
@@ -40,8 +39,7 @@ public class ReferenceCheckerTests
         environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         Assert.Multiple(() =>
         {
@@ -68,8 +66,7 @@ public class ReferenceCheckerTests
         environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         Assert.Multiple(() =>
         {

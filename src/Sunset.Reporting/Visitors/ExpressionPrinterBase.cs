@@ -13,7 +13,7 @@ namespace Sunset.Reporting.Visitors;
 /// <summary>
 ///     Base class for printing expressions in Markdown.
 /// </summary>
-public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationComponents components)
+public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationComponents components, ErrorLog log)
     : IScopedVisitor<string>
 {
     protected readonly EquationComponents Eq = components;
@@ -22,6 +22,8 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
     ///     The settings for the printer.
     /// </summary>
     protected PrinterSettings Settings { get; set; } = settings;
+
+    public ErrorLog Log { get; } = log;
 
     public string Visit(IVisitable dest, IScope currentScope)
     {

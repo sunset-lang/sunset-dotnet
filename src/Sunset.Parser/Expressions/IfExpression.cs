@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Expressions;
+﻿using Sunset.Parser.Lexing.Tokens;
+
+namespace Sunset.Parser.Expressions;
 
 public class IfExpression(List<IBranch> branches) : ExpressionBase
 {

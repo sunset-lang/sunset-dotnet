@@ -7,8 +7,6 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserElementDeclarationTests
 {
-    private readonly DebugPrinter _printer = new();
-
     [Test]
     public void GetElementDeclaration_WithValidInput_CorrectDeclaration()
     {

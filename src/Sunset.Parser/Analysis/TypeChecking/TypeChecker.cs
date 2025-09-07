@@ -16,9 +16,11 @@ namespace Sunset.Parser.Analysis.TypeChecking;
 /// <summary>
 /// Performs type checking on the AST, and evaluates units of quantities along the way.
 /// </summary>
-public class TypeChecker : IVisitor<IResultType?>
+public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 {
-    private static readonly TypeChecker Singleton = new();
+    public ErrorLog Log { get; } = log;
+
+    private static readonly TypeChecker Singleton = new(new ErrorLog());
 
     public IResultType? Visit(IVisitable dest)
     {
@@ -116,7 +118,7 @@ public class TypeChecker : IVisitor<IResultType?>
         }
     }
 
-    private static Unit? BinaryUnitOperation(BinaryExpression dest, Unit leftUnit,
+    private Unit? BinaryUnitOperation(BinaryExpression dest, Unit leftUnit,
         Unit rightUnit)
     {
         // When doing a power operation with units, the right-hand side must be a number constant 
@@ -144,7 +146,7 @@ public class TypeChecker : IVisitor<IResultType?>
 
                 if (arithmeticResult.Valid) return arithmeticResult;
 
-                dest.AddError(new BinaryUnitMismatchError(dest));
+                Log.Error(new BinaryUnitMismatchError(dest));
                 return null;
             }
             default:
@@ -215,7 +217,7 @@ public class TypeChecker : IVisitor<IResultType?>
                 if (IResultType.AreCompatible(resultType, branchType)) continue;
 
                 // If not compatible, add an error
-                dest.AddError(new IfTypeMismatchError(dest));
+                dest.AddError(new IfTypeMismatchError(branch));
                 error = true;
             }
         }

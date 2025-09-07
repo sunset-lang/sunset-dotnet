@@ -15,9 +15,14 @@ public interface IError
     public Dictionary<Language, string> Translations { get; }
 
     /// <summary>
-    ///     The tokens that are the cause of this error.
+    ///     The token at the beginning of this error, or the entire token.
     /// </summary>
-    public IToken[]? Tokens { get; }
+    public IToken StartToken { get; }
+
+    /// <summary>
+    ///     The token at the end of this error, or null if the error is a single token.
+    /// </summary>
+    public IToken? EndToken { get; }
 
     // TODO: Implement fixes for errors where they are available
 }

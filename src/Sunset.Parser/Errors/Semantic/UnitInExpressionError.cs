@@ -8,5 +8,6 @@ public class UnitInExpressionError(StringToken token) : ISyntaxError
         $"Units are not allowed in expressions, this may be resolved by closing it with curly braces, e.g. \"{{{token}}}\"";
 
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [token];
+    public IToken StartToken { get; } = token;
+    public IToken? EndToken => null;
 }

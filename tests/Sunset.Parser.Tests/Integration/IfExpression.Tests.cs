@@ -24,8 +24,7 @@ public class IfExpressionTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
         var fileScope = environment.ChildScopes["$file"];
         var result = fileScope.ChildDeclarations["z"].GetResult(fileScope);
         if (result is QuantityResult quantityResult)
@@ -46,8 +45,7 @@ public class IfExpressionTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
         var fileScope = environment.ChildScopes["$file"];
         var result = fileScope.ChildDeclarations["y"].GetResult(fileScope);
         if (result is QuantityResult quantityResult)

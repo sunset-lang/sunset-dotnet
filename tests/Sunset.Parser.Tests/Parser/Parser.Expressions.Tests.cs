@@ -6,14 +6,11 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserExpressionsTests
 {
-    private readonly DebugPrinter _printer = new();
-    private readonly TypeChecker _typeChecker = new();
-
     private string PrintParsedExpression(string expression)
     {
         var parser = new Parsing.Parser(expression);
         var parsedExpression = parser.GetArithmeticExpression();
-        var stringRepresentation = _printer.Visit(parsedExpression);
+        var stringRepresentation = DebugPrinter.Print(parsedExpression);
         Console.WriteLine(stringRepresentation);
         return stringRepresentation;
     }

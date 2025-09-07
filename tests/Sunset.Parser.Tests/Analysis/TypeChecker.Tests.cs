@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
 
 namespace Sunset.Parser.Test.Analysis;
@@ -6,7 +7,7 @@ namespace Sunset.Parser.Test.Analysis;
 [TestFixture]
 public class TypeCheckerTests
 {
-    private readonly TypeChecker _typeChecker = new();
+    private readonly TypeChecker _typeChecker = new(new ErrorLog());
 
     public VariableDeclaration GetVariableDeclaration(string input)
     {

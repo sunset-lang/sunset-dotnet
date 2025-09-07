@@ -9,6 +9,6 @@ public class CircularReferenceError(VariableDeclaration variable) : ISemanticErr
         $"Circular references between variables are not allowed. {variable.Name} contains a circular reference.";
 
     public Dictionary<Language, string> Translations { get; } = [];
-
-    public IToken[]? Tokens { get; } = [variable.NameToken];
+    public IToken StartToken { get; } = variable.NameToken;
+    public IToken? EndToken { get; } = null;
 }

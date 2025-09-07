@@ -20,5 +20,6 @@ public class IfBranch(
     /// </summary>
     public IToken IfToken { get; } = ifToken;
 
+    public IToken Token => IfToken;
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

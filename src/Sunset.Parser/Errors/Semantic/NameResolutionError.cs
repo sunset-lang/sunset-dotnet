@@ -7,5 +7,6 @@ public class NameResolutionError(NameExpression nameExpression) : ISemanticError
 {
     public string Message { get; } = $"Could not find a variable named {nameExpression.Name}.";
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [nameExpression.Token];
+    public IToken StartToken { get; } = nameExpression.Token;
+    public IToken? EndToken => null;
 }

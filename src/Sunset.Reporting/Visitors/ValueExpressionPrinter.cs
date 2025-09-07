@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -14,8 +15,8 @@ namespace Sunset.Reporting.Visitors;
 /// <summary>
 ///     Prints the result of expressions with the numeric values included.
 /// </summary>
-public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationComponents components)
-    : ExpressionPrinterBase(settings, components)
+public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationComponents components, ErrorLog log)
+    : ExpressionPrinterBase(settings, components, log)
 {
     protected override string Visit(BinaryExpression dest, IScope currentScope)
     {

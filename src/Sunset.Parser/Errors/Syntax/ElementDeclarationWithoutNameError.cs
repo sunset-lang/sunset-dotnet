@@ -6,5 +6,6 @@ public class ElementDeclarationWithoutNameError(IToken token) : ISyntaxError
 {
     public string Message => "This element declaration doesn't have a name.";
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [token];
+    public IToken StartToken { get; } = token;
+    public IToken? EndToken => null;
 }

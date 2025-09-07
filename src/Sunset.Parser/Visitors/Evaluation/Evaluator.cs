@@ -18,14 +18,16 @@ namespace Sunset.Parser.Visitors.Evaluation;
 /// <summary>
 ///     Evaluates expressions and returns the result, storing it along the way.
 /// </summary>
-public class Evaluator : IScopedVisitor<IResult?>
+public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
 {
-    private static readonly Evaluator Singleton = new();
+    private static readonly Evaluator Singleton = new(new ErrorLog());
 
     public static IResult? EvaluateExpression(IExpression expression)
     {
         return Singleton.Visit(expression, new Environment());
     }
+
+    public ErrorLog Log { get; } = log;
 
     public IResult? Visit(IVisitable dest, IScope currentScope)
     {

@@ -27,8 +27,7 @@ public class ElementTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         var element = environment.ChildScopes["$file"].ChildDeclarations["Square"] as ElementDeclaration;
         // Check that the element is not null and has three child variables.
@@ -58,8 +57,7 @@ public class ElementTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         var fileScope = environment.ChildScopes["$file"] as FileScope;
         var resultDeclaration = environment.ChildScopes["$file"].ChildDeclarations["Result"] as VariableDeclaration;

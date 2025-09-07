@@ -3,47 +3,21 @@
 namespace Sunset.Parser.Errors;
 
 /// <summary>
-/// Interface for a log of errors that are caught by the interpreter.
-/// </summary>
-public interface IErrorLog
-{
-    /// <summary>
-    /// The collection of errors that have been logged.
-    /// </summary>
-    public IEnumerable<IError> Errors { get; }
-
-    /// <summary>
-    /// Logs an error and attaches it to its dependent objects
-    /// </summary>
-    /// <param name="error"></param>
-    public void Log(IError error);
-
-    /// <summary>
-    /// Prints the entire log to a string.
-    /// </summary>
-    public string PrintLog();
-}
-
-/// <summary>
 /// Log of errors caught by the interpreter.
 /// </summary>
-public class ErrorLog : IErrorLog
+public class ErrorLog
 {
-    private readonly List<IError> _errors = [];
-    public IEnumerable<IError> Errors => _errors;
+    private readonly List<ErrorMessage> _messages = [];
+    public IEnumerable<ErrorMessage> Errors => _messages.Where(message => message.Level == LogEventLevel.Error);
+    public IEnumerable<ErrorMessage> Warnings => _messages.Where(message => message.Level == LogEventLevel.Warning);
 
-    public void Log(IError error)
-    {
-        _errors.Add(error);
-    }
-
-    public string PrintLog()
+    public string PrintLog(LogEventLevel level = LogEventLevel.Information)
     {
         var builder = new StringBuilder();
 
-        foreach (var error in _errors)
+        foreach (var errorMessage in _messages)
         {
-            builder.AppendLine(ErrorType(error) + ": " + error.Message);
+            builder.AppendLine(errorMessage.ToString());
         }
 
         // TODO: Add more information about the error to the log. This is currently a minimal implementation.
@@ -55,14 +29,33 @@ public class ErrorLog : IErrorLog
         return builder.ToString();
     }
 
-    private string ErrorType(IError error)
+    public void PrintLogToConsole(LogEventLevel level = LogEventLevel.Information)
     {
-        return error switch
-        {
-            IWarning => "Warning",
-            ISemanticError => "Error",
-            ISyntaxError => "Error",
-            _ => throw new ArgumentOutOfRangeException(nameof(error), error, null)
-        };
+        Console.WriteLine(PrintLog(level));
+    }
+
+    public void Debug(string message)
+    {
+        _messages.Add(new ErrorMessage(message, LogEventLevel.Debug));
+    }
+
+    public void Information(string message)
+    {
+        _messages.Add(new ErrorMessage(message, LogEventLevel.Information));
+    }
+
+    public void Warning(string message)
+    {
+        _messages.Add(new ErrorMessage(message, LogEventLevel.Warning));
+    }
+
+    public void Warning(IError error)
+    {
+        _messages.Add(new ErrorMessage(error, LogEventLevel.Warning));
+    }
+
+    public void Error(IError error)
+    {
+        _messages.Add(new ErrorMessage(error, LogEventLevel.Error));
     }
 }

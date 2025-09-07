@@ -3,27 +3,15 @@ using Sunset.Parser.Lexing.Tokens;
 
 namespace Sunset.Parser.Errors.Semantic;
 
-public class ExpectedUnitError : ISemanticError
+public class ExpectedUnitError(UnitAssignmentExpression expression) : ISemanticError
 {
-    public ExpectedUnitError(UnitAssignmentExpression expression)
-    {
-        var tokens = new List<IToken>();
-        if (expression.Open is not null)
-        {
-            tokens.Add(expression.Open);
-        }
-
-        if (expression.Close is not null)
-        {
-            tokens.Add(expression.Close);
-        }
-
-        Tokens = tokens.ToArray();
-    }
-
     public string Message => "Expected a unit to be provided but got a variable name instead.";
 
     public Dictionary<Language, string> Translations { get; } = [];
 
-    public IToken[]? Tokens { get; }
+    public IToken StartToken { get; } = expression.Open ??
+                                        throw new Exception(
+                                            "Variable cannot have a unit mismatch error without a unit assignment.");
+
+    public IToken? EndToken { get; } = expression?.Close;
 }

@@ -7,15 +7,24 @@ namespace Sunset.Parser.Errors.Semantic;
 
 public class BinaryUnitMismatchError(BinaryExpression expression) : ISemanticError
 {
-    public string Message =>
-        $"The left-hand side of the expression has units ?? and the right-hand side has units ??. " +
-        $"These aren't compatible with the operator {expression.Operator.ToString()}.";
+    public string Message
+    {
+        get
+        {
+            var leftUnit = expression.Left.GetEvaluatedType();
+            var rightUnit = expression.Right.GetEvaluatedType();
+            return
+                $"The left-hand side of the expression has units {{{leftUnit}}} and the right-hand side has units {{{rightUnit}}}. " +
+                $"These aren't compatible with the {expression.Operator.ToString().ToLower()} operator.";
+        }
+    }
 
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [expression.OperatorToken];
+    public IToken StartToken { get; } = expression.OperatorToken;
+    public IToken? EndToken => null;
 }
 
-public class IfTypeMismatchError(IfExpression expression) : ISemanticError
+public class IfTypeMismatchError(IBranch branch) : ISemanticError
 {
     // TODO: Add unit readout for error
     public string Message =>
@@ -23,8 +32,8 @@ public class IfTypeMismatchError(IfExpression expression) : ISemanticError
 
     public Dictionary<Language, string> Translations { get; } = [];
 
-    // TODO: Add error token for branch
-    public IToken[]? Tokens { get; } = [];
+    public IToken StartToken { get; } = branch.Token;
+    public IToken? EndToken => null;
 }
 
 public class IfConditionError(IExpression expression) : ISemanticError
@@ -33,8 +42,10 @@ public class IfConditionError(IExpression expression) : ISemanticError
         "The condition of an if expression must be a true or false result. Are you missing an =, <, >, <=, or >=?.";
 
     public Dictionary<Language, string> Translations { get; } = [];
+
     // TODO: Add error tokens for entire expression
-    public IToken[]? Tokens { get; } = [];
+    public IToken StartToken => null;
+    public IToken? EndToken => null;
 }
 
 public class ArgumentUnitMismatchError(Argument argument) : ISemanticError
@@ -43,7 +54,8 @@ public class ArgumentUnitMismatchError(Argument argument) : ISemanticError
         "The element property being assigned to has units ?? and the value assigned has units ??. These aren't compatible";
 
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [argument.EqualsToken];
+    public IToken StartToken { get; } = argument.EqualsToken;
+    public IToken? EndToken => null;
 }
 
 public class DeclaredUnitMismatchError : ISemanticError
@@ -53,18 +65,13 @@ public class DeclaredUnitMismatchError : ISemanticError
     public DeclaredUnitMismatchError(VariableDeclaration variable)
     {
         _variable = variable;
-        var tokens = new List<IToken>();
-        if (variable.UnitAssignment?.Open is not null)
+        if (variable.UnitAssignment == null || variable.UnitAssignment.Open == null)
         {
-            tokens.Add(variable.UnitAssignment.Open);
+            throw new Exception("Variable cannot have a unit mismatch error without a unit assignment.");
         }
 
-        if (variable.UnitAssignment?.Close is not null)
-        {
-            tokens.Add(variable.UnitAssignment.Close);
-        }
-
-        Tokens = tokens.ToArray();
+        StartToken = variable.UnitAssignment.Open;
+        EndToken = variable.UnitAssignment?.Close;
     }
 
     public string Message =>
@@ -72,5 +79,6 @@ public class DeclaredUnitMismatchError : ISemanticError
         $"These units are not compatible.";
 
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; }
+    public IToken StartToken { get; }
+    public IToken? EndToken { get; }
 }

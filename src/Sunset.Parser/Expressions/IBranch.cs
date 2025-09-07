@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Visitors;
+﻿using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
@@ -11,4 +12,9 @@ public interface IBranch : IVisitable
     /// The body of the branch.
     /// </summary>
     IExpression Body { get; }
+
+    /// <summary>
+    /// The 'if' or 'otherwise' token for the branch.
+    /// </summary>
+    IToken Token { get; }
 }

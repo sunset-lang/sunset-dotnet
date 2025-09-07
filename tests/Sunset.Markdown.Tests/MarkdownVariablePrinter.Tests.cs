@@ -1,4 +1,5 @@
 using Sunset.Markdown.Extensions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
@@ -24,7 +25,7 @@ public class MarkdownVariablePrinterTests
         Evaluator.EvaluateExpression(_density.Expression);
     }
 
-    private readonly MarkdownVariablePrinter _markdownVariablePrinter = new();
+    private readonly MarkdownVariablePrinter _markdownVariablePrinter = new(new ErrorLog());
     private readonly IVariable _length = new Variable(100, DefinedUnits.Millimetre, "l", "length");
     private readonly IVariable _width = new Variable(200, DefinedUnits.Millimetre, "w", "width");
     private readonly IVariable _height = new Variable(300, DefinedUnits.Millimetre, "h", "height");
@@ -71,7 +72,7 @@ public class MarkdownVariablePrinterTests
     [Test]
     public void ReportValue_LargeMagnitude_ShouldReportCorrectValue()
     {
-        MarkdownVariablePrinter markdownVariablePrinter = new();
+        MarkdownVariablePrinter markdownVariablePrinter = new(new ErrorLog());
 
         var length = new Variable(100, DefinedUnits.Metre, "l");
         var width = new Variable(200, DefinedUnits.Metre, "w");
@@ -81,7 +82,7 @@ public class MarkdownVariablePrinterTests
         Evaluator.EvaluateExpression(volume.Expression);
         Evaluator.EvaluateExpression(density.Expression);
 
-        Console.WriteLine(new DebugPrinter().Visit(density.Expression));
+        Console.WriteLine(DebugPrinter.Singleton.Visit(density.Expression));
         var volumeDefault = volume.DefaultValue!.ToLatexString();
         var densityDefault = density.DefaultValue!.ToLatexString();
 
@@ -199,7 +200,7 @@ public class MarkdownVariablePrinterTests
     public void ReportSymbolExpression_FractionMultiplication_ShouldSimplifyFractions()
     {
         // TODO: This is really a quantity test
-        MarkdownVariablePrinter markdownVariablePrinter = new();
+        MarkdownVariablePrinter markdownVariablePrinter = new(new ErrorLog());
         var a = new Variable(100, DefinedUnits.Millimetre, "a");
         var b = new Variable(200, DefinedUnits.Millimetre, "b");
         var c = new Variable(200, DefinedUnits.Millimetre, "c");

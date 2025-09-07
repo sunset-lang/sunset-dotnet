@@ -174,8 +174,10 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 return Visit(variableDeclaration);
             case ElementDeclaration elementDeclaration:
                 return Visit(elementDeclaration);
+            case null:
+                return null;
             default:
-                throw new ArgumentException($"Type checking of type {dest.GetType()} is not supported.");
+                throw new ArgumentException($"Type checking of type {dest.GetResolvedDeclaration()?.GetType()} is not supported.");
         }
     }
 

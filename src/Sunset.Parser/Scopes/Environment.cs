@@ -94,7 +94,7 @@ public class Environment : IScope
     public void Analyse()
     {
         // Name resolution
-        var nameResolver = new NameResolver();
+        var nameResolver = new NameResolver(Log);
         foreach (var scope in ChildScopes.Values)
         {
             // If the child scope of the environment is a file scope, the scope's parent will be null.

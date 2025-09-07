@@ -11,7 +11,14 @@ namespace Sunset.Parser.Lexing;
 /// </summary>
 public class Lexer
 {
+    /// <summary>
+    /// The file that the source code is from. Injected into each token.
+    /// </summary>
     private readonly SourceFile _file;
+
+    /// <summary>
+    /// The source code.
+    /// </summary>
     private readonly ReadOnlyMemory<char> _source;
 
     /// <summary>
@@ -20,18 +27,28 @@ public class Lexer
     public readonly List<IToken> Tokens = [];
 
     /// <summary>
-    ///     The column that the lexer is currently at. Zero based.
+    ///     The column that the lexer is currently at. Zero-based.
     /// </summary>
     private int _column;
 
+    /// <summary>
+    ///     The current character that the lexer is at.
+    /// </summary>
     private char _current;
 
     /// <summary>
-    ///     The line that the lexer is currently at within the source. Zero based.
+    ///     The line that the lexer is currently at within the source. Zero-based.
     /// </summary>
     private int _line;
 
+    /// <summary>
+    ///     The next character in the source.
+    /// </summary>
     private char _peek;
+
+    /// <summary>
+    ///     The character after the next character in the source.
+    /// </summary>
     private char _peekNext;
 
     /// <summary>
@@ -39,31 +56,28 @@ public class Lexer
     /// </summary>
     private int _position;
 
-    public Lexer(SourceFile source, bool scan = true) : this(source.SourceCode, scan)
+    /// <summary>
+    ///     The position of the start and end of each line in the source code.
+    ///     Used to identify and later print each line of code.
+    /// </summary>
+    private List<(int start, int end)> _lines = [];
+
+    /// <summary>
+    ///     The starting position of the current line.
+    /// </summary>
+    private int _lineStart = 0;
+
+
+    /// <summary>
+    ///     Creates a new Lexer object for a given SourceFile.
+    /// </summary>
+    /// <param name="source">The file to be lexed.</param>
+    /// <param name="scan">true to automatically scan the source on construction. Defaults to true.</param>
+    public Lexer(SourceFile source, bool scan = true)
     {
         _file = source;
-    }
-
-    /// <summary>
-    ///     Creates a new Lexer object with a given source.
-    /// </summary>
-    /// <param name="source">Source string to be converted into a list of tokens.</param>
-    /// <param name="scan">true to automatically scan the source on construction.</param>
-    public Lexer(string source, bool scan = true) : this(source.AsMemory(), scan)
-    {
-    }
-
-    /// <summary>
-    ///     Creates a new Lexer object with a given source in ReadOnlyMemory form.
-    /// </summary>
-    /// <param name="source">Source to be converted into a list of tokens.</param>
-    /// <param name="scan">true to automatically scan the source on construction.</param>
-    public Lexer(ReadOnlyMemory<char> source, bool scan = true)
-    {
-        _source = source;
-
+        _source = source.SourceCode.AsMemory();
         Reset();
-
         if (scan) Scan();
     }
 
@@ -84,17 +98,25 @@ public class Lexer
         {
             _line++;
             _column = 0;
+
+            // Add a new line to the list of lines.
+            _lines.Add(PeekBack(2) == '\r'
+                ? (_lineStart, _position - 3)
+                : (_lineStart, _position - 2));
+
+            _lineStart = _position;
         }
     }
 
     /// <summary>
-    ///     Looks backwards one character. Returns null if at the start of the file.
+    ///     Looks backwards. Returns null if at the start of the file.
     /// </summary>
     /// <returns>The previous character in the source. Returns null if at the beginning of the source.</returns>
-    private char? PeekBack()
+    private char? PeekBack(int lookBehind = 1)
     {
-        return _position == 0 ? null : _source.Span[_position - 1];
+        return _position < lookBehind ? null : _source.Span[_position - lookBehind];
     }
+
 
     /// <summary>
     ///     Get the character lookAhead characters after the current character in the source without incrementing the position.
@@ -136,6 +158,8 @@ public class Lexer
         }
 
         Tokens.Add(new Token(TokenType.EndOfFile, _position, _line, _column, _file));
+        // Add reference to the final line
+        _lines.Add((_lineStart, _position));
     }
 
     /// <summary>
@@ -466,6 +490,46 @@ public class Lexer
         }
 
         return identifierSymbolToken;
+    }
+
+    /// <summary>
+    /// Gets a line from the source given a specific line number.
+    /// </summary>
+    /// <param name="lineNumber">Line to get from source.</param>
+    public string? GetLine(int lineNumber)
+    {
+        if (lineNumber > _lines.Count - 1 || lineNumber < 0)
+        {
+            return null;
+        }
+
+        return _source[_lines[lineNumber].start .. _lines[lineNumber].end].ToString();
+    }
+
+    /// <summary>
+    /// Gets a number of lines from the source given a start and end line.
+    /// </summary>
+    public string GetLines(int startLine, int endLine)
+    {
+        var builder = new StringBuilder();
+
+        if (startLine > endLine)
+        {
+            throw new ArgumentException("Start line must be before end line");
+        }
+
+        var lineNumbers = Enumerable.Range(startLine, endLine - startLine + 1);
+
+        foreach (var line in lineNumbers)
+        {
+            var lineValue = GetLine(line);
+            if (lineValue != null)
+            {
+                builder.AppendLine(lineValue);
+            }
+        }
+
+        return builder.ToString();
     }
 
     public override string ToString()

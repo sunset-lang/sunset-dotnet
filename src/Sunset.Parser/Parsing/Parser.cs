@@ -14,7 +14,6 @@ namespace Sunset.Parser.Parsing;
 /// </summary>
 public partial class Parser
 {
-    private readonly ReadOnlyMemory<char> _source;
     private readonly IToken[] _tokens;
 
     public readonly List<IDeclaration> SyntaxTree = [];
@@ -27,43 +26,25 @@ public partial class Parser
     private IToken? _peekNext;
     private int _position;
 
+    public Lexer Lexer { get; }
+
     /// <summary>
     ///     Generates a parser from a source string.
     /// </summary>
     /// <param name="source">
-    ///     <inheritdoc cref="Parser(ReadOnlyMemory, bool)" />
+    ///     String to use as source code.
     /// </param>
     /// <param name="parse">
-    ///     <inheritdoc cref="Parser(Lexer, bool)" />
+    ///     True if parsing upon creation, false to parse manually using <see cref="Parse" />.
     /// </param>
-    public Parser(string source, bool parse = false) : this(source.AsMemory(), parse)
+    public Parser(SourceFile source, bool parse = false)
     {
-    }
-
-
-    /// <summary>
-    ///     Generates a parser from a source code in <see cref="ReadOnlyMemory{T}" /> format.
-    /// </summary>
-    /// <param name="source">The source code.</param>
-    /// <param name="parse">
-    ///     <inheritdoc cref="Parser(Lexer, bool)" />
-    /// </param>
-    public Parser(ReadOnlyMemory<char> source, bool parse = false) : this(new Lexer(source), parse)
-    {
-        _source = source;
-    }
-
-    /// <summary>
-    ///     Generates a parser from a lexer.
-    /// </summary>
-    /// <param name="lexer">Lexer to use in the parser. The Lexer contains the source code.</param>
-    /// <param name="parse">True if parsing upon creation, false to parse manually using <see cref="Parse" />.</param>
-    public Parser(Lexer lexer, bool parse = false)
-    {
-        _tokens = lexer.Tokens.ToArray();
+        Lexer = new Lexer(source);
+        _tokens = Lexer.Tokens.ToArray();
         _current = _tokens[0];
 
         Reset();
+        // TODO: Tidy up the creation of new objects in constructors.
         if (parse) Parse(new FileScope("$", null));
     }
 

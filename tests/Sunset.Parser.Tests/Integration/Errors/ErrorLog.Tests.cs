@@ -35,4 +35,14 @@ public class ErrorLogTests
         environment.Log.PrintLogToConsole();
         Assert.That(environment.Log.Errors.Count(), Is.EqualTo(1));
     }
+    [Test]
+    public void PrintErrors_NameResolutionError_CorrectError()
+    {
+        var source = """
+                     x = y
+                     """;
+        var environment = ExecuteSource(source);
+        environment.Log.PrintLogToConsole();
+        Assert.That(environment.Log.Errors.Count(), Is.EqualTo(1));
+    }
 }

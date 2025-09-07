@@ -80,8 +80,42 @@ public class IntegrationTests
                        \rho &= 1.2 \text{ kg m}^{-3} \\
                        V_s &= 45 \text{ m s}^{-1} \\
                        p &= \rho V_s^{2} \\
-                       &= 1.2 \text{ kg m}^{-3} \times \left(45 \text{ m s}^{-1}\right)^2 \\
+                       &= 1.2 \text{ kg m}^{-3} \times \left(45 \text{ m s}^{-1}\right)^{2} \\
                        &= 2.43 \text{ kPa} \\
+                       """;
+        AssertResultingReport(source, expected);
+    }
+
+    [Test]
+    public void PrintDefaultValues_SquaredValueWithUnits_CorrectResult()
+    {
+        var source = """
+                     x = 45 {mm}
+                     y = x ^ 2
+                     """;
+        var expected = """
+                       x &= 45 \text{ mm} \\
+                       y &= x^{2} \\
+                       &= \left(45 \text{ mm}\right)^{2} \\
+                       &= 2,025 \text{ mm}^{2} \\
+                       """;
+        AssertResultingReport(source, expected);
+    }
+
+    [Test]
+    public void PrintDefaultValues_SquaredImplicitMultiplication_CorrectResult()
+    {
+        var source = """
+                     x = 45 {mm}
+                     y = 35 {mm}
+                     z = (x * y) ^ 2
+                     """;
+        var expected = """
+                       x &= 45 \text{ mm} \\
+                       y &= 35 \text{ mm} \\
+                       z &= \left(x y\right)^{2} \\
+                       &= \left(45 \text{ mm} \times 35 \text{ mm}\right)^{2} \\
+                       &= 2.481 \times 10^{6} \text{ mm}^{4} \\
                        """;
         AssertResultingReport(source, expected);
     }

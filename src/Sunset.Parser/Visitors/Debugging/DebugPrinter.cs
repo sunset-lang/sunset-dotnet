@@ -55,17 +55,17 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
 
     private string Visit(BinaryExpression dest)
     {
-        return "(" + dest.OperatorToken + " " + dest.Left.Accept(this) + " " + dest.Right.Accept(this) + ")";
+        return "(" + dest.OperatorToken + " " + Visit(dest.Left) + " " + Visit(dest.Right) + ")";
     }
 
     private string Visit(UnaryExpression dest)
     {
-        return "(" + dest.OperatorToken + " " + dest.Operand.Accept(this) + ")";
+        return "(" + dest.OperatorToken + " " + Visit(dest.Operand) + ")";
     }
 
     private string Visit(GroupingExpression dest)
     {
-        return dest.InnerExpression.Accept(this);
+        return Visit(dest.InnerExpression);
     }
 
     private string Visit(NameExpression dest)
@@ -99,7 +99,8 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
 
     private string Visit(UnitAssignmentExpression dest)
     {
-        return "(assign " + dest.Value.Accept(this) + " " + dest.UnitExpression.Accept(this) + ")";
+        if (dest.Value == null) return "(assign " + Visit(dest.UnitExpression) + ")";
+        return "(assign " + Visit(dest.Value) + " " + Visit(dest.UnitExpression) + ")";
     }
 
     private string Visit(CallExpression dest)

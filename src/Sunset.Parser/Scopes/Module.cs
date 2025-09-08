@@ -63,10 +63,4 @@ public class Module : IScope
     public required IScope? ParentScope { get; init; }
 
     public Dictionary<string, IPassData> PassData { get; } = [];
-
-    public T Accept<T>(IVisitor<T> visitor)
-    {
-        throw new NotImplementedException();
-    }
-
 }

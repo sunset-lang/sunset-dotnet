@@ -40,7 +40,7 @@ public class ErrorLogTests
     public void PrintErrors_NameResolutionError_CorrectError()
     {
         var source = """
-                     x = y
+                     x = test
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();

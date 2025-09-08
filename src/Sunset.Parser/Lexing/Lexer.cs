@@ -365,7 +365,7 @@ public class Lexer
 
         while (_current == '_' || char.IsLetterOrDigit(_current)) Advance();
 
-        return new StringToken(_source[start.._position], TokenType.Identifier, start, _position, _line, _column,
+        return new StringToken(_source[start.._position], TokenType.Identifier, start + 1, _position, _line, _column,
             _file);
     }
 

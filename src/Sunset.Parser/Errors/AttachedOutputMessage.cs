@@ -43,7 +43,7 @@ public class AttachedOutputMessage : OutputMessage
 
         Console.WriteLine(GetLocationInformation());
         Console.WriteLine(GetSourceCode());
-        Console.WriteLine(Error.Message);
+        Console.WriteLine(Error.Message + "\r\n");
     }
 
     public override string WriteToHtml()

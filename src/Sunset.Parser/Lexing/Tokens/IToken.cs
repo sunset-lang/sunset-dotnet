@@ -3,7 +3,7 @@ using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Lexing.Tokens;
 
-public interface IToken : IErrorContainer
+public interface IToken
 {
     /// <summary>
     /// The source file that contains this token.

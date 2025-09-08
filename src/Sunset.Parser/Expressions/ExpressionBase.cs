@@ -8,13 +8,5 @@ namespace Sunset.Parser.Expressions;
 /// </summary>
 public abstract class ExpressionBase : IExpression
 {
-    /// <inheritdoc />
-    public List<IError> Errors { get; } = [];
-
-    public void AddError(IError error)
-    {
-        Errors.Add(error);
-    }
-
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

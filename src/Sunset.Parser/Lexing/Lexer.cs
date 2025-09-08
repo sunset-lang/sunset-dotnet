@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
@@ -67,16 +68,20 @@ public class Lexer
     /// </summary>
     private int _lineStart = 0;
 
+    public ErrorLog Log { get; }
+
 
     /// <summary>
     ///     Creates a new Lexer object for a given SourceFile.
     /// </summary>
     /// <param name="source">The file to be lexed.</param>
     /// <param name="scan">true to automatically scan the source on construction. Defaults to true.</param>
-    public Lexer(SourceFile source, bool scan = true)
+    /// <param name="log">The error log to use when scanning.</param>
+    public Lexer(SourceFile source, bool scan = true, ErrorLog? log = null)
     {
         _file = source;
         _source = source.SourceCode.AsMemory();
+        Log = log ?? new ErrorLog();
         Reset();
         if (scan) Scan();
     }
@@ -291,7 +296,7 @@ public class Lexer
                     if (!char.IsDigit(_peek))
                     {
                         var numberErrorToken = new DoubleToken(0, start, _position, _line, _column, _file);
-                        numberErrorToken.AddError(new NumberEndingWithDecimalError(numberErrorToken));
+                        Log.Error(new NumberEndingWithDecimalError(numberErrorToken));
                         return numberErrorToken;
                     }
 
@@ -313,7 +318,7 @@ public class Lexer
                     {
                         // If the number ends after the next exponent, finish the token and note an error
                         var numberErrorToken = new DoubleToken(0, start, _position, _line, _column, _file);
-                        numberErrorToken.AddError(new NumberEndingWithExponentError(numberErrorToken));
+                        Log.Error(new NumberEndingWithExponentError(numberErrorToken));
                         return numberErrorToken;
                     }
 
@@ -330,9 +335,9 @@ public class Lexer
         if (decimalPlaceError || exponentError)
         {
             var numberToken = new DoubleToken(0, start, _position, _line, _column, _file);
-            if (decimalPlaceError) numberToken.AddError(new NumberDecimalPlaceError(numberToken));
+            if (decimalPlaceError) Log.Error(new NumberDecimalPlaceError(numberToken));
 
-            if (exponentError) numberToken.AddError(new NumberExponentError(numberToken));
+            if (exponentError) Log.Error(new NumberExponentError(numberToken));
 
             return numberToken;
         }
@@ -390,7 +395,7 @@ public class Lexer
                     // This is a multiline string parsing error
                     var stringErrorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
                         start, _position, _line, _line, columnStart, _column, _file);
-                    stringErrorToken.AddError(new UnclosedMultilineStringError(stringErrorToken));
+                    Log.Error(new UnclosedMultilineStringError(stringErrorToken));
                     return stringErrorToken;
                 }
 
@@ -412,7 +417,7 @@ public class Lexer
                 // Consider that this is a string parsing error
                 var stringErrorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
                     start, _position, _line, _column, _file);
-                stringErrorToken.AddError(new UnclosedStringError(stringErrorToken));
+                Log.Error(new UnclosedStringError(stringErrorToken));
                 return stringErrorToken;
             }
 
@@ -465,7 +470,7 @@ public class Lexer
                     var identifierSymbolErrorToken = new StringToken(_source[(start + 1).._position],
                         TokenType.IdentifierSymbol,
                         start, _position, _line, _column, _file);
-                    identifierSymbolErrorToken.AddError(
+                    Log.Error(
                         new IdentifierSymbolEndsInUnderscoreError(identifierSymbolErrorToken));
                     return identifierSymbolErrorToken;
                 }
@@ -481,12 +486,12 @@ public class Lexer
 
         if (subscriptError)
         {
-            identifierSymbolToken.AddError(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
+            Log.Error(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
         }
 
         if (_current == '_')
         {
-            identifierSymbolToken.AddError(new IdentifierSymbolEndsInUnderscoreError(identifierSymbolToken));
+            Log.Error(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
         }
 
         return identifierSymbolToken;

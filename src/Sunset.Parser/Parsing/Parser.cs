@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors.Syntax;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing;
 using Sunset.Parser.Lexing.Tokens;
@@ -28,6 +29,8 @@ public partial class Parser
 
     public Lexer Lexer { get; }
 
+    public ErrorLog Log { get; }
+
     /// <summary>
     ///     Generates a parser from a source string.
     /// </summary>
@@ -37,9 +40,11 @@ public partial class Parser
     /// <param name="parse">
     ///     True if parsing upon creation, false to parse manually using <see cref="Parse" />.
     /// </param>
-    public Parser(SourceFile source, bool parse = false)
+    /// <param name="log">ErrorLog to use for logging errors.</param>
+    public Parser(SourceFile source, bool parse = false, ErrorLog? log = null)
     {
-        Lexer = new Lexer(source);
+        Log = log ?? new ErrorLog();
+        Lexer = new Lexer(source, true, Log);
         _tokens = Lexer.Tokens.ToArray();
         _current = _tokens[0];
 
@@ -252,7 +257,7 @@ public partial class Parser
 
         if (Consume(TokenType.Identifier) is not StringToken nameToken)
         {
-            defineToken.AddError(new ElementDeclarationWithoutNameError(defineToken));
+            Log.Error(new ElementDeclarationWithoutNameError(defineToken));
             // TODO: Enter panic mode here
             return null;
         }
@@ -379,7 +384,7 @@ public partial class Parser
 
             if (_current.Type is TokenType.Newline or TokenType.EndOfFile)
             {
-                _current.AddError(new UnexpectedSymbolError(_current));
+                Log.Error(new UnexpectedSymbolError(_current));
                 break;
             }
         }
@@ -406,17 +411,8 @@ public partial class Parser
     /// <returns>The next token in the token array. Returns EndOfFile token if at the end of the array.</returns>
     private void Advance()
     {
-        // Skip errors while parsing and advance to the next valid token. Stop before the end of the array.
-        for (var i = _position + 1; i < _tokens.Length; i++)
-        {
-            if (_tokens[i].HasErrors) continue;
-
-            // TODO: Do something about this error
-            _panicMode = true;
-            _position = i;
-            break;
-        }
-
+        _position++;
+        // TODO: Handle token errors here
         _current = _tokens[_position];
         _peek = Peek();
         _peekNext = PeekNext();
@@ -445,7 +441,7 @@ public partial class Parser
             return consumed;
         }
 
-        if (!optional) _current.AddError(new UnexpectedSymbolError(_current));
+        if (!optional) Log.Error(new UnexpectedSymbolError(_current));
 
         return null;
     }

@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -32,12 +33,9 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
     public IResult? Visit(IVisitable dest, IScope currentScope)
     {
         // Stop execution on circular references
-        if (dest is IErrorContainer errorContainer)
+        if (dest.HasCircularReferenceError())
         {
-            if (errorContainer.ContainsError<CircularReferenceError>())
-            {
-                return null;
-            }
+            return null;
         }
 
         return dest switch
@@ -113,7 +111,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
             return null;
         }
 
-        dest.AddError(new OperationError(dest));
+        Log.Error(new OperationError(dest));
         return null;
     }
 
@@ -135,7 +133,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
             return new QuantityResult(operationResultQuantity);
         }
 
-        dest.AddError(new OperationError(dest));
+        Log.Error(new OperationError(dest));
         return null;
     }
 
@@ -154,7 +152,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
         var declaration = dest.GetResolvedDeclaration();
         if (declaration != null) return Visit(declaration, currentScope);
 
-        dest.AddError(new NameResolutionError(dest));
+        Log.Error(new NameResolutionError(dest));
         return null;
     }
 
@@ -216,7 +214,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
             return value;
         }
 
-        dest.AddError(new UnitAssignmentError(dest));
+        Log.Error(new UnitAssignmentError(dest));
         return null;
     }
 

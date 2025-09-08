@@ -16,7 +16,7 @@ namespace Sunset.Parser.Analysis.ReferenceChecking;
 public class ReferenceChecker(ErrorLog log)
 {
     public ErrorLog Log { get; } = log;
-    
+
     /// <summary>
     ///     The Visit functions pass down the visited nodes as parameters, which is used for cyclic reference checking.
     ///     They return the references which are cached when paths are visited multiple times.
@@ -154,7 +154,10 @@ public class ReferenceChecker(ErrorLog log)
         // Capture a cyclic reference if this variable has already been visited
         if (visited.Contains(dest))
         {
-            dest.AddError(new CircularReferenceError(dest));
+            var error = new CircularReferenceError(dest);
+            dest.SetCircularReferenceError(error);
+            Log.Error(error);
+
             // Return this variable as a reference to provide an upstream signal that there is a circular reference and prevent further checking.
             return [dest];
         }
@@ -165,9 +168,11 @@ public class ReferenceChecker(ErrorLog log)
         // If there are circular references in the references made by this variable, add it to this variable.
         if (references != null)
         {
-            if (references.Any(reference => reference.ContainsError<CircularReferenceError>()))
+            if (references.Any(reference => reference.HasCircularReferenceError()))
             {
-                dest.AddError(new CircularReferenceError(dest));
+                var error = new CircularReferenceError(dest);
+                dest.SetCircularReferenceError(error);
+                Log.Error(error);
             }
         }
 

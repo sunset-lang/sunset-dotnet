@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.Errors.Semantic;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.ReferenceChecking;
@@ -12,4 +13,9 @@ public class ReferenceCheckPassData : IPassData
     ///     References that are held by a node.
     /// </summary>
     public HashSet<IDeclaration>? References { get; set; }
+
+    /// <summary>
+    ///     The circular reference error attached to the node.
+    /// </summary>
+    public CircularReferenceError? CircularReferenceError { get; set; }
 }

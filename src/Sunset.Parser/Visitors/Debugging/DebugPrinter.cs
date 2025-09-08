@@ -28,12 +28,9 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
 
     public string Visit(IVisitable dest)
     {
-        if (dest is IErrorContainer errorContainer)
+        if (dest.HasCircularReferenceError())
         {
-            if (errorContainer.ContainsError<CircularReferenceError>())
-            {
-                return "!Circular reference!";
-            }
+            return "!Circular reference!";
         }
 
         return dest switch

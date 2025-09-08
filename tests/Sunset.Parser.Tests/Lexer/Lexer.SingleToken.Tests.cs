@@ -33,7 +33,8 @@ public class LexerSingleTokenTests
 
         foreach (var key in expected.Keys)
         {
-            var lex = new Lexing.Lexer(SourceFile.FromString(key.firstCharacter + key.secondCharacter.ToString()), false);
+            var lex = new Lexing.Lexer(SourceFile.FromString(key.firstCharacter + key.secondCharacter.ToString()),
+                false);
             var token = lex.GetNextToken();
             Assert.That(token.Type, Is.EqualTo(expected[key]));
         }
@@ -107,11 +108,8 @@ public class LexerSingleTokenTests
     {
         var lex = new Lexing.Lexer(SourceFile.FromString("123.456.789"), false);
         var token = lex.GetNextToken();
-        Assert.That(token.HasErrors, Is.EqualTo(true));
-        foreach (var message in token.Errors)
-        {
-            Console.WriteLine(message);
-        }
+        Assert.That(lex.Log.Errors.Count, Is.GreaterThan(0));
+        lex.Log.PrintLogToConsole();
     }
 
     [Test]
@@ -130,7 +128,8 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_MultiLineString_HasCorrectValue()
     {
-        var lex = new Lexing.Lexer(SourceFile.FromString("\"\"\"Hello, world\r\nHow are you doing today?\"\"\""), false);
+        var lex = new Lexing.Lexer(SourceFile.FromString("\"\"\"Hello, world\r\nHow are you doing today?\"\"\""),
+            false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.MultilineString));
 

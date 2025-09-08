@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -27,12 +28,9 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
 
     public string Visit(IVisitable dest, IScope currentScope)
     {
-        if (dest is IErrorContainer errorContainer)
+        if (dest.HasCircularReferenceError())
         {
-            if (errorContainer.ContainsError<CircularReferenceError>())
-            {
-                return "!Circular reference!";
-            }
+            return "!Circular reference!";
         }
 
         return dest switch

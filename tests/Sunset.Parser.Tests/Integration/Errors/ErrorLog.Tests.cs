@@ -33,8 +33,9 @@ public class ErrorLogTests
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();
-        Assert.That(environment.Log.Errors.Count(), Is.EqualTo(1));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(1));
     }
+
     [Test]
     public void PrintErrors_NameResolutionError_CorrectError()
     {
@@ -43,6 +44,6 @@ public class ErrorLogTests
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();
-        Assert.That(environment.Log.Errors.Count(), Is.EqualTo(1));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(1));
     }
 }

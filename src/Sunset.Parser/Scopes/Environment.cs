@@ -44,8 +44,6 @@ public class Environment : IScope
     public IScope? ParentScope { get; init; } = null;
     public string FullPath => "$env";
 
-    public List<IError> Errors { get; } = [];
-
     public ErrorLog Log { get; } = new();
 
     public IDeclaration? TryGetDeclaration(string name)

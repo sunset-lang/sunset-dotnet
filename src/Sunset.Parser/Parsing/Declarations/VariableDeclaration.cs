@@ -103,16 +103,4 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
     {
         return visitor.Visit(this);
     }
-
-    /// <inheritdoc />
-    public List<IError> Errors { get; } = [];
-
-    /// <inheritdoc />
-    public bool HasErrors => Errors.Count > 0;
-
-    /// <inheritdoc />
-    public void AddError(IError error)
-    {
-        Errors.Add(error);
-    }
 }

@@ -99,18 +99,6 @@ public abstract class TokenBase : IToken
     public int ColumnEnd => _columnEnd ?? ColumnStart;
     public int Length { get; }
 
-    /// <summary>
-    ///     A list of the <see cref="IError" /> instances that this token contains.
-    /// </summary>
-    public List<IError> Errors { get; } = [];
-
-    /// <summary>
-    ///     Returns true if there are errors and false if there aren't.
-    ///     Refer to <see cref="Errors" /> for the list of errors.
-    /// </summary>
-    public bool HasErrors => Errors.Count > 0;
-
-
     public override string ToString()
     {
         return $"({Type})";
@@ -119,10 +107,5 @@ public abstract class TokenBase : IToken
     public virtual string ToDebugString()
     {
         return $"({Type})";
-    }
-
-    public void AddError(IError error)
-    {
-        Errors.Add(error);
     }
 }

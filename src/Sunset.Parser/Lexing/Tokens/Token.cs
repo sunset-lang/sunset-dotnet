@@ -1,13 +1,15 @@
-﻿namespace Sunset.Parser.Lexing.Tokens;
+﻿using Sunset.Parser.Scopes;
+
+namespace Sunset.Parser.Lexing.Tokens;
 
 public class Token : TokenBase
 {
-    public Token(TokenType type, int positionStart, int positionEnd, int lineStart, int columnEnd) : base(
-        type, positionStart, positionEnd, lineStart, columnEnd)
+    public Token(TokenType type, int positionStart, int positionEnd, int lineStart, int columnEnd, SourceFile file) : base(
+        type, positionStart, positionEnd, lineStart, columnEnd, file)
     {
     }
 
-    public Token(TokenType type, int position, int lineStart, int column) : base(type, position, lineStart, column)
+    public Token(TokenType type, int position, int lineStart, int column, SourceFile file) : base(type, position, lineStart, column, file)
     {
     }
 

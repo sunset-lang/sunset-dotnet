@@ -1,5 +1,4 @@
-﻿using Serilog;
-using Sunset.Parser.Analysis.NameResolution;
+﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
@@ -45,7 +44,7 @@ public class Environment : IScope
     public IScope? ParentScope { get; init; } = null;
     public string FullPath => "$env";
 
-    public List<IError> Errors { get; } = [];
+    public ErrorLog Log { get; } = new();
 
     public IDeclaration? TryGetDeclaration(string name)
     {
@@ -69,11 +68,11 @@ public class Environment : IScope
 
             ChildScopes.Add(source.Name, sourceScope);
 
-            Log.Verbose("Added file {SourceFilePath} to environment.", source.Name);
+            Log.Debug($"Added file {source.Name} to environment.");
         }
         else
         {
-            Log.Warning("File {SourceFilePath} already exists in environment. File not added.", source.Name);
+            Log.Warning($"File {source.FilePath} already exists in environment. File not added.");
         }
     }
 
@@ -93,7 +92,7 @@ public class Environment : IScope
     public void Analyse()
     {
         // Name resolution
-        var nameResolver = new NameResolver();
+        var nameResolver = new NameResolver(Log);
         foreach (var scope in ChildScopes.Values)
         {
             // If the child scope of the environment is a file scope, the scope's parent will be null.
@@ -109,7 +108,7 @@ public class Environment : IScope
         }
 
         // Cycle checking
-        var cycleChecker = new ReferenceChecker();
+        var cycleChecker = new ReferenceChecker(Log);
         foreach (var scope in ChildScopes.Values)
         {
             cycleChecker.Visit(scope, []);
@@ -117,14 +116,14 @@ public class Environment : IScope
 
         // Type checking
         // TODO: Generalise this into checking all types and not just units
-        var typeChecker = new TypeChecker();
+        var typeChecker = new TypeChecker(Log);
         foreach (var scope in ChildScopes.Values)
         {
             typeChecker.Visit(scope);
         }
 
         // Default evaluation
-        var quantityEvaluator = new Evaluator();
+        var quantityEvaluator = new Evaluator(Log);
         foreach (var scope in ChildScopes.Values)
         {
             quantityEvaluator.Visit(scope, scope);

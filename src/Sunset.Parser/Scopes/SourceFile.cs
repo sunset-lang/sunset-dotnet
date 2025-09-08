@@ -8,11 +8,13 @@ public class SourceFile
 {
     private readonly Parsing.Parser? _parser;
 
+    public static SourceFile Anonymous { get; } = new("$file", string.Empty);
+
     private SourceFile(string name, string source)
     {
         Name = name;
         SourceCode = source;
-        _parser = new Parsing.Parser(source);
+        _parser = new Parsing.Parser(this);
     }
 
     /// <summary>
@@ -85,5 +87,15 @@ public class SourceFile
         fileScope.ChildDeclarations = children;
 
         return fileScope;
+    }
+
+    /// <summary>
+    /// Gets the line of source code at a specified line.
+    /// </summary>
+    /// <exception cref="Exception">Throws an exception if there is no parser available.</exception>
+    public string GetLine(int lineNumber)
+    {
+        if (_parser == null) throw new Exception("Cannot get line number without parser.");
+        return _parser.Lexer.GetLine(lineNumber) ?? string.Empty;
     }
 }

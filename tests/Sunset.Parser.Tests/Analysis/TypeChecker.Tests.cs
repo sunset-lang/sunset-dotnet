@@ -1,16 +1,18 @@
 ﻿using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Test.Analysis;
 
 [TestFixture]
 public class TypeCheckerTests
 {
-    private readonly TypeChecker _typeChecker = new();
+    private readonly TypeChecker _typeChecker = new(new ErrorLog());
 
     public VariableDeclaration GetVariableDeclaration(string input)
     {
-        var parser = new Parsing.Parser(input, true);
+        var parser = new Parsing.Parser(SourceFile.FromString(input), true);
         var declaration = parser.SyntaxTree.FirstOrDefault();
         if (declaration is null)
         {

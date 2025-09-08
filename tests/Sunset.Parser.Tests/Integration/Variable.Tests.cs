@@ -22,8 +22,8 @@ public class VariableTests
         environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
     }
 
@@ -34,8 +34,8 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Metre);
     }
 
@@ -50,8 +50,8 @@ public class VariableTests
         environment.Analyse();
 
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 17, DefinedUnits.Dimensionless);
     }
@@ -67,8 +67,8 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "length", 30, DefinedUnits.Millimetre);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "width", 400, DefinedUnits.Millimetre);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "area", 12000,
@@ -86,8 +86,8 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 94, DefinedUnits.Dimensionless, ["x"]);
@@ -105,8 +105,8 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 94, DefinedUnits.Dimensionless, ["x"]);
@@ -125,8 +125,8 @@ public class VariableTests
         environment.Analyse();
         var fileScope = environment.ChildScopes["$file"] as FileScope;
         Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
-        var printer = new DebugPrinter();
-        Console.WriteLine(printer.Visit(environment));
+
+        Console.WriteLine(DebugPrinter.Print(environment));
 
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 35, DefinedUnits.Millimetre);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 40, DefinedUnits.Second);
@@ -135,7 +135,7 @@ public class VariableTests
         Assert.Multiple(() =>
         {
             Assert.That(variable.GetResult(fileScope!), Is.Null);
-            Assert.That(variable.HasErrors, Is.True);
+            Assert.That(environment.Log.Errors.Count, Is.GreaterThan(0));
         });
     }
 

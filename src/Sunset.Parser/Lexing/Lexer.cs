@@ -1,7 +1,9 @@
 ﻿using System.Text;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Lexing;
 
@@ -10,6 +12,14 @@ namespace Sunset.Parser.Lexing;
 /// </summary>
 public class Lexer
 {
+    /// <summary>
+    /// The file that the source code is from. Injected into each token.
+    /// </summary>
+    private readonly SourceFile _file;
+
+    /// <summary>
+    /// The source code.
+    /// </summary>
     private readonly ReadOnlyMemory<char> _source;
 
     /// <summary>
@@ -18,18 +28,28 @@ public class Lexer
     public readonly List<IToken> Tokens = [];
 
     /// <summary>
-    ///     The column that the lexer is currently at. Zero based.
+    ///     The column that the lexer is currently at. Zero-based.
     /// </summary>
     private int _column;
 
+    /// <summary>
+    ///     The current character that the lexer is at.
+    /// </summary>
     private char _current;
 
     /// <summary>
-    ///     The line that the lexer is currently at within the source. Zero based.
+    ///     The line that the lexer is currently at within the source. Zero-based.
     /// </summary>
     private int _line;
 
+    /// <summary>
+    ///     The next character in the source.
+    /// </summary>
     private char _peek;
+
+    /// <summary>
+    ///     The character after the next character in the source.
+    /// </summary>
     private char _peekNext;
 
     /// <summary>
@@ -38,25 +58,31 @@ public class Lexer
     private int _position;
 
     /// <summary>
-    ///     Creates a new Lexer object with a given source.
+    ///     The position of the start and end of each line in the source code.
+    ///     Used to identify and later print each line of code.
     /// </summary>
-    /// <param name="source">Source string to be converted into a list of tokens.</param>
-    /// <param name="scan">true to automatically scan the source on construction.</param>
-    public Lexer(string source, bool scan = true) : this(source.AsMemory(), scan)
-    {
-    }
+    private List<(int start, int end)> _lines = [];
 
     /// <summary>
-    ///     Creates a new Lexer object with a given source in ReadOnlyMemory form.
+    ///     The starting position of the current line.
     /// </summary>
-    /// <param name="source">Source to be converted into a list of tokens.</param>
-    /// <param name="scan">true to automatically scan the source on construction.</param>
-    public Lexer(ReadOnlyMemory<char> source, bool scan = true)
+    private int _lineStart = 0;
+
+    public ErrorLog Log { get; }
+
+
+    /// <summary>
+    ///     Creates a new Lexer object for a given SourceFile.
+    /// </summary>
+    /// <param name="source">The file to be lexed.</param>
+    /// <param name="scan">true to automatically scan the source on construction. Defaults to true.</param>
+    /// <param name="log">The error log to use when scanning.</param>
+    public Lexer(SourceFile source, bool scan = true, ErrorLog? log = null)
     {
-        _source = source;
-
+        _file = source;
+        _source = source.SourceCode.AsMemory();
+        Log = log ?? new ErrorLog();
         Reset();
-
         if (scan) Scan();
     }
 
@@ -77,17 +103,25 @@ public class Lexer
         {
             _line++;
             _column = 0;
+
+            // Add a new line to the list of lines.
+            _lines.Add(PeekBack(2) == '\r'
+                ? (_lineStart, _position - 3)
+                : (_lineStart, _position - 2));
+
+            _lineStart = _position;
         }
     }
 
     /// <summary>
-    ///     Looks backwards one character. Returns null if at the start of the file.
+    ///     Looks backwards. Returns null if at the start of the file.
     /// </summary>
     /// <returns>The previous character in the source. Returns null if at the beginning of the source.</returns>
-    private char? PeekBack()
+    private char? PeekBack(int lookBehind = 1)
     {
-        return _position == 0 ? null : _source.Span[_position - 1];
+        return _position < lookBehind ? null : _source.Span[_position - lookBehind];
     }
+
 
     /// <summary>
     ///     Get the character lookAhead characters after the current character in the source without incrementing the position.
@@ -128,7 +162,9 @@ public class Lexer
             Tokens.Add(GetNextToken());
         }
 
-        Tokens.Add(new Token(TokenType.EndOfFile, _position, _line, _column));
+        Tokens.Add(new Token(TokenType.EndOfFile, _position, _line, _column, _file));
+        // Add reference to the final line
+        _lines.Add((_lineStart, _position));
     }
 
     /// <summary>
@@ -172,7 +208,7 @@ public class Lexer
                 _position,
                 _position + 1,
                 _line,
-                _column);
+                _column, _file);
         }
 
         // Multi-character tokens : Numbers
@@ -200,11 +236,11 @@ public class Lexer
                 out var singleCharacterTokenType))
         {
             Advance();
-            return new Token(singleCharacterTokenType, _position, _line, _column);
+            return new Token(singleCharacterTokenType, _position, _line, _column, _file);
         }
 
         Advance();
-        return new Token(TokenType.Error, _position, _line, _column);
+        return new Token(TokenType.Error, _position, _line, _column, _file);
     }
 
     /// <summary>
@@ -228,10 +264,11 @@ public class Lexer
         if (isDocumentation)
         {
             return new StringToken(_source[(start + 2).._position], TokenType.Documentation, start, _position, _line,
-                _column);
+                _column, _file);
         }
 
-        return new StringToken(_source[(start + 1).._position], TokenType.Comment, start, _position, _line, _column);
+        return new StringToken(_source[(start + 1).._position], TokenType.Comment, start, _position, _line, _column,
+            _file);
     }
 
     /// <summary>
@@ -258,8 +295,8 @@ public class Lexer
                     // If there aren't digits after the decimal place, stop scanning 
                     if (!char.IsDigit(_peek))
                     {
-                        var numberErrorToken = new DoubleToken(0, start, _position, _line, _column);
-                        numberErrorToken.AddError(new NumberEndingWithDecimalError(numberErrorToken));
+                        var numberErrorToken = new DoubleToken(0, start, _position, _line, _column, _file);
+                        Log.Error(new NumberEndingWithDecimalError(numberErrorToken));
                         return numberErrorToken;
                     }
 
@@ -280,8 +317,8 @@ public class Lexer
                         (_peek == '-' && !char.IsDigit(_peekNext)))
                     {
                         // If the number ends after the next exponent, finish the token and note an error
-                        var numberErrorToken = new DoubleToken(0, start, _position, _line, _column);
-                        numberErrorToken.AddError(new NumberEndingWithExponentError(numberErrorToken));
+                        var numberErrorToken = new DoubleToken(0, start, _position, _line, _column, _file);
+                        Log.Error(new NumberEndingWithExponentError(numberErrorToken));
                         return numberErrorToken;
                     }
 
@@ -297,10 +334,10 @@ public class Lexer
 
         if (decimalPlaceError || exponentError)
         {
-            var numberToken = new DoubleToken(0, start, _position, _line, _column);
-            if (decimalPlaceError) numberToken.AddError(new NumberDecimalPlaceError(numberToken));
+            var numberToken = new DoubleToken(0, start, _position, _line, _column, _file);
+            if (decimalPlaceError) Log.Error(new NumberDecimalPlaceError(numberToken));
 
-            if (exponentError) numberToken.AddError(new NumberExponentError(numberToken));
+            if (exponentError) Log.Error(new NumberExponentError(numberToken));
 
             return numberToken;
         }
@@ -309,10 +346,10 @@ public class Lexer
         {
             return new DoubleToken(
                 double.Parse(_source[start.._position].Span),
-                start, _position, _line, _column);
+                start, _position, _line, _column, _file);
         }
 
-        return new IntToken(int.Parse(_source[start.._position].Span), start, _position, _line, _column);
+        return new IntToken(int.Parse(_source[start.._position].Span), start, _position, _line, _column, _file);
     }
 
     /// <summary>
@@ -328,7 +365,8 @@ public class Lexer
 
         while (_current == '_' || char.IsLetterOrDigit(_current)) Advance();
 
-        return new StringToken(_source[start.._position], TokenType.Identifier, start, _position, _line, _column);
+        return new StringToken(_source[start.._position], TokenType.Identifier, start + 1, _position, _line, _column,
+            _file);
     }
 
     /// <summary>
@@ -356,8 +394,8 @@ public class Lexer
                 {
                     // This is a multiline string parsing error
                     var stringErrorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
-                        start, _position, _line, _line, columnStart, _column);
-                    stringErrorToken.AddError(new UnclosedMultilineStringError(stringErrorToken));
+                        start, _position, _line, _line, columnStart, _column, _file);
+                    Log.Error(new UnclosedMultilineStringError(stringErrorToken));
                     return stringErrorToken;
                 }
 
@@ -368,7 +406,7 @@ public class Lexer
             Advance();
             Advance();
             return new StringToken(_source[(start + 3)..(_position - 3)], TokenType.MultilineString,
-                start, _position, lineStart, _line, columnStart, _column);
+                start, _position, lineStart, _line, columnStart, _column, _file);
         }
 
         // Single line strings
@@ -378,8 +416,8 @@ public class Lexer
             {
                 // Consider that this is a string parsing error
                 var stringErrorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
-                    start, _position, _line, _column);
-                stringErrorToken.AddError(new UnclosedStringError(stringErrorToken));
+                    start, _position, _line, _column, _file);
+                Log.Error(new UnclosedStringError(stringErrorToken));
                 return stringErrorToken;
             }
 
@@ -387,7 +425,7 @@ public class Lexer
         }
 
         return new StringToken(_source[(start + 1) .. _position], TokenType.String, start, _position, _line,
-            _column);
+            _column, _file);
     }
 
     /// <summary>
@@ -403,7 +441,7 @@ public class Lexer
 
         // This assumes that whitespace cannot cross a new line as new lines have a semantic meaning
         return new StringToken(_source[start.._position], TokenType.Whitespace, start, _position, _line,
-            _column);
+            _column, _file);
     }
 
     /// <summary>
@@ -431,8 +469,8 @@ public class Lexer
 
                     var identifierSymbolErrorToken = new StringToken(_source[(start + 1).._position],
                         TokenType.IdentifierSymbol,
-                        start, _position, _line, _column);
-                    identifierSymbolErrorToken.AddError(
+                        start, _position, _line, _column, _file);
+                    Log.Error(
                         new IdentifierSymbolEndsInUnderscoreError(identifierSymbolErrorToken));
                     return identifierSymbolErrorToken;
                 }
@@ -444,19 +482,59 @@ public class Lexer
         }
 
         var identifierSymbolToken = new StringToken(_source[(start + 1).._position], TokenType.IdentifierSymbol,
-            start, _position, _line, _column);
+            start, _position, _line, _column, _file);
 
         if (subscriptError)
         {
-            identifierSymbolToken.AddError(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
+            Log.Error(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
         }
 
         if (_current == '_')
         {
-            identifierSymbolToken.AddError(new IdentifierSymbolEndsInUnderscoreError(identifierSymbolToken));
+            Log.Error(new IdentifierSymbolMoreThanOneUnderscoreError(identifierSymbolToken));
         }
 
         return identifierSymbolToken;
+    }
+
+    /// <summary>
+    /// Gets a line from the source given a specific line number.
+    /// </summary>
+    /// <param name="lineNumber">Line to get from source.</param>
+    public string? GetLine(int lineNumber)
+    {
+        if (lineNumber > _lines.Count - 1 || lineNumber < 0)
+        {
+            return null;
+        }
+
+        return _source[_lines[lineNumber].start .. _lines[lineNumber].end].ToString();
+    }
+
+    /// <summary>
+    /// Gets a number of lines from the source given a start and end line.
+    /// </summary>
+    public string GetLines(int startLine, int endLine)
+    {
+        var builder = new StringBuilder();
+
+        if (startLine > endLine)
+        {
+            throw new ArgumentException("Start line must be before end line");
+        }
+
+        var lineNumbers = Enumerable.Range(startLine, endLine - startLine + 1);
+
+        foreach (var line in lineNumbers)
+        {
+            var lineValue = GetLine(line);
+            if (lineValue != null)
+            {
+                builder.AppendLine(lineValue);
+            }
+        }
+
+        return builder.ToString();
     }
 
     public override string ToString()

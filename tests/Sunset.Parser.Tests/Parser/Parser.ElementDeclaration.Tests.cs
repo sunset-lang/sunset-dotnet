@@ -7,20 +7,18 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserElementDeclarationTests
 {
-    private readonly DebugPrinter _printer = new();
-
     [Test]
     public void GetElementDeclaration_WithValidInput_CorrectDeclaration()
     {
-        var parser = new Parsing.Parser("""
-                                        define Square:
-                                            inputs:
-                                                Width <w> {mm} = 100 {mm}
-                                                Length <l> {mm} = 200 {mm}
-                                            outputs:
-                                                Area <A> {mm^2} = Width * Length
-                                        end
-                                        """);
+        var parser = new Parsing.Parser(SourceFile.FromString("""
+                                                              define Square:
+                                                                  inputs:
+                                                                      Width <w> {mm} = 100 {mm}
+                                                                      Length <l> {mm} = 200 {mm}
+                                                                  outputs:
+                                                                      Area <A> {mm^2} = Width * Length
+                                                              end
+                                                              """));
 
         var element = parser.GetElementDeclaration(new FileScope("$", null));
 
@@ -32,29 +30,28 @@ public class ParserElementDeclarationTests
             Assert.That(element.ChildDeclarations.ContainsKey("Length"), Is.True);
             Assert.That(element.ChildDeclarations.ContainsKey("Area"), Is.True);
         });
-
     }
 
     [Test]
     public void GetElementDeclaration_TwoElements_CorrectDeclaration()
     {
-        var parser = new Parsing.Parser("""
-                                        define Square:
-                                            inputs:
-                                                Width <w> {mm} = 100 {mm}
-                                                Length <l> {mm} = 200 {mm}
-                                            outputs:
-                                                Area <A> {mm^2} = Width * Length
-                                        end
+        var parser = new Parsing.Parser(SourceFile.FromString("""
+                                                              define Square:
+                                                                  inputs:
+                                                                      Width <w> {mm} = 100 {mm}
+                                                                      Length <l> {mm} = 200 {mm}
+                                                                  outputs:
+                                                                      Area <A> {mm^2} = Width * Length
+                                                              end
 
-                                        define Circle:
-                                            inputs:
-                                                Diameter <d> {mm} = 100 {mm}
-                                            outputs:
-                                                Area <A> {mm^2} = 3.14 * Diameter ^ 2 / 4 
-                                                Circumference <c> {mm} = 3.14 * Diameter
-                                        end
-                                        """);
+                                                              define Circle:
+                                                                  inputs:
+                                                                      Diameter <d> {mm} = 100 {mm}
+                                                                  outputs:
+                                                                      Area <A> {mm^2} = 3.14 * Diameter ^ 2 / 4 
+                                                                      Circumference <c> {mm} = 3.14 * Diameter
+                                                              end
+                                                              """));
 
         var elements = parser.Parse(new FileScope("$", null));
 

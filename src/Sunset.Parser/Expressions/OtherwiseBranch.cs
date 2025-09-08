@@ -10,10 +10,13 @@ public class OtherwiseBranch(IExpression body, IToken otherwiseToken) : IBranch
     /// </summary>
     public IExpression Body { get; } = body;
 
+
     /// <summary>
     /// The token containing the 'otherwise' keyword.
     /// </summary>
     public IToken OtherwiseToken { get; } = otherwiseToken;
+
+    public IToken Token => OtherwiseToken;
 
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
@@ -16,8 +17,8 @@ namespace Sunset.Reporting.Visitors;
 public abstract class SymbolExpressionPrinter(
     PrinterSettings settings,
     EquationComponents components,
-    ValueExpressionPrinter valuePrinter)
-    : ExpressionPrinterBase(settings, components)
+    ValueExpressionPrinter valuePrinter, ErrorLog log)
+    : ExpressionPrinterBase(settings, components, log)
 {
     private readonly ValueExpressionPrinter _valuePrinter = valuePrinter;
 

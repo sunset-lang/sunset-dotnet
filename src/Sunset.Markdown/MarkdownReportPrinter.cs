@@ -2,6 +2,7 @@ using System.Text;
 using Markdig;
 using Markdig.Renderers;
 using Sunset.Markdown.Extensions;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Reporting;
 
@@ -14,16 +15,16 @@ public class MarkdownReportPrinter : IReportPrinter
 {
     private readonly MarkdownVariablePrinter _variablePrinter;
 
-    public MarkdownReportPrinter()
+    public MarkdownReportPrinter(ErrorLog log)
     {
         Settings = new PrinterSettings();
-        _variablePrinter = new MarkdownVariablePrinter(Settings);
+        _variablePrinter = new MarkdownVariablePrinter(Settings, log);
     }
 
-    public MarkdownReportPrinter(PrinterSettings settings)
+    public MarkdownReportPrinter(PrinterSettings settings, ErrorLog log)
     {
         Settings = settings;
-        _variablePrinter = new MarkdownVariablePrinter(Settings);
+        _variablePrinter = new MarkdownVariablePrinter(Settings, log);
     }
     //private readonly MarkdownCapacityCheckPrinter _capacityCheckPrinter;
 

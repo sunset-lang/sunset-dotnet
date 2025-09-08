@@ -1,7 +1,7 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
-using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
@@ -16,19 +16,18 @@ namespace Sunset.Parser.Analysis.TypeChecking;
 /// <summary>
 /// Performs type checking on the AST, and evaluates units of quantities along the way.
 /// </summary>
-public class TypeChecker : IVisitor<IResultType?>
+public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 {
-    private static readonly TypeChecker Singleton = new();
+    public ErrorLog Log { get; } = log;
+
+    private static readonly TypeChecker Singleton = new(new ErrorLog());
 
     public IResultType? Visit(IVisitable dest)
     {
         // Protect against infinite recursion
-        if (dest is IErrorContainer container)
+        if (dest.HasCircularReferenceError())
         {
-            if (container.ContainsError<CircularReferenceError>())
-            {
-                return null;
-            }
+            return null;
         }
 
         return dest switch
@@ -67,7 +66,7 @@ public class TypeChecker : IVisitor<IResultType?>
 
         if (leftResult == null || rightResult == null)
         {
-            dest.AddError(new TypeResolutionError(dest));
+            Log.Error(new TypeResolutionError(dest));
             return null;
         }
 
@@ -116,7 +115,7 @@ public class TypeChecker : IVisitor<IResultType?>
         }
     }
 
-    private static Unit? BinaryUnitOperation(BinaryExpression dest, Unit leftUnit,
+    private Unit? BinaryUnitOperation(BinaryExpression dest, Unit leftUnit,
         Unit rightUnit)
     {
         // When doing a power operation with units, the right-hand side must be a number constant 
@@ -144,7 +143,7 @@ public class TypeChecker : IVisitor<IResultType?>
 
                 if (arithmeticResult.Valid) return arithmeticResult;
 
-                dest.AddError(new BinaryUnitMismatchError(dest));
+                Log.Error(new BinaryUnitMismatchError(dest));
                 return null;
             }
             default:
@@ -173,8 +172,11 @@ public class TypeChecker : IVisitor<IResultType?>
                 return Visit(variableDeclaration);
             case ElementDeclaration elementDeclaration:
                 return Visit(elementDeclaration);
+            case null:
+                return null;
             default:
-                throw new ArgumentException($"Type checking of type {dest.GetType()} is not supported.");
+                throw new ArgumentException(
+                    $"Type checking of type {dest.GetResolvedDeclaration()?.GetType()} is not supported.");
         }
     }
 
@@ -190,7 +192,7 @@ public class TypeChecker : IVisitor<IResultType?>
                 var conditionType = Visit(ifBranch.Condition);
                 if (conditionType is not BooleanType)
                 {
-                    ifBranch.Condition.AddError(new IfConditionError(ifBranch.Condition));
+                    Log.Error(new IfConditionError(ifBranch.Condition));
                     error = true;
                 }
             }
@@ -215,7 +217,7 @@ public class TypeChecker : IVisitor<IResultType?>
                 if (IResultType.AreCompatible(resultType, branchType)) continue;
 
                 // If not compatible, add an error
-                dest.AddError(new IfTypeMismatchError(dest));
+                Log.Error(new IfTypeMismatchError(branch));
                 error = true;
             }
         }
@@ -271,7 +273,7 @@ public class TypeChecker : IVisitor<IResultType?>
         {
             if (!IResultType.AreCompatible(propertyType, evaluatedType))
             {
-                dest.Expression.AddError(new ArgumentUnitMismatchError(dest));
+                Log.Error(new ArgumentUnitMismatchError(dest));
                 return null;
             }
         }
@@ -282,9 +284,9 @@ public class TypeChecker : IVisitor<IResultType?>
         return propertyType;
     }
 
-    private static IResultType? Visit(StringConstant dest)
+    private IResultType? Visit(StringConstant dest)
     {
-        dest.AddError(new StringInExpressionError(dest.Token));
+        Log.Error(new StringInExpressionError(dest.Token));
         return null;
     }
 
@@ -328,7 +330,7 @@ public class TypeChecker : IVisitor<IResultType?>
 
             // Provide a weak unit assignment to the declaration
             // TODO: Add a warning that this should be called up explicitly
-            dest.AddError(new VariableUnitDeclarationError(dest));
+            Log.Error(new VariableUnitDeclarationError(dest));
             dest.SetEvaluatedType(evaluatedType);
             return evaluatedType;
         }
@@ -338,20 +340,20 @@ public class TypeChecker : IVisitor<IResultType?>
         {
             if (IResultType.AreCompatible(assignedType, evaluatedType)) return assignedType;
 
-            dest.AddError(new VariableUnitDeclarationError(dest));
+            Log.Error(new VariableUnitDeclarationError(dest));
             return null;
         }
 
         //  If one is not null and one is null, then the types are definitely incompatible. 
         if (assignedType != null && evaluatedType == null)
         {
-            dest.AddError(new VariableUnitDeclarationError(dest));
+            Log.Error(new VariableUnitDeclarationError(dest));
         }
 
         // If the expression units don't evaluate, this should bubble up as an error.
         if (evaluatedType == null)
         {
-            dest.AddError(new VariableUnitEvaluationError(dest));
+            Log.Error(new VariableUnitEvaluationError(dest));
         }
 
         // If both of the units are null, the units could match and would otherwise need to be picked up by the type checker.

@@ -53,7 +53,6 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
         return visitor.Visit(this);
     }
 
-    public List<IError> Errors { get; } = [];
     public Dictionary<string, IDeclaration> ChildDeclarations { get; private set; } = [];
 
     public IDeclaration? TryGetDeclaration(string name)

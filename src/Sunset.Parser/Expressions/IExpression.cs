@@ -9,7 +9,7 @@ namespace Sunset.Parser.Expressions;
 /// <summary>
 ///     An expression that can be evaluated.
 /// </summary>
-public interface IExpression : IVisitable, IErrorContainer
+public interface IExpression : IVisitable
 {
     public static IExpression operator +(IExpression left, IExpression right)
     {

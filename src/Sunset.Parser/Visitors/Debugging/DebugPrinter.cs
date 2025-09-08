@@ -17,18 +17,20 @@ namespace Sunset.Parser.Visitors.Debugging;
 /// <summary>
 ///     Prints out the expression tree for debugging expressions.
 /// </summary>
-public class DebugPrinter : IVisitor<string>
+public class DebugPrinter(ErrorLog log) : IVisitor<string>
 {
     public string PassDataKey => "DebugPrinter";
 
+    public ErrorLog Log { get; } = log;
+
+    public static readonly DebugPrinter Singleton = new DebugPrinter(new ErrorLog());
+    public static string Print(IVisitable dest) => Singleton.Visit(dest);
+
     public string Visit(IVisitable dest)
     {
-        if (dest is IErrorContainer errorContainer)
+        if (dest.HasCircularReferenceError())
         {
-            if (errorContainer.ContainsError<CircularReferenceError>())
-            {
-                return "!Circular reference!";
-            }
+            return "!Circular reference!";
         }
 
         return dest switch

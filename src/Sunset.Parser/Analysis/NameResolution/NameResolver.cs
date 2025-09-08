@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors.Semantic;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
@@ -8,8 +9,10 @@ using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.NameResolution;
 
-public class NameResolver : INameResolver
+public class NameResolver(ErrorLog log) : INameResolver
 {
+    public ErrorLog Log { get; } = log;
+
     public void Visit(IVisitable dest, IScope parentScope)
     {
         switch (dest)
@@ -117,7 +120,7 @@ public class NameResolver : INameResolver
         }
 
         // TODO: Search for libraries in the root Environment.
-        dest.AddError(new NameResolutionError(dest));
+        Log.Error(new NameResolutionError(dest));
     }
 
     private void Visit(UnitAssignmentExpression dest, IScope parentScope)

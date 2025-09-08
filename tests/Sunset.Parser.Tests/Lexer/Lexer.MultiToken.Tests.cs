@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Test.Lexer;
+﻿using Sunset.Parser.Scopes;
+
+namespace Sunset.Parser.Test.Lexer;
 
 [TestFixture]
 public class LexerMultiTokenTests
@@ -6,7 +8,7 @@ public class LexerMultiTokenTests
     [Test]
     public void Scan_ValidExpression_HasCorrectTokens()
     {
-        var lex = new Lexing.Lexer("1 + 2 * (23.65)^2 hello");
+        var lex = new Lexing.Lexer(SourceFile.FromString("1 + 2 * (23.65)^2 hello"));
         var expected = """
                        (Number, 1)
                        (Plus)

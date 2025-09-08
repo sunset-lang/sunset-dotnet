@@ -22,14 +22,5 @@ public class FileScope(string name, IScope? parentScope) : IScope
         return ChildDeclarations.GetValueOrDefault(name);
     }
 
-    public List<IError> Errors { get; } = [];
-    public bool HasErrors { get; } = false;
-
-    public void AddError(IError code)
-    {
-        throw new NotImplementedException();
-    }
-
-
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

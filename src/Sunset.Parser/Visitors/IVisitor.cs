@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Scopes;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Visitors;
 
@@ -7,6 +8,7 @@ namespace Sunset.Parser.Visitors;
 /// </summary>
 public interface IVisitor<out T>
 {
+    ErrorLog Log { get; }
     T Visit(IVisitable dest);
 }
 
@@ -15,6 +17,7 @@ public interface IVisitor<out T>
 /// </summary>
 public interface IScopedVisitor<out T>
 {
+    ErrorLog Log { get; }
     T Visit(IVisitable dest, IScope scope);
 }
 
@@ -24,5 +27,6 @@ public interface IScopedVisitor<out T>
 /// </summary>
 public interface IVisitor
 {
+    ErrorLog Log { get; }
     void Visit(IVisitable dest);
 }

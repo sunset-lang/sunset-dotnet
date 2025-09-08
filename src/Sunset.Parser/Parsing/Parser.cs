@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors.Syntax;
+﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing;
 using Sunset.Parser.Lexing.Tokens;
@@ -14,7 +15,6 @@ namespace Sunset.Parser.Parsing;
 /// </summary>
 public partial class Parser
 {
-    private readonly ReadOnlyMemory<char> _source;
     private readonly IToken[] _tokens;
 
     public readonly List<IDeclaration> SyntaxTree = [];
@@ -27,43 +27,29 @@ public partial class Parser
     private IToken? _peekNext;
     private int _position;
 
+    public Lexer Lexer { get; }
+
+    public ErrorLog Log { get; }
+
     /// <summary>
     ///     Generates a parser from a source string.
     /// </summary>
     /// <param name="source">
-    ///     <inheritdoc cref="Parser(ReadOnlyMemory, bool)" />
+    ///     String to use as source code.
     /// </param>
     /// <param name="parse">
-    ///     <inheritdoc cref="Parser(Lexer, bool)" />
+    ///     True if parsing upon creation, false to parse manually using <see cref="Parse" />.
     /// </param>
-    public Parser(string source, bool parse = false) : this(source.AsMemory(), parse)
+    /// <param name="log">ErrorLog to use for logging errors.</param>
+    public Parser(SourceFile source, bool parse = false, ErrorLog? log = null)
     {
-    }
-
-
-    /// <summary>
-    ///     Generates a parser from a source code in <see cref="ReadOnlyMemory{T}" /> format.
-    /// </summary>
-    /// <param name="source">The source code.</param>
-    /// <param name="parse">
-    ///     <inheritdoc cref="Parser(Lexer, bool)" />
-    /// </param>
-    public Parser(ReadOnlyMemory<char> source, bool parse = false) : this(new Lexer(source), parse)
-    {
-        _source = source;
-    }
-
-    /// <summary>
-    ///     Generates a parser from a lexer.
-    /// </summary>
-    /// <param name="lexer">Lexer to use in the parser. The Lexer contains the source code.</param>
-    /// <param name="parse">True if parsing upon creation, false to parse manually using <see cref="Parse" />.</param>
-    public Parser(Lexer lexer, bool parse = false)
-    {
-        _tokens = lexer.Tokens.ToArray();
+        Log = log ?? new ErrorLog();
+        Lexer = new Lexer(source, true, Log);
+        _tokens = Lexer.Tokens.ToArray();
         _current = _tokens[0];
 
         Reset();
+        // TODO: Tidy up the creation of new objects in constructors.
         if (parse) Parse(new FileScope("$", null));
     }
 
@@ -271,7 +257,7 @@ public partial class Parser
 
         if (Consume(TokenType.Identifier) is not StringToken nameToken)
         {
-            defineToken.AddError(new ElementDeclarationWithoutNameError(defineToken));
+            Log.Error(new ElementDeclarationWithoutNameError(defineToken));
             // TODO: Enter panic mode here
             return null;
         }
@@ -398,7 +384,7 @@ public partial class Parser
 
             if (_current.Type is TokenType.Newline or TokenType.EndOfFile)
             {
-                _current.AddError(new UnexpectedSymbolError(_current));
+                Log.Error(new UnexpectedSymbolError(_current));
                 break;
             }
         }
@@ -425,17 +411,8 @@ public partial class Parser
     /// <returns>The next token in the token array. Returns EndOfFile token if at the end of the array.</returns>
     private void Advance()
     {
-        // Skip errors while parsing and advance to the next valid token. Stop before the end of the array.
-        for (var i = _position + 1; i < _tokens.Length; i++)
-        {
-            if (_tokens[i].HasErrors) continue;
-
-            // TODO: Do something about this error
-            _panicMode = true;
-            _position = i;
-            break;
-        }
-
+        _position++;
+        // TODO: Handle token errors here
         _current = _tokens[_position];
         _peek = Peek();
         _peekNext = PeekNext();
@@ -464,7 +441,7 @@ public partial class Parser
             return consumed;
         }
 
-        if (!optional) _current.AddError(new UnexpectedSymbolError(_current));
+        if (!optional) Log.Error(new UnexpectedSymbolError(_current));
 
         return null;
     }

@@ -9,11 +9,11 @@ public class ParserIfExpressionsTests
     [Test]
     public void GetExpression_IfExpression_CorrectExpression()
     {
-        var parser = new Parsing.Parser("""
+        var parser = new Parsing.Parser(SourceFile.FromString("""
                                         15        if y > 10
                                         = y + 15  if y < 10
                                         = z       otherwise
-                                        """);
+                                        """));
         var ifExpression = parser.GetExpression() as IfExpression;
         Assert.That(ifExpression, Is.Not.Null);
         Assert.That(ifExpression.Branches, Has.Count.EqualTo(3));

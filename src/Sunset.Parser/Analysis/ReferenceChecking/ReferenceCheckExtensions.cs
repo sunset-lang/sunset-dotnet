@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.Errors.Semantic;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.ReferenceChecking;
@@ -26,5 +27,21 @@ public static class ReferenceCheckExtensions
         // Set a cloned list of the references
         // If no references are passed in, store an empty list to signal that the cycle checker has visited.
         dest.GetPassData<ReferenceCheckPassData>(PassDataKey).References = [..references ?? []];
+    }
+
+    /// <summary>
+    /// Sets a circular reference error within a node.
+    /// </summary>
+    public static void SetCircularReferenceError(this IVisitable dest, CircularReferenceError error)
+    {
+        dest.GetPassData<ReferenceCheckPassData>(PassDataKey).CircularReferenceError = error;
+    }
+
+    /// <summary>
+    /// Checks whether a node has a circular reference error.
+    /// </summary>
+    public static bool HasCircularReferenceError(this IVisitable dest)
+    {
+        return dest.GetPassData<ReferenceCheckPassData>(PassDataKey).CircularReferenceError != null;
     }
 }

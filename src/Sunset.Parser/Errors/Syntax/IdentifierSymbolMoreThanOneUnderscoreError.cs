@@ -6,5 +6,6 @@ public class IdentifierSymbolMoreThanOneUnderscoreError(StringToken token) : ISy
 {
     public string Message => "Identifier symbols cannot have more than one underscore in them.";
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [token];
+    public IToken StartToken { get; } = token;
+    public IToken? EndToken => null;
 }

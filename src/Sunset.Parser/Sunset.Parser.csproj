@@ -9,8 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Markdig" Version="0.39.1"/>
-        <PackageReference Include="Serilog" Version="4.3.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
     </ItemGroup>
 
 

@@ -1,17 +1,18 @@
-﻿using Sunset.Quantities.Units;
+﻿using Sunset.Parser.Scopes;
+using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Lexing.Tokens;
 
 public class StringToken : ValueTokenBase<ReadOnlyMemory<char>>
 {
     public StringToken(ReadOnlyMemory<char> value, TokenType type, int positionStart, int positionEnd, int lineStart,
-        int lineEnd, int columnStart, int columnEnd) : base(value, type, positionStart, positionEnd, lineStart, lineEnd,
-        columnStart, columnEnd)
+        int lineEnd, int columnStart, int columnEnd, SourceFile file) : base(value, type, positionStart, positionEnd, lineStart, lineEnd,
+        columnStart, columnEnd, file)
     {
     }
 
     public StringToken(ReadOnlyMemory<char> value, TokenType type, int positionStart, int positionEnd, int lineStart,
-        int columnEnd) : base(value, type, positionStart, positionEnd, lineStart, columnEnd)
+        int columnEnd, SourceFile file) : base(value, type, positionStart, positionEnd, lineStart, columnEnd, file)
     {
         if (type == TokenType.Identifier)
         {

@@ -24,7 +24,6 @@ public class ElementResult(ElementDeclaration declaration, IScope parentScope) :
     public string Name => string.Empty;
 
     public Dictionary<string, IPassData> PassData { get; } = [];
-    public List<IError> Errors { get; } = [];
     public IScope? ParentScope { get; init; } = parentScope;
 
     // TODO: Reference the variable that this instance is bound to

@@ -1,5 +1,6 @@
 ﻿using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens.Numbers;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Parsing.Constants;
 
@@ -9,8 +10,9 @@ namespace Sunset.Parser.Parsing.Constants;
 /// <param name="token">Token that the number is generated from.</param>
 public class NumberConstant(INumberToken token) : ExpressionBase, IConstant
 {
+    // Used for API methods
     public NumberConstant(double value)
-        : this(new DoubleToken(value, 0, 0, 0, 0))
+        : this(new DoubleToken(value, 0, 0, 0, 0, SourceFile.Anonymous))
     {
     }
 

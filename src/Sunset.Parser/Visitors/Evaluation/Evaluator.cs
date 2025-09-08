@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -18,24 +19,23 @@ namespace Sunset.Parser.Visitors.Evaluation;
 /// <summary>
 ///     Evaluates expressions and returns the result, storing it along the way.
 /// </summary>
-public class Evaluator : IScopedVisitor<IResult?>
+public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
 {
-    private static readonly Evaluator Singleton = new();
+    private static readonly Evaluator Singleton = new(new ErrorLog());
 
     public static IResult? EvaluateExpression(IExpression expression)
     {
         return Singleton.Visit(expression, new Environment());
     }
 
+    public ErrorLog Log { get; } = log;
+
     public IResult? Visit(IVisitable dest, IScope currentScope)
     {
         // Stop execution on circular references
-        if (dest is IErrorContainer errorContainer)
+        if (dest.HasCircularReferenceError())
         {
-            if (errorContainer.ContainsError<CircularReferenceError>())
-            {
-                return null;
-            }
+            return null;
         }
 
         return dest switch
@@ -111,7 +111,7 @@ public class Evaluator : IScopedVisitor<IResult?>
             return null;
         }
 
-        dest.AddError(new OperationError(dest));
+        Log.Error(new OperationError(dest));
         return null;
     }
 
@@ -133,7 +133,7 @@ public class Evaluator : IScopedVisitor<IResult?>
             return new QuantityResult(operationResultQuantity);
         }
 
-        dest.AddError(new OperationError(dest));
+        Log.Error(new OperationError(dest));
         return null;
     }
 
@@ -152,7 +152,7 @@ public class Evaluator : IScopedVisitor<IResult?>
         var declaration = dest.GetResolvedDeclaration();
         if (declaration != null) return Visit(declaration, currentScope);
 
-        dest.AddError(new NameResolutionError(dest));
+        Log.Error(new NameResolutionError(dest));
         return null;
     }
 
@@ -214,7 +214,7 @@ public class Evaluator : IScopedVisitor<IResult?>
             return value;
         }
 
-        dest.AddError(new UnitAssignmentError(dest));
+        Log.Error(new UnitAssignmentError(dest));
         return null;
     }
 

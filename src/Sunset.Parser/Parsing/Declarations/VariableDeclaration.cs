@@ -19,8 +19,10 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
 
     public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
     {
+        // Used for API methods
         ParentScope = parentScope;
-        NameToken = new StringToken(variable.Name.AsMemory(), TokenType.Identifier, 0, 0, 0, 0);
+        NameToken = new StringToken(variable.Name.AsMemory(), TokenType.Identifier,
+            0, 0, 0, 0, SourceFile.Anonymous);
 
         Name = variable.Name;
         FullPath = $"{parentScope?.FullPath ?? "$"}.{variable.Name}";
@@ -100,17 +102,5 @@ public class VariableDeclaration : IDeclaration, IExpression, INamed
     public T Accept<T>(IVisitor<T> visitor)
     {
         return visitor.Visit(this);
-    }
-
-    /// <inheritdoc />
-    public List<IError> Errors { get; } = [];
-
-    /// <inheritdoc />
-    public bool HasErrors => Errors.Count > 0;
-
-    /// <inheritdoc />
-    public void AddError(IError error)
-    {
-        Errors.Add(error);
     }
 }

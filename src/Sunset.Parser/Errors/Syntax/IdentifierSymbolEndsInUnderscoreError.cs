@@ -6,5 +6,6 @@ public class IdentifierSymbolEndsInUnderscoreError(StringToken token) : ISyntaxE
 {
     public string Message => "Identifier symbols cannot end in an underscore.";
     public Dictionary<Language, string> Translations { get; } = [];
-    public IToken[]? Tokens { get; } = [token];
+    public IToken StartToken { get; } = token;
+    public IToken? EndToken => null;
 }

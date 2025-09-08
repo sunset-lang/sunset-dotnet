@@ -7,7 +7,7 @@ namespace Sunset.Parser.Parsing.Declarations;
 /// <summary>
 ///     A node in the syntax tree that declares a new name.
 /// </summary>
-public interface IDeclaration : IVisitable, IErrorContainer, INamed
+public interface IDeclaration : IVisitable, INamed
 {
     /// <summary>
     ///     The parent scope to this declaration.

@@ -19,23 +19,26 @@ namespace Sunset.Parser.Visitors.Evaluation;
 /// <summary>
 ///     Evaluates expressions and returns the result, storing it along the way.
 /// </summary>
-public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
+public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 {
     private static readonly Evaluator Singleton = new(new ErrorLog());
 
-    public static IResult? EvaluateExpression(IExpression expression)
+    private static readonly ErrorResult ErrorResult = ErrorResult.Instance;
+    private static readonly SuccessResult SuccessResult = SuccessResult.Instance;
+
+    public static IResult EvaluateExpression(IExpression expression)
     {
         return Singleton.Visit(expression, new Environment());
     }
 
     public ErrorLog Log { get; } = log;
 
-    public IResult? Visit(IVisitable dest, IScope currentScope)
+    public IResult Visit(IVisitable dest, IScope currentScope)
     {
         // Stop execution on circular references
         if (dest.HasCircularReferenceError())
         {
-            return null;
+            return ErrorResult;
         }
 
         return dest switch
@@ -51,13 +54,14 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
+            ErrorConstant errorConstant => Visit(errorConstant),
             ElementDeclaration element => Visit(element, currentScope),
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
         };
     }
 
-    private IResult? Visit(BinaryExpression dest, IScope currentScope)
+    private IResult Visit(BinaryExpression dest, IScope currentScope)
     {
         var leftResult = Visit(dest.Left, currentScope);
 
@@ -73,9 +77,9 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
         }
 
         var rightResult = Visit(dest.Right, currentScope);
-        if (leftResult == null || rightResult == null)
+        if (leftResult == ErrorResult || rightResult == ErrorResult)
         {
-            return null;
+            return ErrorResult;
         }
 
         // Arithmetic operations
@@ -108,19 +112,19 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
             if (comparisonResult != null) return new BooleanResult(comparisonResult.Value);
             // Occurs whenever the results are not valid
             // Assumes that a typing error is picked up in the type checker
-            return null;
+            return ErrorResult;
         }
 
         Log.Error(new OperationError(dest));
-        return null;
+        return ErrorResult;
     }
 
-    private IResult? Visit(UnaryExpression dest, IScope currentScope)
+    private IResult Visit(UnaryExpression dest, IScope currentScope)
     {
         var operandValue = Visit(dest.Operand, currentScope);
-        if (operandValue == null)
+        if (operandValue == ErrorResult)
         {
-            return null;
+            return ErrorResult;
         }
 
         if (operandValue is QuantityResult quantityResult)
@@ -134,15 +138,15 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
         }
 
         Log.Error(new OperationError(dest));
-        return null;
+        return ErrorResult;
     }
 
-    private IResult? Visit(GroupingExpression dest, IScope currentScope)
+    private IResult Visit(GroupingExpression dest, IScope currentScope)
     {
         return Visit(dest.InnerExpression, currentScope);
     }
 
-    private IResult? Visit(NameExpression dest, IScope currentScope)
+    private IResult Visit(NameExpression dest, IScope currentScope)
     {
         // Check if there is an existing result available
         var result = dest.GetResult(currentScope);
@@ -153,10 +157,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
         if (declaration != null) return Visit(declaration, currentScope);
 
         Log.Error(new NameResolutionError(dest));
-        return null;
+        return ErrorResult;
     }
 
-    private IResult? Visit(IfExpression dest, IScope currentScope)
+    private IResult Visit(IfExpression dest, IScope currentScope)
     {
         foreach (var branch in dest.Branches)
         {
@@ -189,15 +193,14 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
             }
         }
 
-        // TODO: Throw an error if this is not reached
-        return null;
+        return ErrorResult;
     }
 
-    private IResult? Visit(UnitAssignmentExpression dest, IScope currentScope)
+    private IResult Visit(UnitAssignmentExpression dest, IScope currentScope)
     {
         // Evaluate the units of the expression before return the quantity with units included
         var unitType = TypeChecker.EvaluateExpressionType<UnitType>(dest.UnitExpression);
-        if (unitType == null) return null;
+        if (unitType == null) return ErrorResult;
 
         // If there is no value set within the expression, throw an exception
         // This is likely caused by a unit expression that should be pointed at a variable declaration
@@ -215,10 +218,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
         }
 
         Log.Error(new UnitAssignmentError(dest));
-        return null;
+        return ErrorResult;
     }
 
-    private IResult? Visit(VariableDeclaration dest, IScope currentScope)
+    private IResult Visit(VariableDeclaration dest, IScope currentScope)
     {
         // Get the cached result if there already is one
         var result = dest.GetResult(currentScope);
@@ -283,14 +286,14 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
         return elementResult;
     }
 
-    private IResult? Visit(IScope dest, IScope currentScope)
+    private IResult Visit(IScope dest, IScope currentScope)
     {
         foreach (var declaration in dest.ChildDeclarations.Values)
         {
             Visit(declaration, currentScope);
         }
 
-        return null;
+        return SuccessResult;
     }
 
     private static QuantityResult Visit(NumberConstant dest)
@@ -306,5 +309,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult?>
     private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
+    }
+
+    private static ErrorResult Visit(ErrorConstant dest)
+    {
+        return ErrorResult;
     }
 }

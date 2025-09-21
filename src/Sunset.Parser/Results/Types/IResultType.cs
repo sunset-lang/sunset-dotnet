@@ -46,7 +46,7 @@ public class QuantityType(Unit unit) : IResultType
 {
     public static readonly QuantityType Dimensionless = new QuantityType(DefinedUnits.Dimensionless);
     public Unit Unit { get; } = unit;
-    
+
     public override string ToString()
     {
         return Unit.ToString();
@@ -61,6 +61,8 @@ public abstract class StaticType<T> : IResultType where T : IResultType, new()
 public class BooleanType : StaticType<BooleanType>;
 
 public class StringType : StaticType<StringType>;
+
+public class ErrorValueType : StaticType<ErrorValueType>;
 
 public class UnitType(Unit unit) : IResultType
 {

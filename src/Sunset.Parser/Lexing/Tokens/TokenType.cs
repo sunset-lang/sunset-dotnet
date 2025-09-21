@@ -2,7 +2,7 @@
 
 public enum TokenType
 {
-    Error, // For reporting errors in lexing. Errors can also be held in other tokens types for parsing or analysis errors.
+    Error, // For reporting errors in lexing. 
 
     // Values
     Number, // 0..9 ('.' 0..9)?
@@ -73,6 +73,7 @@ public enum TokenType
     Dot, // .
     True, // true
     False, // false
+    ErrorValue, // Represents an error passed through the calculations
 
     NamedUnit, // e.g. m, s, kg, etc. See Common.Sunset.Units.BaseUnit.NamedCoherentUnitsBySymbol
 

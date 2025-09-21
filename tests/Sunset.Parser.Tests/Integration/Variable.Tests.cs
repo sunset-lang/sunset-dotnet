@@ -2,6 +2,7 @@
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Results.Types;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
@@ -54,6 +55,25 @@ public class VariableTests
         Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
         AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 17, DefinedUnits.Dimensionless);
+    }
+
+    [Test]
+    public void Analyse_ErrorKeyword_PropagatesError()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               x = error
+                                               y = 12
+                                               z = x + y
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+
+        Console.WriteLine(DebugPrinter.Print(environment));
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", ErrorResult.Instance);
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "y", 12, DefinedUnits.Dimensionless);
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "z", ErrorResult.Instance, ["x", "y"]);
     }
 
     [Test]
@@ -134,7 +154,7 @@ public class VariableTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(variable.GetResult(fileScope!), Is.Null);
+            Assert.That(variable.GetResult(fileScope!), Is.EqualTo(ErrorResult.Instance));
             Assert.That(environment.Log.Errors.Count, Is.GreaterThan(0));
         });
     }
@@ -154,29 +174,26 @@ public class VariableTests
         AssertVariableDeclaration(environment.ChildScopes["$file"],
             "WindPressure",
             2.43,
-            DefinedUnits.Pascal,
+            DefinedUnits.Kilopascal,
             ["AirDensity", "WindSpeed"]);
     }
 
-    private static void AssertVariableDeclaration(IScope scope, string variableName, double? expectedValue,
+    private static void AssertVariableDeclaration(IScope scope, string variableName, double expectedValue,
         Unit expectedUnit,
+        string[]? referenceNames = null)
+    {
+        AssertVariableDeclaration(scope, variableName, new QuantityResult(expectedValue, expectedUnit), referenceNames);
+    }
+
+    private static void AssertVariableDeclaration(IScope scope, string variableName, IResult? expectedValue,
         string[]? referenceNames = null)
     {
         if (scope.ChildDeclarations[variableName] is VariableDeclaration variableDeclaration)
         {
-            var defaultValue = variableDeclaration.Variable.DefaultValue?.Value;
-            // This is only the evaluated unit in these tests due to the simplicity of the Sunset code being tested
-            var defaultUnit = (variableDeclaration.GetAssignedType() as QuantityType)?.Unit;
+            var value = variableDeclaration.GetResult(scope);
 
-            Assert.That(defaultValue, Is.Not.Null);
-            Assert.That(defaultValue, Is.EqualTo(expectedValue));
-            if (defaultUnit == null)
-            {
-                Assert.Fail($"Expected variable {variableName} to have a unit, even if it is dimensionless.");
-                return;
-            }
-
-            Assert.That(Unit.EqualDimensions(defaultUnit, expectedUnit), Is.True);
+            Assert.That(value, Is.Not.Null);
+            Assert.That(value, Is.EqualTo(expectedValue));
 
             var references = variableDeclaration.GetReferences();
             if (references == null)

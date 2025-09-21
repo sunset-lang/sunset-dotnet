@@ -33,6 +33,7 @@ public partial class Parser
             { TokenType.Number, (Number, null, Precedence.Primary) },
             { TokenType.String, (String, null, Precedence.Primary) },
             { TokenType.Identifier, (Name, null, Precedence.Primary) },
+            { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
             { TokenType.NamedUnit, (Unit, ImplicitMultiplication, Precedence.Primary) }
         };
 
@@ -208,6 +209,13 @@ public partial class Parser
         if (parser.Consume(TokenType.Number) is INumberToken token) return new NumberConstant(token);
 
         throw new Exception("Expected a number token");
+    }
+
+    private static ErrorConstant ErrorValue(Parser parser)
+    {
+        if (parser.Consume(TokenType.ErrorValue) is StringToken token) return new ErrorConstant(token);
+
+        throw new Exception("Expected an error token");
     }
 
     private static Precedence GetInfixTokenPrecedence(TokenType type)

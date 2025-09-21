@@ -1,0 +1,16 @@
+﻿using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
+
+namespace Sunset.Parser.Parsing.Constants;
+
+/// <summary>
+///     Represents an "error" value in the expression tree.
+/// </summary>
+/// <param name="token">Token that the string is generated from.</param>
+public class ErrorConstant(StringToken token) : ExpressionBase, IConstant
+{
+    /// <summary>
+    ///     The token that the error is generated from.
+    /// </summary>
+    public readonly StringToken Token = token;
+}

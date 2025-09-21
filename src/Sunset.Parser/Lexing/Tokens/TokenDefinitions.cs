@@ -62,6 +62,7 @@ public static class TokenDefinitions
         { "is", TokenType.TypeEquality },
         { "not", TokenType.TypeInequalityModifier },
         { "true", TokenType.True },
-        { "false", TokenType.False }
+        { "false", TokenType.False },
+        { "error", TokenType.ErrorValue },
     };
 }

@@ -44,6 +44,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             NumberConstant => QuantityType.Dimensionless,
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
+            ErrorConstant => ErrorValueType.Instance,
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
         };
@@ -68,6 +69,11 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         {
             Log.Error(new TypeResolutionError(dest));
             return null;
+        }
+
+        if (leftResult is ErrorValueType || rightResult is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
         }
 
         switch (leftResult)

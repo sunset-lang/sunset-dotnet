@@ -53,6 +53,7 @@ public class NameResolver(ErrorLog log) : INameResolver
             // Ignore constants in the name resolver as they are terminal nodes and don't have names.
             case NumberConstant:
             case StringConstant:
+            case ErrorConstant:
                 break;
             default:
                 throw new ArgumentException($"Name resolver cannot visit the node of type {dest.GetType()}");

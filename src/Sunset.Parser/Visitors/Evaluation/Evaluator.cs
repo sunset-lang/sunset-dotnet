@@ -54,6 +54,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
+            ErrorConstant errorConstant => Visit(errorConstant),
             ElementDeclaration element => Visit(element, currentScope),
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
@@ -308,5 +309,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
+    }
+
+    private static ErrorResult Visit(ErrorConstant dest)
+    {
+        return ErrorResult;
     }
 }

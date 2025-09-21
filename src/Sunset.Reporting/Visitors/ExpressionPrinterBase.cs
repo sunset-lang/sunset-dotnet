@@ -45,6 +45,7 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
+            ErrorConstant => "Error!",
             IScope scope => Visit(scope),
             _ => throw new NotImplementedException()
         };

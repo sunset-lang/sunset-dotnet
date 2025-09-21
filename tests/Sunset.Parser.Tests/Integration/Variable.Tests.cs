@@ -2,6 +2,7 @@
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Results.Types;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
@@ -134,7 +135,7 @@ public class VariableTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(variable.GetResult(fileScope!), Is.Null);
+            Assert.That(variable.GetResult(fileScope!), Is.EqualTo(ErrorResult.Instance));
             Assert.That(environment.Log.Errors.Count, Is.GreaterThan(0));
         });
     }

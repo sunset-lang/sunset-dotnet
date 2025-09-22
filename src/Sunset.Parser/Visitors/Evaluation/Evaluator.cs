@@ -95,7 +95,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 TokenType.Multiply => leftQuantity * rightQuantity,
                 TokenType.Divide => leftQuantity / rightQuantity,
                 // TODO: Check types for the power operator
-                TokenType.Power => leftQuantity.Pow(rightQuantity.Value),
+                TokenType.Power => leftQuantity.Pow(rightQuantity.BaseValue),
                 _ => null
             };
             if (binaryResult != null) return new QuantityResult(binaryResult);

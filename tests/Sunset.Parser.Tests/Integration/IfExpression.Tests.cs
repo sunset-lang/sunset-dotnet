@@ -29,7 +29,7 @@ public class IfExpressionTests
         var result = fileScope.ChildDeclarations["z"].GetResult(fileScope);
         if (result is QuantityResult quantityResult)
         {
-            Assert.That(quantityResult.Result.Value, Is.EqualTo(27));
+            Assert.That(quantityResult.Result.BaseValue, Is.EqualTo(27));
         }
     }
 
@@ -50,7 +50,7 @@ public class IfExpressionTests
         var result = fileScope.ChildDeclarations["y"].GetResult(fileScope);
         if (result is QuantityResult quantityResult)
         {
-            Assert.That(quantityResult.Result.Value, Is.EqualTo(15));
+            Assert.That(quantityResult.Result.BaseValue, Is.EqualTo(15));
         }
     }
 }

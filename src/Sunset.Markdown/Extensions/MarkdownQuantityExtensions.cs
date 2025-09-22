@@ -37,19 +37,19 @@ public static class MarkdownQuantityExtensions
         switch (settings.RoundingOption)
         {
             case RoundingOption.None:
-                return $"{quantity.Value} {quantity.Unit.ToLatexString()}";
+                return $"{quantity.BaseValue} {quantity.Unit.ToLatexString()}";
 
             case RoundingOption.Auto:
                 return
-                    $"{NumberUtilities.ToAutoString(quantity.Value, settings.SignificantFigures, true)}{quantity.Unit.ToLatexString()}";
+                    $"{NumberUtilities.ToAutoString(quantity.BaseValue, settings.SignificantFigures, true)}{quantity.Unit.ToLatexString()}";
 
             case RoundingOption.Engineering:
                 return
-                    $"{NumberUtilities.ToEngineeringString(quantity.Value, settings.SignificantFigures)}{quantity.Unit.ToLatexString()}";
+                    $"{NumberUtilities.ToEngineeringString(quantity.BaseValue, settings.SignificantFigures)}{quantity.Unit.ToLatexString()}";
 
             case RoundingOption.SignificantFigures:
                 return
-                    $"{NumberUtilities.ToNumberString(quantity.Value)}{quantity.Unit.ToLatexString()}";
+                    $"{NumberUtilities.ToNumberString(quantity.BaseValue)}{quantity.Unit.ToLatexString()}";
 
             case RoundingOption.FixedDecimal:
                 throw new NotImplementedException();

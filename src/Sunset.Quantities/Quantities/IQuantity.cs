@@ -10,9 +10,14 @@ public interface IQuantity
     public Unit Unit { get; }
 
     /// <summary>
-    ///     The value of this Quantity.
+    ///     The value of this quantity, expressed in unconverted base units.
     /// </summary>
-    public double Value { get; }
+    public double BaseValue { get; }
+
+    /// <summary>
+    ///     The value of this quantity, expressed in converted units.
+    /// </summary>
+    public double ConvertedValue { get; }
 
     public void SimplifyUnits();
 

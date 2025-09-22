@@ -10,27 +10,28 @@ public partial class Quantity : IQuantity
     /// <param name="value">Value to be provided to the Quantity.</param>
     public Quantity(double value)
     {
-        Value = value;
+        BaseValue = value;
     }
 
     /// <summary>
     ///     Constructs a new Quantity with a given value and unit.
     /// </summary>
-    /// <param name="value"></param>
-    /// <param name="unit"></param>
-    public Quantity(double value, Unit unit)
+    public Quantity(double value, Unit unit, bool convertUnits = true)
     {
-        Value = value;
+        // Convert the value to base units
+        BaseValue = value * (convertUnits ? unit.GetConversionFactorToBase() : 1);
         Unit = unit;
     }
 
-    public double Value { get; private set; }
+    public double BaseValue { get; private set; }
+
+    public double ConvertedValue => BaseValue * Unit.GetConversionFactorFromBase();
 
     public Unit Unit { get; private set; } = DefinedUnits.Dimensionless;
 
     public void SimplifyUnits()
     {
-        var simplifiedUnit = Unit.Simplify(Value);
+        var simplifiedUnit = Unit.Simplify(ConvertedValue);
         SetUnits(simplifiedUnit);
     }
 
@@ -41,14 +42,18 @@ public partial class Quantity : IQuantity
     /// <returns>A quantity with the value converted to simplified base units.</returns>
     public IQuantity WithSimplifiedUnits()
     {
-        var simplifiedUnit = Unit.Simplify(Value);
-        var value = Value * Unit.GetConversionFactor(simplifiedUnit);
-        return new Quantity(value, simplifiedUnit);
+        var newQuantity = Clone();
+        newQuantity.SimplifyUnits();
+        return newQuantity;
     }
 
     public IQuantity Clone()
     {
-        return new Quantity(Value, Unit);
+        // Create a new quantity with the same value (as this has already been converted) and set the same unit
+        return new Quantity(BaseValue)
+        {
+            Unit = Unit,
+        };
     }
 
     public Quantity ToQuantity()
@@ -66,7 +71,6 @@ public partial class Quantity : IQuantity
         }
 
         if (!Unit.EqualDimensions(unit, Unit)) throw new ArgumentException("Units do not have the same dimensions.");
-        Value *= Unit.GetConversionFactor(unit);
         Unit = unit;
         return this;
     }
@@ -74,6 +78,7 @@ public partial class Quantity : IQuantity
     public override string ToString()
     {
         var simplifiedValue = WithSimplifiedUnits();
-        return simplifiedValue.Value + " " + simplifiedValue.Unit;
+        return simplifiedValue.BaseValue * simplifiedValue.Unit.GetConversionFactorFromBase() + " " +
+               simplifiedValue.Unit;
     }
 }

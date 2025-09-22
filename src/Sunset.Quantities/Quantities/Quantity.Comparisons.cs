@@ -10,9 +10,8 @@ public partial class Quantity
         if (ReferenceEquals(this, other)) return true;
 
         if (!Unit.EqualDimensions(Unit, other.Unit)) return false;
-        var otherValueConverted = other.Value * other.Unit.GetConversionFactor(Unit);
 
-        return Math.Abs(Value - otherValueConverted) < 1e-14;
+        return Math.Abs(BaseValue - other.BaseValue) < 1e-14;
     }
 
     /// <inheritdoc />
@@ -29,7 +28,7 @@ public partial class Quantity
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Unit, Value);
+        return HashCode.Combine(Unit, BaseValue);
     }
 
     public static bool operator ==(Quantity? left, Quantity? right)
@@ -47,16 +46,14 @@ public partial class Quantity
     {
         if (!Unit.EqualDimensions(left.Unit, right.Unit)) throw new Exception("Unit dimensions do not match");
 
-        var rightValueConverted = right.Value * right.Unit.GetConversionFactor(left.Unit);
-        return left.Value < rightValueConverted;
+        return left.BaseValue < right.BaseValue;
     }
 
     public static bool operator >(Quantity left, Quantity right)
     {
         if (!Unit.EqualDimensions(left.Unit, right.Unit)) throw new Exception("Unit dimensions do not match");
 
-        var rightValueConverted = right.Value * right.Unit.GetConversionFactor(left.Unit);
-        return left.Value > rightValueConverted;
+        return left.BaseValue > right.BaseValue;
     }
 
     public static bool operator <=(Quantity left, Quantity right)

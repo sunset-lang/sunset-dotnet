@@ -16,7 +16,7 @@ public class QuantityTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(additionResult.Value, Is.EqualTo(4).Within(0.001));
+            Assert.That(additionResult.BaseValue, Is.EqualTo(4).Within(0.001));
             Assert.That((double)additionResult.Unit.UnitDimensions[(int)DimensionName.Length].Power,
                 Is.EqualTo(1).Within(0.0001));
             Assert.That(additionResult.Unit.UnitDimensions[(int)DimensionName.Length].Factor,
@@ -36,7 +36,7 @@ public class QuantityTests
         Assert.Multiple(() =>
         {
             // Check value
-            Assert.That(multiplicationResult.Value, Is.EqualTo(1750000).Within(0.001));
+            Assert.That(multiplicationResult.BaseValue, Is.EqualTo(1.75).Within(0.001));
             // Check unit power and factor
             Assert.That((double)multiplicationResult.Unit.UnitDimensions[(int)DimensionName.Length].Power,
                 Is.EqualTo(2).Within(0.0001));
@@ -73,7 +73,7 @@ public class QuantityTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(largeValueSmallFactorQuantity.Value, Is.EqualTo(5).Within(0.001));
+            Assert.That(largeValueSmallFactorQuantity.BaseValue, Is.EqualTo(5).Within(0.001));
             Assert.That(largeValueSmallFactorQuantity.Unit.ToString(), Is.EqualTo("m"));
         });
     }
@@ -88,8 +88,9 @@ public class QuantityTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(smallValueLargeFactorQuantity.Value, Is.EqualTo(40).Within(0.001));
+            Assert.That(smallValueLargeFactorQuantity.BaseValue, Is.EqualTo(0.04).Within(0.001));
             Assert.That(smallValueLargeFactorQuantity.Unit.ToString(), Is.EqualTo("mm"));
+            Assert.That(smallValueLargeFactorQuantity.ToString(), Is.EqualTo("40 mm"));
         });
     }
 
@@ -103,8 +104,9 @@ public class QuantityTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(normalValueSmallFactorQuantity.Value, Is.EqualTo(800).Within(0.001));
+            Assert.That(normalValueSmallFactorQuantity.BaseValue, Is.EqualTo(0.8).Within(0.001));
             Assert.That(normalValueSmallFactorQuantity.Unit.ToString(), Is.EqualTo("mm"));
+            Assert.That(normalValueSmallFactorQuantity.ToString(), Is.EqualTo("800 mm"));
         });
     }
 
@@ -118,7 +120,7 @@ public class QuantityTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(normalValueLargeFactorQuantity.Value, Is.EqualTo(0.8).Within(0.001));
+            Assert.That(normalValueLargeFactorQuantity.BaseValue, Is.EqualTo(0.8).Within(0.001));
             Assert.That(normalValueLargeFactorQuantity.Unit.ToString(), Is.EqualTo("m"));
         });
     }
@@ -149,7 +151,7 @@ public class QuantityTests
         strength.SimplifyUnits();
         Assert.Multiple(() =>
         {
-            Assert.That(strength.Value, Is.EqualTo(350).Within(0.001));
+            Assert.That(strength.BaseValue, Is.EqualTo(350000).Within(0.001));
             Assert.That(strength.Unit.ToString(), Is.EqualTo("kN"));
         });
     }

@@ -190,6 +190,33 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     }
 
     /// <summary>
+    /// Gets the conversion factor between the current unit and the base units of the same dimension.
+    /// </summary>
+    public double GetConversionFactorToBase()
+    {
+        double factor = 1;
+
+        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        {
+            if (UnitDimensions[i].Power != 0)
+            {
+                factor *= Math.Pow(UnitDimensions[i].Factor, UnitDimensions[i].Power);
+            }
+        }
+
+        return factor;
+    }
+
+
+    /// <summary>
+    /// Gets the conversion factor between a value in base units and the current unit. 
+    /// </summary>
+    public double GetConversionFactorFromBase()
+    {
+        return 1 / GetConversionFactorToBase();
+    }
+
+    /// <summary>
     ///     Calculates the conversion factor from the current Unit to the target Unit. This will match the factors of the
     ///     target unit to the current unit, but will not enforce any changes in dimensions.
     /// </summary>

@@ -54,7 +54,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
-            ErrorConstant errorConstant => Visit(errorConstant),
+            ErrorConstant => ErrorResult,
             ElementDeclaration element => Visit(element, currentScope),
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
@@ -77,7 +77,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         }
 
         var rightResult = Visit(dest.Right, currentScope);
-        if (leftResult == ErrorResult || rightResult == ErrorResult)
+        if (leftResult is ErrorResult || rightResult is ErrorResult)
         {
             return ErrorResult;
         }
@@ -95,7 +95,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 TokenType.Multiply => leftQuantity * rightQuantity,
                 TokenType.Divide => leftQuantity / rightQuantity,
                 // TODO: Check types for the power operator
-                TokenType.Power => leftQuantity.Pow(rightQuantity.Value),
+                TokenType.Power => leftQuantity.Pow(rightQuantity.BaseValue),
                 _ => null
             };
             if (binaryResult != null) return new QuantityResult(binaryResult);
@@ -122,7 +122,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     private IResult Visit(UnaryExpression dest, IScope currentScope)
     {
         var operandValue = Visit(dest.Operand, currentScope);
-        if (operandValue == ErrorResult)
+        if (operandValue is ErrorResult)
         {
             return ErrorResult;
         }
@@ -309,10 +309,5 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
-    }
-
-    private static ErrorResult Visit(ErrorConstant dest)
-    {
-        return ErrorResult;
     }
 }

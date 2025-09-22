@@ -38,10 +38,19 @@ public class MarkdownVariablePrinterTests
     public void ReportValue_BaseUnit_ShouldReportCorrectValue()
     {
         var mass = new Variable(20, DefinedUnits.Kilogram, "m");
-        var defaultValue = mass!.DefaultValue!.ToLatexString();
+        var defaultValue = mass.DefaultValue!.ToLatexString();
         Assert.That(defaultValue, Is.EqualTo("20 \\text{ kg}"));
 
         Console.WriteLine("Mass: " + defaultValue);
+    }
+
+    [Test]
+    public void ReportValue_UnitMultiple_ShouldReportCorrectValue()
+    {
+        var length = new Variable(100, DefinedUnits.Millimetre, "l");
+        var defaultValue = length.DefaultValue!.ToLatexString();
+        Assert.That(defaultValue, Is.EqualTo("100 \\text{ mm}"));
+        Console.WriteLine("Length: " + defaultValue);
     }
 
     [Test]

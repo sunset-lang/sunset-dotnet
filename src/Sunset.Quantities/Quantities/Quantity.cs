@@ -62,17 +62,18 @@ public partial class Quantity : IQuantity
     }
 
 
-    public IQuantity SetUnits(Unit unit)
+    public void SetUnits(Unit unit)
     {
         if (Unit.IsDimensionless)
         {
             Unit = unit;
-            return this;
+            // Convert values to the new unit if the previous unit is dimensionless
+            BaseValue *= unit.GetConversionFactorToBase();
+            return;
         }
 
         if (!Unit.EqualDimensions(unit, Unit)) throw new ArgumentException("Units do not have the same dimensions.");
         Unit = unit;
-        return this;
     }
 
     public override string ToString()

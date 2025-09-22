@@ -34,32 +34,18 @@ public static class MarkdownQuantityExtensions
 
         if (settings.AutoSimplifyUnits) quantity = quantity.WithSimplifiedUnits();
 
-        switch (settings.RoundingOption)
+        return settings.RoundingOption switch
         {
-            case RoundingOption.None:
-                return $"{quantity.BaseValue} {quantity.Unit.ToLatexString()}";
-
-            case RoundingOption.Auto:
-                return
-                    $"{NumberUtilities.ToAutoString(quantity.BaseValue, settings.SignificantFigures, true)}{quantity.Unit.ToLatexString()}";
-
-            case RoundingOption.Engineering:
-                return
-                    $"{NumberUtilities.ToEngineeringString(quantity.BaseValue, settings.SignificantFigures)}{quantity.Unit.ToLatexString()}";
-
-            case RoundingOption.SignificantFigures:
-                return
-                    $"{NumberUtilities.ToNumberString(quantity.BaseValue)}{quantity.Unit.ToLatexString()}";
-
-            case RoundingOption.FixedDecimal:
-                throw new NotImplementedException();
-
-            case RoundingOption.Scientific:
-                throw new NotImplementedException();
-
-            default:
-                throw new Exception("Rounding option not found.");
-        }
+            RoundingOption.None => $"{quantity.ConvertedValue} {quantity.Unit.ToLatexString()}",
+            RoundingOption.Auto =>
+                $"{NumberUtilities.ToAutoString(quantity.ConvertedValue, settings.SignificantFigures, true)}{quantity.Unit.ToLatexString()}",
+            RoundingOption.Engineering =>
+                $"{NumberUtilities.ToEngineeringString(quantity.ConvertedValue, settings.SignificantFigures)}{quantity.Unit.ToLatexString()}",
+            RoundingOption.SignificantFigures =>
+                $"{NumberUtilities.ToNumberString(quantity.ConvertedValue)}{quantity.Unit.ToLatexString()}",
+            RoundingOption.FixedDecimal or RoundingOption.Scientific => throw new NotImplementedException(),
+            _ => throw new Exception("Rounding option not found.")
+        };
     }
 
     /// <summary>

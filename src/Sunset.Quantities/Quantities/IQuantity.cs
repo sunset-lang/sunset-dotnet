@@ -33,7 +33,14 @@ public interface IQuantity
 
     public IQuantity Clone();
 
-    public IQuantity SetUnits(Unit unit);
+    /// <summary>
+    /// Sets the units of a quantity to a new unit.
+    /// If the original quantity is dimensionless, the base value of the quantity is assumed to be in the units that are set.
+    /// For example, if the base value is 1000 and the quantity is currently dimensionless, setting the unit to millimetres
+    /// will set the base value to 1 as the base unit is metres.
+    /// </summary>
+    /// <param name="unit">New unit to assign.</param>
+    public void SetUnits(Unit unit);
 
     public Quantity ToQuantity();
 

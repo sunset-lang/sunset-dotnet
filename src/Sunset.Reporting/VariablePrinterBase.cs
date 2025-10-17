@@ -3,6 +3,7 @@ using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Expressions;
+using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
@@ -69,49 +70,64 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
             evaluationTarget = variableDeclaration;
         }
 
-        // If the variable has been created through evaluating Sunset code and the variable has no references,
-        // it should be reported as a constant
-        var references = evaluationTarget.GetReferences();
-        if (references?.Count == 0 || references == null)
-        {
-            switch (evaluationTarget.Expression)
-            {
-                // If the value is a constant number
-                case NumberConstant numberConstant:
-                    return variableDisplayName + eq.AlignEquals + numberConstant.Value +
-                           evaluationTarget.GetEvaluatedUnit()?.ToLatexString() + eq.Linebreak;
-                // If the value is a constant quantity
-                case UnitAssignmentExpression
-                {
-                    Value: NumberConstant quantityConstant
-                } unitAssignmentExpression:
-                    var unit = unitAssignmentExpression.GetEvaluatedType();
-                    // If there are no units evaluated (e.g. due to this being defined in code), try to evaluate the units first
-                    if (unit == null) TypeChecker.EvaluateExpressionType(unitAssignmentExpression);
-                    return variableDisplayName + eq.AlignEquals + quantityConstant.Value +
-                           unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + eq.Linebreak;
-            }
-        }
-
         // Example output for density calculation
         // \rho &= \frac{m}{V} \\
         // &= \frac{20 \text{ kg}}{10 \text{ m}^{3}} \\
         // &= 2 \text{ kg m}^{-3} \\
         var result = variableDisplayName;
+        var references = evaluationTarget.GetReferences();
 
-        // If there are references or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
-        if (references?.Count > 0 || references == null)
+        switch (evaluationTarget.Expression)
         {
-            result += eq.AlignEquals + ReportSymbolExpression(evaluationTarget, currentScope);
-            if (variable.Reference != "") result += eq.Reference(variable.Reference);
-            result += eq.Newline;
+            case ErrorConstant:
+            case IfExpression:
+            case BinaryExpression:
+                // If there are references or the cycle checker hasn't been run (if evaluated in code), show the symbolic expression
+                if (references?.Count > 0 || evaluationTarget.GetEvaluatedType() == null)
+                {
+                    result += eq.AlignEquals + ReportSymbolExpression(evaluationTarget, currentScope);
+                    if (variable.Reference != "") result += eq.Reference(variable.Reference);
+                    result += eq.Newline;
+                }
+
+                switch (evaluationTarget.Expression)
+                {
+                    // If it's just a simple call expression, don't bother printing the value expression
+                    case BinaryExpression binaryExpression:
+                    {
+                        if (binaryExpression.Operator != TokenType.Dot)
+                        {
+                            result += eq.AlignEquals + ReportValueExpression(evaluationTarget, currentScope) +
+                                      eq.Newline;
+                        }
+
+                        break;
+                    }
+                    case IfExpression:
+                        result += eq.AlignEquals + ReportValueExpression(evaluationTarget, currentScope) + eq.Newline;
+                        break;
+                }
+
+                result += eq.AlignEquals + ReportValue(evaluationTarget, currentScope) + eq.Linebreak;
+
+                return result;
+            // If the value is a constant number
+            case NumberConstant numberConstant:
+                return variableDisplayName + eq.AlignEquals + numberConstant.Value +
+                       evaluationTarget.GetEvaluatedUnit()?.ToLatexString() + eq.Linebreak;
+            // If the value is a constant quantity
+            case UnitAssignmentExpression
+            {
+                Value: NumberConstant quantityConstant
+            } unitAssignmentExpression:
+                var unit = unitAssignmentExpression.GetEvaluatedType();
+                // If there are no units evaluated (e.g. due to this being defined in code), try to evaluate the units first
+                if (unit == null) TypeChecker.EvaluateExpressionType(unitAssignmentExpression);
+                return variableDisplayName + eq.AlignEquals + quantityConstant.Value +
+                       unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + eq.Linebreak;
+            default:
+                throw new NotImplementedException();
         }
-
-        // TODO: Don't report constant value expressions
-        result += eq.AlignEquals + ReportValueExpression(evaluationTarget, currentScope) + eq.Newline;
-        result += eq.AlignEquals + ReportValue(evaluationTarget, currentScope) + eq.Linebreak;
-
-        return result;
     }
 
 
@@ -139,7 +155,7 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
             builder.AppendLine(PrintElementVariables("Inputs:", inputs, currentScope, dest.Arguments));
         }
 
-        builder.AppendLine(eq.Newline + eq.Newline);
+        builder.Append(eq.Newline + eq.Newline);
 
         // Calculations
         // TODO: Generalise this to all declarations
@@ -150,7 +166,8 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
         }
 
         builder.AppendLine(eq.EndArray);
-        builder.AppendLine(eq.RightBlank + eq.Newline + eq.Newline);
+        builder.AppendLine(eq.RightBlank);
+        builder.Append(eq.Newline + eq.Newline);
 
         return builder.ToString();
     }
@@ -167,22 +184,13 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
         foreach (var declaration in variableDeclarations)
         {
             // Check whether the default input variable has been overridden by an argument
-            if (arguments != null)
-            {
-                foreach (var argument in arguments)
-                {
-                    if (argument.GetResolvedDeclaration() == declaration)
-                    {
-                        builder.AppendLine(ReportVariable(declaration, currentScope, argument));
-                    }
-                }
-            }
-
-            builder.AppendLine(ReportVariable(declaration, currentScope));
+            var matchedArgument =
+                arguments?.FirstOrDefault(argument => argument.GetResolvedDeclaration() == declaration);
+            builder.AppendLine(ReportVariable(declaration, currentScope, matchedArgument));
         }
 
         builder.AppendLine(eq.EndArray);
-        builder.AppendLine(eq.RightBlank);
+        builder.Append(eq.RightBlank);
         return builder.ToString();
     }
 

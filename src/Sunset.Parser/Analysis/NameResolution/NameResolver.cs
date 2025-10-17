@@ -191,6 +191,9 @@ public class NameResolver(ErrorLog log) : INameResolver
     {
         // TODO: Consider edge cases where this doesn't apply
         Visit(dest.ArgumentName, parentElement ?? parentScope);
+        // Set the argument's resolved declaration to be equal to the name expression's resolved declaration.
+        var resolvedDeclaration = dest.ArgumentName.GetResolvedDeclaration();
+        if (resolvedDeclaration != null) dest.SetResolvedDeclaration(resolvedDeclaration);
         Visit(dest.Expression, parentScope);
     }
 

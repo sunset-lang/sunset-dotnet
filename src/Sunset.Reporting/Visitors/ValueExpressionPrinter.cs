@@ -28,9 +28,10 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         switch (dest.GetResolvedDeclaration())
         {
             case VariableDeclaration variableDeclaration:
-                if (variableDeclaration.Variable.DefaultValue != null)
+                var result = variableDeclaration.GetResult(currentScope);
+                if (result is QuantityResult quantityResult)
                 {
-                    return ReportQuantity(variableDeclaration.Variable.DefaultValue);
+                    return ReportQuantity(quantityResult.Result);
                 }
 
                 return Eq.Text("Error!");

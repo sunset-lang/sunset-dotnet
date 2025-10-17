@@ -140,30 +140,33 @@ public class IntegrationTests
                      Result {mm^2} = SquareInstance.Area
                      """;
         var expected = """
-                       \begin{aligned}
-                       \text{SquareInstance} & = 
-
-                       \text{Square}
-
-                       \begin{cases}
-                       \text{Inputs}
-                       &\begin{cases}
-                       w &= 200 \text{ mm}\\
-                       l &= 350 \text{ mm}
-                       \end{cases}\\
-                       \\
-
-                       \text{Calcs}
-                       &\begin{cases}
-                       A &= wl \\
+                       \text{SquareInstance} &= \text{Square}
+                       \left(
+                       \begin{array}{ll}
+                       \text{Inputs:}
+                       & \left(
+                       \begin{array}{cl}
+                       w &= 200 \text{ mm} \\
+                       l &= 350 \text{ mm} \\
+                       \end{array}
+                       \right.
+                        \\
+                        \\
+                       \text{Calcs:}
+                       & \left(
+                       \begin{array}{cl}
+                       A &= w l \\
                        &= 200 \text{ mm} \times 350 \text{ mm} \\
-                       &= 70,000 \text{ mm}^2
-                       \end{cases}
-                       \end{cases} \\\\
+                       &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       \end{array}
+                       \right.
+                       \end{array}
+                       \right.
+                        \\
+                        \\
 
-                       x &= A_\text{Example} \\
-                       &= 4,500 \text{ mm}^2
-                       \end{aligned} \\
+                       \text{Result} &= A_{\text{SquareInstance}} \\
+                       &= 70 \times 10^{-3} \text{ m}^{2} \\
                        """;
         AssertResultingReport(source, expected);
     }

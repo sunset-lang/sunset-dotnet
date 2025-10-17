@@ -121,7 +121,7 @@ public class IntegrationTests
     }
 
     [Test]
-    public void PrintElementDeclaration()
+    public void PrintElementDeclaration_NoModification_CorrectResult()
     {
         var source = """
                      define Square:
@@ -137,7 +137,7 @@ public class IntegrationTests
                          Length = 350 {mm}
                      )
                        
-                     Result {mm^2} = SquareInstance.Area
+                     Result {mm^2} = SquareInstance.Area 
                      """;
         var expected = """
                        \text{SquareInstance} &= \text{Square}
@@ -167,6 +167,58 @@ public class IntegrationTests
 
                        \text{Result} &= A_{\text{SquareInstance}} \\
                        &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       """;
+        AssertResultingReport(source, expected);
+    }
+
+    [Test]
+    public void PrintElementDeclaration_WithModification_CorrectResult()
+    {
+        var source = """
+                     define Square:
+                         inputs:
+                             Width <w> {mm} = 100 {mm}
+                             Length <l> {mm} = 200 {mm}
+                         outputs:
+                             Area <A> {mm^2} = Width * Length
+                     end
+                       
+                     SquareInstance = Square(
+                         Width = 200 {mm},
+                         Length = 350 {mm}
+                     )
+                       
+                     Result {mm^2} = SquareInstance.Area + 10000 {mm^2}
+                     """;
+        var expected = """
+                       \text{SquareInstance} &= \text{Square}
+                       \left(
+                       \begin{array}{ll}
+                       \text{Inputs:}
+                       & \left(
+                       \begin{array}{cl}
+                       w &= 200 \text{ mm} \\
+                       l &= 350 \text{ mm} \\
+                       \end{array}
+                       \right.
+                        \\
+                        \\
+                       \text{Calcs:}
+                       & \left(
+                       \begin{array}{cl}
+                       A &= w l \\
+                       &= 200 \text{ mm} \times 350 \text{ mm} \\
+                       &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       \end{array}
+                       \right.
+                       \end{array}
+                       \right.
+                        \\
+                        \\
+
+                       \text{Result} &= A_{\text{SquareInstance}} + 10,000 \text{ mm}^{2} \\
+                       &= 70 \times 10^{-3} \text{ m}^{2} + 10,000 \text{ mm}^{2} \\
+                       &= 80 \times 10^{-3} \text{ m}^{2} \\
                        """;
         AssertResultingReport(source, expected);
     }

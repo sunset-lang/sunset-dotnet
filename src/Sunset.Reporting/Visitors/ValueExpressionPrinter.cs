@@ -95,16 +95,10 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
     {
         if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
         {
-            var evaluationResult = Evaluator.EvaluateExpression(dest);
+            var evaluationResult = dest.GetResult(currentScope) ?? Evaluator.EvaluateExpression(dest);
             if (evaluationResult is QuantityResult quantityResult)
             {
-                return dest.Variable switch
-                {
-                    Variable variableToPrint => variableToPrint.DefaultValue == null
-                        ? ReportQuantity(quantityResult.Result)
-                        : ReportQuantity(variableToPrint.DefaultValue),
-                    _ => "Error!"
-                };
+                return ReportQuantity(quantityResult.Result);
             }
         }
 

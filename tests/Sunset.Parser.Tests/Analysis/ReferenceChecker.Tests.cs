@@ -21,7 +21,7 @@ public class ReferenceCheckerTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
         Console.WriteLine(DebugPrinter.Print(environment));
 
         Assert.That(environment.ChildScopes["$file"].ChildDeclarations["x"].HasCircularReferenceError());
@@ -39,7 +39,7 @@ public class ReferenceCheckerTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
         Console.WriteLine(DebugPrinter.Print(environment));
 
         Assert.Multiple(() =>
@@ -66,7 +66,7 @@ public class ReferenceCheckerTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
         Console.WriteLine(DebugPrinter.Print(environment));
 
         Assert.Multiple(() =>

@@ -9,6 +9,8 @@ public abstract class EquationComponents
 {
     public abstract string LeftParenthesis { get; }
     public abstract string RightParenthesis { get; }
+    public abstract string LeftBlank { get; }
+    public abstract string RightBlank { get; }
     public abstract string MultiplicationSymbol { get; }
     public abstract string Newline { get; }
     public abstract string AlignSymbol { get; }
@@ -20,6 +22,8 @@ public abstract class EquationComponents
     public abstract string GreaterThanOrEqual { get; }
     public abstract string LessThanOrEqual { get; }
     public abstract string DoubleRightArrow { get; }
+    public abstract string BeginArray { get; }
+    public abstract string EndArray { get; }
 
     /// <summary>
     ///     Displays a value as text
@@ -37,4 +41,5 @@ public abstract class EquationComponents
     public abstract string Reference(string reference);
     public abstract string IfBranch(string body, string condition, string? evaluatedCondition, bool? result);
     public abstract string OtherwiseBranch(string body);
+    public abstract string BeginArrayWithAlignment(string alignment);
 }

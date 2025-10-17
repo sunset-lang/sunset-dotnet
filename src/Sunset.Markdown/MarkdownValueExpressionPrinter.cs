@@ -1,5 +1,7 @@
 ﻿using Sunset.Markdown.Extensions;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors;
 using Sunset.Quantities.Quantities;
 using Sunset.Reporting;
 using Sunset.Reporting.Visitors;
@@ -12,5 +14,10 @@ public class MarkdownValueExpressionPrinter(PrinterSettings settings, ErrorLog l
     protected override string ReportQuantity(IQuantity quantity)
     {
         return quantity.ToLatexString();
+    }
+
+    protected override string PrintAccessOperator(IVisitable left, IVisitable right, IScope currentScope)
+    {
+        return Visit(right, currentScope);
     }
 }

@@ -8,7 +8,7 @@ namespace Sunset.Parser.Results;
 /// <summary>
 ///     An instance of an element, implemented as the result of an expression.
 /// </summary>
-public class ElementResult(ElementDeclaration declaration, IScope parentScope) : IResult, IScope
+public class ElementInstanceResult(ElementDeclaration declaration, IScope parentScope) : IResult, IScope
 {
     /// <summary>
     ///     The child values of this instance.

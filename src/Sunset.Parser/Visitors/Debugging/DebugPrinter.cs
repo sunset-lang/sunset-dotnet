@@ -155,7 +155,7 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             QuantityResult quantityResult => quantityResult.Result.ToString() ?? "ERROR!",
             StringResult stringResult => stringResult.Result,
             UnitResult unitResult => unitResult.Result.ToString(),
-            ElementResult => "Element instance",
+            ElementInstanceResult => "Element instance result",
             _ => "ERROR!"
         };
     }

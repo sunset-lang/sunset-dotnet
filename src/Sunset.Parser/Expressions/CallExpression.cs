@@ -3,9 +3,20 @@ using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
-internal class CallExpression(IExpression target, List<Argument> arguments) : IExpression
+/// <summary>
+/// Represents a function call, typically the instantation of a new element.
+/// </summary>
+public class CallExpression(IExpression target, List<Argument> arguments) : IExpression
 {
+    /// <summary>
+    /// The target is the declaration that is being called. This is typically an element definition.
+    /// </summary>
     public IExpression Target { get; } = target;
+
+    /// <summary>
+    /// The arguments are the values that are passed into the declaration being called.
+    /// </summary>
     public List<Argument> Arguments { get; } = arguments;
+
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

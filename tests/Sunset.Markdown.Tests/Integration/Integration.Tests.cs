@@ -13,7 +13,7 @@ public class IntegrationTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         var scope = environment.ChildScopes["$file"] as FileScope;
-        var result = scope!.PrintDefaultValues();
+        var result = scope!.PrintScopeVariables();
         Console.WriteLine(result);
         // Trim results to ignore newlines at end
         Assert.That(result.Trim(), Is.EqualTo(expected.Trim()));
@@ -116,6 +116,57 @@ public class IntegrationTests
                        z &= \left(x y\right)^{2} \\
                        &= \left(45 \text{ mm} \times 35 \text{ mm}\right)^{2} \\
                        &= 2.481 \times 10^{6} \text{ mm}^{4} \\
+                       """;
+        AssertResultingReport(source, expected);
+    }
+
+    [Test]
+    public void PrintElementDeclaration()
+    {
+        var source = """
+                     define Square:
+                         inputs:
+                             Width <w> {mm} = 100 {mm}
+                             Length <l> {mm} = 200 {mm}
+                         outputs:
+                             Area <A> {mm^2} = Width * Length
+                     end
+                       
+                     SquareInstance = Square(
+                         Width = 200 {mm},
+                         Length = 350 {mm}
+                     )
+                       
+                     Result {mm^2} = SquareInstance.Area
+                     """;
+        var expected = """
+                       \text{SquareInstance} &= \text{Square}
+                       \left(
+                       \begin{array}{ll}
+                       \text{Inputs:}
+                       & \left(
+                       \begin{array}{cl}
+                       w &= 200 \text{ mm} \\
+                       l &= 350 \text{ mm} \\
+                       \end{array}
+                       \right.
+                        \\
+                        \\
+                       \text{Calcs:}
+                       & \left(
+                       \begin{array}{cl}
+                       A &= w l \\
+                       &= 200 \text{ mm} \times 350 \text{ mm} \\
+                       &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       \end{array}
+                       \right.
+                       \end{array}
+                       \right.
+                        \\
+                        \\
+
+                       \text{Result} &= A_{\text{SquareInstance}} \\
+                       &= 70 \times 10^{-3} \text{ m}^{2} \\
                        """;
         AssertResultingReport(source, expected);
     }

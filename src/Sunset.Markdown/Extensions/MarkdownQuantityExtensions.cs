@@ -51,7 +51,7 @@ public static class MarkdownQuantityExtensions
     /// <summary>
     ///     Prints all variables within a scope, showing the evaluated default values.
     /// </summary>
-    public static string PrintDefaultValues(this IScope scope)
+    public static string PrintScopeVariables(this IScope scope)
     {
         var resultBuilder = new StringBuilder();
 
@@ -59,7 +59,7 @@ public static class MarkdownQuantityExtensions
         {
             if (declaration is VariableDeclaration variable)
             {
-                resultBuilder.AppendLine(MarkdownVariablePrinter.Report(variable.Variable));
+                resultBuilder.AppendLine(MarkdownVariablePrinter.Report(variable, scope));
             }
         }
 

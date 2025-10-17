@@ -11,6 +11,8 @@ public class MarkdownEquationComponents : EquationComponents
 
     public override string LeftParenthesis => "\\left(";
     public override string RightParenthesis => "\\right)";
+    public override string LeftBlank => "\\left.";
+    public override string RightBlank => "\\right.";
     public override string MultiplicationSymbol => "\\times";
 
     public override string Newline => Linebreak + "\r\n";
@@ -21,6 +23,8 @@ public class MarkdownEquationComponents : EquationComponents
 
     public override string LessThanOrEqual => "\\leq ";
     public override string GreaterThanOrEqual => "\\geq ";
+
+    public override string EndArray => "\\end{array}";
 
     public override string Text(string text)
     {
@@ -70,6 +74,7 @@ public class MarkdownEquationComponents : EquationComponents
     public override string EndCases => @"\end{cases}";
 
     public override string DoubleRightArrow => @"\Rightarrow";
+    public override string BeginArray => "\\begin{array}";
 
     public override string IfBranch(string body, string condition, string? evaluatedCondition, bool? result)
     {
@@ -88,5 +93,10 @@ public class MarkdownEquationComponents : EquationComponents
     public override string OtherwiseBranch(string body)
     {
         return body + @" & \text{otherwise}\quad" + Newline;
+    }
+
+    public override string BeginArrayWithAlignment(string alignment)
+    {
+        return BeginArray + "{" + alignment + "}";
     }
 }

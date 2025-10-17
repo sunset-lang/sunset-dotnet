@@ -2,6 +2,7 @@
 
 @using BlazorMonaco
 @using BlazorMonaco.Editor
+@using Serilog
 @using Sunset.Markdown.Extensions
 @using Sunset.Parser.Scopes
 @implements IAsyncDisposable
@@ -67,7 +68,7 @@
         return new StandaloneEditorConstructionOptions
         {
             AutomaticLayout = true,
-            Value = "x = 12"
+            Value = CodeExamples.ElementExample
         };
     }
 
@@ -85,7 +86,7 @@
             environment.Analyse();
 
             // Render output wrapped in LaTeX align block
-            var output = "\\begin{aligned}\r\n" + ((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues() + @"\end{aligned}";
+            var output = "\\begin{aligned}\r\n" + ((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables() + @"\end{aligned}";
 
             await RenderRawOutput(output);
 
@@ -95,9 +96,10 @@
                 await _module.InvokeVoidAsync("renderLatexOutput", output, _renderedOutputElement);
             }
         }
-        catch
+        catch (Exception ex)
         {
             // Do nothing with errors for now
+            Log.Error(ex, "Could not run code");
         }
     }
 

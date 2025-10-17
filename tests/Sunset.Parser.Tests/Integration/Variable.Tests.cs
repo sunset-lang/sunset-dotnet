@@ -22,7 +22,7 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
@@ -34,7 +34,7 @@ public class VariableTests
         var sourceFile = SourceFile.FromString("x {m} = 35 {m} + 12 {m}");
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Metre);
@@ -50,7 +50,7 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 47, DefinedUnits.Dimensionless);
@@ -68,7 +68,7 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "x", ErrorResult.Instance);
@@ -86,7 +86,7 @@ public class VariableTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
         AssertVariableDeclaration(environment.ChildScopes["$file"], "length", 30, DefinedUnits.Millimetre);
@@ -105,7 +105,7 @@ public class VariableTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
 
@@ -124,7 +124,7 @@ public class VariableTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
 
@@ -144,7 +144,7 @@ public class VariableTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
         var fileScope = environment.ChildScopes["$file"] as FileScope;
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         Console.WriteLine(DebugPrinter.Print(environment));
 
@@ -169,7 +169,7 @@ public class VariableTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
 
         AssertVariableDeclaration(environment.ChildScopes["$file"],
             "WindPressure",

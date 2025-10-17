@@ -1,4 +1,6 @@
-﻿using Sunset.Parser.Analysis.ReferenceChecking;
+﻿using System.Text;
+using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -41,6 +43,7 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
             NameExpression nameExpression => Visit(nameExpression, currentScope),
             IfExpression ifExpression => Visit(ifExpression, currentScope),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, currentScope),
+            CallExpression callExpression => Visit(callExpression, currentScope),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, currentScope),
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
@@ -79,6 +82,7 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
                 $"{Visit(dest.Left, currentScope)} {Eq.LessThanOrEqual} {Visit(dest.Right, currentScope)}",
             TokenType.GreaterThanOrEqual =>
                 $"{Visit(dest.Left, currentScope)} {Eq.GreaterThanOrEqual} {Visit(dest.Right, currentScope)}",
+            TokenType.Dot => PrintAccessOperator(dest.Left, dest.Right, currentScope),
             _ => throw new Exception("Unexpected identifier found")
         };
 
@@ -93,6 +97,8 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
             _ => result
         };
     }
+
+    protected abstract string PrintAccessOperator(IVisitable left, IVisitable right, IScope currentScope);
 
     private string Visit(UnaryExpression dest, IScope currentScope)
     {
@@ -124,13 +130,14 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
         };
     }
 
-
     private string Visit(NumberConstant dest)
     {
         return NumberUtilities.ToAutoString(dest.Value, Settings.SignificantFigures, true);
     }
 
     protected abstract string Visit(UnitAssignmentExpression dest, IScope currentScope);
+
+
     protected abstract string Visit(StringConstant dest);
     protected abstract string Visit(UnitConstant dest);
     protected abstract string Visit(VariableDeclaration dest, IScope currentScope);

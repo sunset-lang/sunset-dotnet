@@ -1,5 +1,7 @@
 ﻿using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors;
 using Sunset.Reporting;
 using Sunset.Reporting.Visitors;
 
@@ -19,5 +21,10 @@ public class MarkdownSymbolExpressionPrinter(
     protected override string? GetResolvedSymbolExpression(VariableDeclaration declaration)
     {
         return declaration.GetResolvedSymbolExpression();
+    }
+
+    protected override string PrintAccessOperator(IVisitable left, IVisitable right, IScope currentScope)
+    {
+        return $"{Visit(right, currentScope)}_{{{Visit(left, currentScope)}}}";
     }
 }

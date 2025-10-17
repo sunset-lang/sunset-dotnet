@@ -23,7 +23,7 @@ public class IfExpressionTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
         Console.WriteLine(DebugPrinter.Print(environment));
         var fileScope = environment.ChildScopes["$file"];
         var result = fileScope.ChildDeclarations["z"].GetResult(fileScope);
@@ -44,7 +44,7 @@ public class IfExpressionTests
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
-        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintDefaultValues());
+        Console.WriteLine(((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables());
         Console.WriteLine(DebugPrinter.Print(environment));
         var fileScope = environment.ChildScopes["$file"];
         var result = fileScope.ChildDeclarations["y"].GetResult(fileScope);

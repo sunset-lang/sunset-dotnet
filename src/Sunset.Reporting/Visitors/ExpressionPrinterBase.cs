@@ -43,7 +43,6 @@ public abstract class ExpressionPrinterBase(PrinterSettings settings, EquationCo
             NameExpression nameExpression => Visit(nameExpression, currentScope),
             IfExpression ifExpression => Visit(ifExpression, currentScope),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, currentScope),
-            CallExpression callExpression => Visit(callExpression, currentScope),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, currentScope),
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),

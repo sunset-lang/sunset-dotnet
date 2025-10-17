@@ -95,7 +95,7 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
     {
         if (Settings.CondenseAtAssignedSymbols && dest.Variable.Symbol != "")
         {
-            var evaluationResult = Evaluator.EvaluateExpression(dest);
+            var evaluationResult = dest.GetResult(currentScope);
             if (evaluationResult is QuantityResult quantityResult)
             {
                 return dest.Variable switch

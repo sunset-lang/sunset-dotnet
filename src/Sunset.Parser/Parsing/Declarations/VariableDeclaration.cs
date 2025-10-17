@@ -12,10 +12,11 @@ namespace Sunset.Parser.Parsing.Declarations;
 ///     Declares a new variable assigned with a calculation expression.
 /// </summary>
 [DebuggerDisplay("{FullPath}")]
-public class VariableDeclaration : IDeclaration, IExpression, INamed
+public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
 {
     // TODO: Add symbolic expression at compile/parse time
     private readonly SymbolName? _symbolExpression;
+    private IScope? _parentScope;
 
     public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
     {

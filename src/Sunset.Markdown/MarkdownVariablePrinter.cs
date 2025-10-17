@@ -1,7 +1,10 @@
 using Sunset.Markdown.Extensions;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results;
+using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors;
 using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Reporting;
 using Sunset.Reporting.Visitors;
@@ -46,9 +49,14 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     /// </summary>
     /// <param name="variable">Variable to be printed.</param>
     /// <returns>String representation of the variable, formatted in Markdown.</returns>
-    public static string Report(IVariable variable)
+    public static string Report(VariableDeclaration variable)
     {
         return Singleton.ReportVariable(variable);
+    }
+
+    public static string Report(VariableDeclaration variable, IScope scope)
+    {
+        return Singleton.ReportVariable(variable, scope);
     }
 
     /// <summary>
@@ -58,7 +66,7 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     /// <param name="settings">PrinterSettings to use.</param>
     /// <param name="log">ErrorLog to use a log.</param>
     /// <returns>String representation of the variable, formatted in Markdown.</returns>
-    public static string Report(IVariable variable, PrinterSettings settings, ErrorLog log)
+    public static string Report(VariableDeclaration variable, PrinterSettings settings, ErrorLog log)
     {
         return new MarkdownVariablePrinter(settings, log).ReportVariable(variable);
     }
@@ -66,20 +74,24 @@ public class MarkdownVariablePrinter : VariablePrinterBase
     /// <summary>
     ///     Generates a Markdown report for the value represented by the given variable.
     /// </summary>
-    /// <param name="variable">The variable whose value is to be reported.</param>
+    /// <param name="dest">The evaluation target whose value is to be reported.</param>
+    /// <param name="expression">An expression that can be used to calculate the value if one does not exist.</param>   
+    /// <param name="currentScope">The scope containing the value to be reported.</param>
     /// <returns>A string containing the Markdown representation of the variable's value.</returns>
-    protected override string ReportDefaultValue(IVariable variable)
+    protected override string ReportValue(IEvaluationTarget dest, IScope currentScope)
     {
-        if (variable.DefaultValue != null)
-        {
-            return variable.DefaultValue.ToLatexString();
-        }
-
-        var result = Evaluator.EvaluateExpression(variable.Expression);
+        // Attempt to get the result in the given scope first.
+        var result = dest.GetResult(currentScope) ??
+                     Evaluator.EvaluateExpression(dest.Expression, currentScope);
         if (result is QuantityResult quantityResult)
         {
             // Show an error if a quantity cannot be calculated
             return quantityResult.Result.ToLatexString();
+        }
+
+        if (dest is VariableDeclaration { Variable.DefaultValue: not null } variableDeclaration)
+        {
+            return variableDeclaration.Variable.DefaultValue.ToLatexString();
         }
 
         return "Error!";

@@ -31,6 +31,11 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         return Singleton.Visit(expression, new Environment());
     }
 
+    public static IResult EvaluateExpression(IExpression expression, IScope scope)
+    {
+        return Singleton.Visit(expression, scope);
+    }
+
     public ErrorLog Log { get; } = log;
 
     public IResult Visit(IVisitable dest, IScope currentScope)
@@ -67,7 +72,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         // TODO: Access can be performed in an earlier pass. Note that this would require modifying the AST to replace the access operator and operands with a reference.
         // Catch access operator
-        if (dest.Operator == TokenType.Dot && leftResult is ElementResult elementResult)
+        if (dest.Operator == TokenType.Dot && leftResult is ElementInstanceResult elementResult)
         {
             if (dest.Right is NameExpression nameExpression)
             {
@@ -243,7 +248,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
             // Set the default value of the variable to the evaluated quantity
             // TODO: Remove this, it is a legacy requirement from the implementation of Sunset as an API
-            if (currentScope is not ElementResult)
+            if (currentScope is not ElementInstanceResult)
             {
                 dest.Variable.DefaultValue = quantityResult.Result;
             }
@@ -256,7 +261,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         return value;
     }
 
-    private ElementResult Visit(CallExpression dest, IScope currentScope)
+    private ElementInstanceResult Visit(CallExpression dest, IScope currentScope)
     {
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
@@ -267,7 +272,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         ArgumentNullException.ThrowIfNull(currentScope);
 
         // Create a new element instance
-        var elementResult = new ElementResult(elementDeclaration, currentScope);
+        var elementResult = new ElementInstanceResult(elementDeclaration, currentScope);
         foreach (var argument in dest.Arguments)
         {
             // Evaluate the right-hand side expression of the argument

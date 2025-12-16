@@ -43,7 +43,7 @@ public partial class Parser
     /// <param name="log">ErrorLog to use for logging errors.</param>
     public Parser(SourceFile source, bool parse = false, ErrorLog? log = null)
     {
-        Log = log ?? new ErrorLog();
+        Log = log ?? ErrorLog.Log ?? new ErrorLog();
         Lexer = new Lexer(source, true, Log);
         _tokens = Lexer.Tokens.ToArray();
         _current = _tokens[0];

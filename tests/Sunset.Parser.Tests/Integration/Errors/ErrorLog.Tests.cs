@@ -46,4 +46,28 @@ public class ErrorLogTests
         environment.Log.PrintLogToConsole();
         Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(1));
     }
+
+    [Test]
+    public void PrintErrors_CallNameResolutionError_CorrectError()
+    {
+        var source = """
+                     define Square:
+                         inputs:
+                             Width <w> {mm} = 100 {mm}
+                             Length <l> {mm} = 200 {mm}
+                         outputs:
+                             Area <A> {mm^2} = Width * Length
+                     end
+                       
+                     SquareInstance = Square(
+                         Width = 200 {mm},
+                         Length = 350 {mm}
+                     )
+                       
+                     Result {mm^2} = SquareInstance.Are
+                     """;
+        var environment = ExecuteSource(source);
+        environment.Log.PrintLogToConsole();
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(1));
+    }
 }

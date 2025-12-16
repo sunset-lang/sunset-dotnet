@@ -81,7 +81,7 @@ public class Lexer
     {
         _file = source;
         _source = source.SourceCode.AsMemory();
-        Log = log ?? new ErrorLog();
+        Log = log ?? ErrorLog.Log ?? new ErrorLog();
         Reset();
         if (scan) Scan();
     }

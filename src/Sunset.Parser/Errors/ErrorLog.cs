@@ -7,6 +7,11 @@ namespace Sunset.Parser.Errors;
 /// </summary>
 public class ErrorLog
 {
+    /// <summary>
+    /// A static instance of the error log that can be used by all stages of the interpreter/compiler.
+    /// </summary>
+    public static ErrorLog? Log { get; set; } = null;
+
     private readonly List<IOutputMessage> _messages = [];
     public IEnumerable<IOutputMessage> Errors => _messages.Where(message => message.Level == LogEventLevel.Error);
     public IEnumerable<IOutputMessage> Warnings => _messages.Where(message => message.Level == LogEventLevel.Warning);

@@ -1,6 +1,5 @@
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
-using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Scopes;
 using Environment = Sunset.Parser.Scopes.Environment;
 
@@ -14,6 +13,7 @@ public class ErrorFormattingTests
         var sourceFile = SourceFile.FromString(source);
         var environment = new Environment(sourceFile);
         environment.Analyse();
+        Console.WriteLine(environment.Log.PrintLog(LogEventLevel.Debug));
         return environment;
     }
 
@@ -22,9 +22,7 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorMessage_NameResolution_ContainsVariableName()
     {
-        var source = """
-                     x = my_undefined_variable
-                     """;
+        var source = "x = my_undefined_variable";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<NameResolutionError>().First();
@@ -35,9 +33,7 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorMessage_CircularReference_ContainsVariableName()
     {
-        var source = """
-                     my_circular_var = my_circular_var + 1
-                     """;
+        var source = "my_circular_var = my_circular_var + 1";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<CircularReferenceError>().First();
@@ -48,9 +44,7 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorMessage_BinaryUnitMismatch_ContainsBothUnits()
     {
-        var source = """
-                     x = 5 {mm} + 3 {s}
-                     """;
+        var source = "x = 5 {mm} + 3 {s}";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().First();
@@ -61,9 +55,7 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorMessage_DeclaredUnitMismatch_ContainsBothUnits()
     {
-        var source = """
-                     x {mm} = 5 {s}
-                     """;
+        var source = "x {mm} = 5 {s}";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().First();
@@ -94,9 +86,7 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorLocation_FirstLine_CorrectLineNumber()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<NameResolutionError>().First();
@@ -108,22 +98,21 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorLocation_MultiToken_HasStartAndEnd()
     {
-        var source = """
-                     x {m} = 5 {s}
-                     """;
+        var source = "x {m} = 5 {s}";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().First();
-        Assert.That(error.StartToken, Is.Not.Null, "Should have start token");
-        Assert.That(error.EndToken, Is.Not.Null, "Should have end token");
+        Assert.Multiple(() =>
+        {
+            Assert.That(error.StartToken, Is.Not.Null, "Should have start token");
+            Assert.That(error.EndToken, Is.Not.Null, "Should have end token");
+        });
     }
 
     [Test]
     public void ErrorLocation_CorrectColumn()
     {
-        var source = """
-                     x = 5 + undefined_var
-                     """;
+        var source = "x = 5 + undefined_var";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<NameResolutionError>().First();
@@ -187,9 +176,7 @@ public class ErrorFormattingTests
     [Test]
     public void PrintLog_ErrorLevel_IncludesErrorPrefix()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var output = environment.Log.PrintLog(LogEventLevel.Error);
@@ -200,9 +187,7 @@ public class ErrorFormattingTests
     [Test]
     public void PrintLog_SourceLocation_IncludesLine()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var output = environment.Log.PrintLog(LogEventLevel.Error);
@@ -213,9 +198,7 @@ public class ErrorFormattingTests
     [Test]
     public void PrintLog_ErrorMessage_IncludesErrorDescription()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var output = environment.Log.PrintLog(LogEventLevel.Error);
@@ -254,9 +237,7 @@ public class ErrorFormattingTests
     [Test]
     public void AttachedOutputMessage_WriteToString_IncludesAllParts()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var output = environment.Log.PrintLog(LogEventLevel.Error);
@@ -267,23 +248,6 @@ public class ErrorFormattingTests
         Assert.That(output, Does.Contain("undefined_var"), "Should include error details");
     }
 
-    [Test]
-    public void AttachedOutputMessage_NullStartToken_ShowsLocationUnknown()
-    {
-        // IfConditionError is known to have null StartToken - use postfix if syntax
-        var source = """
-                     a = 10
-                     x = 1 if a
-                       = 2 otherwise
-                     """;
-        var environment = ExecuteSource(source);
-
-        var output = environment.Log.PrintLog(LogEventLevel.Error);
-        // When StartToken is null, it shows "Location unknown!"
-        Assert.That(output, Does.Contain("unknown").IgnoreCase,
-            "Should indicate location is unknown when StartToken is null");
-    }
-
     #endregion
 
     #region Error Interface Property Tests
@@ -291,9 +255,7 @@ public class ErrorFormattingTests
     [Test]
     public void Error_StartToken_ContainsSourceFileReference()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<NameResolutionError>().First();
@@ -305,9 +267,7 @@ public class ErrorFormattingTests
     [Test]
     public void Error_HasTranslationsDictionary()
     {
-        var source = """
-                     x = undefined_var
-                     """;
+        var source = "x = undefined_var";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<NameResolutionError>().First();

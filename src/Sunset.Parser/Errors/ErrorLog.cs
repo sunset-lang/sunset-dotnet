@@ -13,8 +13,14 @@ public class ErrorLog
     public static ErrorLog? Log { get; set; } = null;
 
     private readonly List<IOutputMessage> _messages = [];
-    public IEnumerable<IOutputMessage> Errors => _messages.Where(message => message.Level == LogEventLevel.Error);
-    public IEnumerable<IOutputMessage> Warnings => _messages.Where(message => message.Level == LogEventLevel.Warning);
+
+    public IEnumerable<IOutputMessage> ErrorMessages =>
+        _messages.Where(message => message.Level == LogEventLevel.Error);
+
+    public IEnumerable<IError> Errors => _messages.OfType<AttachedOutputMessage>().Select(message => message.Error);
+
+    public IEnumerable<IOutputMessage> WarningMessages =>
+        _messages.Where(message => message.Level == LogEventLevel.Warning);
 
     public string PrintLog(LogEventLevel level = LogEventLevel.Information)
     {

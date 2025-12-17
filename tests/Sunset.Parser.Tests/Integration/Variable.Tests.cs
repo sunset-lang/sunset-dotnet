@@ -155,7 +155,7 @@ public class VariableTests
         Assert.Multiple(() =>
         {
             Assert.That(variable.GetResult(fileScope!), Is.EqualTo(ErrorResult.Instance));
-            Assert.That(environment.Log.Errors.Count, Is.GreaterThan(0));
+            Assert.That(environment.Log.ErrorMessages.Count, Is.GreaterThan(0));
         });
     }
 

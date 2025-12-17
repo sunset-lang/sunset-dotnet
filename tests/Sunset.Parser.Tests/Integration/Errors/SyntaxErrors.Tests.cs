@@ -27,10 +27,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation - find the NumberDecimalPlaceError
-        var error = environment.Log.Errors.OfType<NumberDecimalPlaceError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<NumberDecimalPlaceError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberDecimalPlaceError to be logged");
 
         // Message content validation
@@ -50,10 +50,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<NumberEndingWithDecimalError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<NumberEndingWithDecimalError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberEndingWithDecimalError to be logged");
 
         // Message content validation
@@ -73,10 +73,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<NumberExponentError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<NumberExponentError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberExponentError to be logged");
 
         // Message content validation
@@ -96,10 +96,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<NumberEndingWithExponentError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<NumberEndingWithExponentError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberEndingWithExponentError to be logged");
 
         // Message content validation
@@ -123,10 +123,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<UnclosedStringError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<UnclosedStringError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected UnclosedStringError to be logged");
 
         // Message content validation
@@ -144,10 +144,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<UnclosedMultilineStringError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<UnclosedMultilineStringError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected UnclosedMultilineStringError to be logged");
 
         // Message content validation
@@ -171,10 +171,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<IdentifierSymbolEndsInUnderscoreError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<IdentifierSymbolEndsInUnderscoreError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected IdentifierSymbolEndsInUnderscoreError to be logged");
 
         // Message content validation
@@ -194,10 +194,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<IdentifierSymbolMoreThanOneUnderscoreError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<IdentifierSymbolMoreThanOneUnderscoreError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected IdentifierSymbolMoreThanOneUnderscoreError to be logged");
 
         // Message content validation
@@ -221,10 +221,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<UnexpectedSymbolError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<UnexpectedSymbolError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected UnexpectedSymbolError to be logged");
 
         // Message content validation
@@ -247,10 +247,10 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.Errors.OfType<ElementDeclarationWithoutNameError>().FirstOrDefault();
+        var error = environment.Log.ErrorMessages.OfType<ElementDeclarationWithoutNameError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected ElementDeclarationWithoutNameError to be logged");
 
         // Message content validation
@@ -272,7 +272,7 @@ public class SyntaxErrorsTests
                      """;
         var environment = ExecuteSource(source);
 
-        var errors = environment.Log.Errors.ToList();
+        var errors = environment.Log.ErrorMessages.ToList();
         Assert.That(errors.Count, Is.GreaterThan(0));
 
         // Verify all syntax errors implement ISyntaxError

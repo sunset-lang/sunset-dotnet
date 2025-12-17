@@ -117,7 +117,6 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             }
             default:
                 throw new NotImplementedException();
-                return null;
         }
     }
 
@@ -171,19 +170,18 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     private IResultType? Visit(NameExpression dest)
     {
         // This assumes that name resolution happens first.
-        switch (dest.GetResolvedDeclaration())
+        return dest.GetResolvedDeclaration() switch
         {
-            case VariableDeclaration variableDeclaration:
+            VariableDeclaration variableDeclaration =>
                 // Compare with the declared unit of the variable, not the evaluated unit of the variable.
-                return Visit(variableDeclaration);
-            case ElementDeclaration elementDeclaration:
-                return Visit(elementDeclaration);
-            case null:
-                return null;
-            default:
-                throw new ArgumentException(
-                    $"Type checking of type {dest.GetResolvedDeclaration()?.GetType()} is not supported.");
-        }
+                Visit(variableDeclaration),
+            ElementDeclaration elementDeclaration => Visit(elementDeclaration),
+            null =>
+                // Name resolution error was already logged by NameResolver, propagate error state
+                ErrorValueType.Instance,
+            _ => throw new ArgumentException(
+                $"Type checking of type {dest.GetResolvedDeclaration()?.GetType()} is not supported.")
+        };
     }
 
     private IResultType? Visit(IfExpression dest)
@@ -327,11 +325,15 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         // Do not set the assigned type to signal a future warning that all variables should have an assigned type.
         if (assignedType == null && evaluatedType != null)
         {
-            // Note that it is OK to not assign a unit to a variable with a dimensionless result.
-            if (evaluatedType is QuantityType { Unit.IsDimensionless: true })
+            switch (evaluatedType)
             {
-                dest.SetAssignedType(evaluatedType);
-                return evaluatedType;
+                // If the expression evaluated to an error, don't log additional errors - the underlying error was already logged
+                case ErrorValueType:
+                    return evaluatedType;
+                // Note that it is OK to not assign a unit to a variable with a dimensionless result.
+                case QuantityType { Unit.IsDimensionless: true }:
+                    dest.SetAssignedType(evaluatedType);
+                    return evaluatedType;
             }
 
             // Provide a weak unit assignment to the declaration
@@ -346,7 +348,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         {
             if (IResultType.AreCompatible(assignedType, evaluatedType)) return assignedType;
 
-            Log.Error(new VariableUnitDeclarationError(dest));
+            Log.Error(new DeclaredUnitMismatchError(dest));
             return null;
         }
 

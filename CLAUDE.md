@@ -75,9 +75,50 @@ Sunset.Docsite (Blazor UI, uses Parser + Markdown)
 
 ### Error Handling
 
-- Errors collected in `ErrorLog.Log` static instance, never thrown
-- `ISemanticError`: TypeResolutionError, NameResolutionError, CircularReferenceError
+- Errors collected in `ErrorLog` instance, never thrown as exceptions
+- `ISemanticError`: NameResolutionError, CircularReferenceError, BinaryUnitMismatchError, DeclaredUnitMismatchError, etc.
 - `ISyntaxError`: UnexpectedSymbolError, UnclosedStringError
+
+#### Error Logging Patterns
+
+**Avoid duplicate/cascading errors across passes**: Each analysis pass should only log errors for issues it directly discovers. When an earlier pass has already logged an error, later passes should propagate an error state without logging additional errors.
+
+- **NameResolver** logs `NameResolutionError` for unresolved names
+- **TypeChecker** should return `ErrorValueType.Instance` (not `null`) when encountering an unresolved name—this signals an error state without logging a duplicate error
+- **Evaluator** should check for error states and skip operations that would fail (e.g., don't call `SetUnits()` on incompatible types)
+
+**Use ErrorValueType for error propagation**: In the TypeChecker, return `ErrorValueType.Instance` instead of `null` when an error was already logged by a previous pass. This prevents cascading errors:
+
+```csharp
+// In TypeChecker.Visit(NameExpression)
+case null:
+    // Name resolution error was already logged by NameResolver
+    return ErrorValueType.Instance;
+
+// In TypeChecker.Visit(VariableDeclaration)
+if (evaluatedType is ErrorValueType)
+{
+    // Don't log additional errors—underlying error was already logged
+    return evaluatedType;
+}
+```
+
+**Choose the correct error type**:
+- `NameResolutionError`: Variable/symbol cannot be found
+- `DeclaredUnitMismatchError`: Declared unit `{m}` doesn't match evaluated unit `{s}`
+- `VariableUnitDeclarationError`: Variable has no declared unit (warning case)
+- `BinaryUnitMismatchError`: Binary operation has incompatible units (e.g., `5 {m} + 3 {s}`)
+
+**Guard against exceptions in Evaluator**: Before operations that can throw (like `Quantity.SetUnits()`), verify type compatibility:
+
+```csharp
+// Check dimensions match before calling SetUnits
+if (assignedType != null && evaluatedType != null &&
+    Unit.EqualDimensions(assignedType.Unit, evaluatedType.Unit))
+{
+    quantityResult.Result.SetUnits(assignedType.Unit);
+}
+```
 
 ### Results
 

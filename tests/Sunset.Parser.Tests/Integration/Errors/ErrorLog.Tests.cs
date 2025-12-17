@@ -23,7 +23,7 @@ public class ErrorLogTests
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();
-        Assert.That(environment.Log.Errors.Count(), Is.EqualTo(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.EqualTo(0));
     }
 
     [Test]
@@ -34,7 +34,7 @@ public class ErrorLogTests
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
     }
 
     [Test]
@@ -45,7 +45,7 @@ public class ErrorLogTests
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
     }
 
     [Test]
@@ -69,7 +69,7 @@ public class ErrorLogTests
                      """;
         var environment = ExecuteSource(source);
         environment.Log.PrintLogToConsole();
-        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
     }
 
     [Test]
@@ -77,8 +77,8 @@ public class ErrorLogTests
     {
         var log = new ErrorLog();
 
-        Assert.That(log.Errors.Count(), Is.EqualTo(0));
-        Assert.That(log.Warnings.Count(), Is.EqualTo(0));
+        Assert.That(log.ErrorMessages.Count(), Is.EqualTo(0));
+        Assert.That(log.WarningMessages.Count(), Is.EqualTo(0));
     }
 
     [Test]
@@ -150,7 +150,7 @@ public class ErrorLogTests
         log.Warning("warning");
 
         // Should only return error-level messages
-        Assert.That(log.Errors.Count(), Is.EqualTo(0),
+        Assert.That(log.ErrorMessages.Count(), Is.EqualTo(0),
             "Debug, Info, and Warning should not be in Errors collection");
     }
 
@@ -162,9 +162,9 @@ public class ErrorLogTests
         log.Information("info");
         log.Warning("warning");
 
-        Assert.That(log.Warnings.Count(), Is.EqualTo(1),
+        Assert.That(log.WarningMessages.Count(), Is.EqualTo(1),
             "Should have exactly one warning");
-        Assert.That(log.Warnings.First().Message, Is.EqualTo("warning"));
+        Assert.That(log.WarningMessages.First().Message, Is.EqualTo("warning"));
     }
 
     [Test]

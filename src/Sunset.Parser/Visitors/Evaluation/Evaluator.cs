@@ -2,7 +2,6 @@
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
-using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -161,7 +160,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         var declaration = dest.GetResolvedDeclaration();
         if (declaration != null) return Visit(declaration, currentScope);
 
-        Log.Error(new NameResolutionError(dest));
+        // Name resolution error was already logged by NameResolver
         return ErrorResult;
     }
 
@@ -239,11 +238,14 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         {
             // If there is a unit assignment, evaluate it and set the result to the evaluated value.
             // This may result in a different set of units.
-            var unit = (dest.GetAssignedType() as QuantityType)?.Unit;
+            // Only set units if both types exist and have compatible dimensions.
+            var assignedType = dest.GetAssignedType() as QuantityType;
+            var evaluatedType = dest.GetEvaluatedType() as QuantityType;
 
-            if (unit != null)
+            if (assignedType != null && evaluatedType != null &&
+                Unit.EqualDimensions(assignedType.Unit, evaluatedType.Unit))
             {
-                quantityResult.Result.SetUnits(unit);
+                quantityResult.Result.SetUnits(assignedType.Unit);
             }
 
             // Set the default value of the variable to the evaluated quantity

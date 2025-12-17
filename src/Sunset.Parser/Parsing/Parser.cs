@@ -193,6 +193,21 @@ public partial class Parser
     /// <exception cref="Exception"></exception>
     public IExpression GetArithmeticExpression(Precedence minPrecedence = Precedence.Assignment)
     {
+        // Check for incomplete expression (e.g., "x=" with no value at end of file)
+        if (_current.Type == TokenType.EndOfFile)
+        {
+            Log.Error(new IncompleteExpressionError(_current));
+            var errorToken = new StringToken(
+                _current.ToString().AsMemory(),
+                TokenType.ErrorValue,
+                _current.PositionStart,
+                _current.PositionEnd,
+                _current.LineStart,
+                _current.ColumnStart,
+                _current.SourceFile);
+            return new Constants.ErrorConstant(errorToken);
+        }
+
         // Start by looking for a prefix expression
         var prefixParsingRule = GetParsingRule(_current.Type);
 
@@ -209,6 +224,7 @@ public partial class Parser
                 _current.LineStart,
                 _current.ColumnStart,
                 _current.SourceFile);
+            // TODO: This seems to be causing a lot of errors when an arithmetic expression is unfinished
             Advance();
             return new Constants.ErrorConstant(errorToken);
         }
@@ -387,7 +403,22 @@ public partial class Parser
             }
         }
 
-        Consume(TokenType.Equal);
+        var equalToken = Consume(TokenType.Equal);
+
+        // Check for incomplete expression (e.g., "x =" with no value)
+        if (_current.Type is TokenType.EndOfFile or TokenType.Newline)
+        {
+            Log.Error(new IncompleteExpressionError(equalToken ?? _current));
+            var errorToken = new StringToken(
+                _current.ToString().AsMemory(),
+                TokenType.ErrorValue,
+                _current.PositionStart,
+                _current.PositionEnd,
+                _current.LineStart,
+                _current.ColumnStart,
+                _current.SourceFile);
+            return new VariableDeclaration(nameToken, new Constants.ErrorConstant(errorToken), parentScope, unitAssignment, symbolExpression);
+        }
 
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression

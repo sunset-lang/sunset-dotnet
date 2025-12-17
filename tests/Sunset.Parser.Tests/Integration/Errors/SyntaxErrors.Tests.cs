@@ -277,6 +277,58 @@ public class SyntaxErrorsTests
         });
     }
 
+    [Test]
+    public void IncompleteExpressionError_MissingValue_ReportsError()
+    {
+        var source = "x =";
+        var environment = ExecuteSource(source);
+
+        // Should have at least one error
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+
+        // Type validation
+        var error = environment.Log.Errors.OfType<IncompleteExpressionError>().FirstOrDefault();
+        Assert.That(error, Is.Not.Null, "Expected IncompleteExpressionError to be logged");
+
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("Incomplete"));
+
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
+    }
+    
+    [Test]
+    public void IncompleteExpressionError_MissingValueAtLineEnd_ReportsError()
+    {
+        var source = """
+                     x =
+                     y = 5
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have at least one error
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
+
+        // Type validation
+        var error = environment.Log.Errors.OfType<IncompleteExpressionError>().FirstOrDefault();
+        Assert.That(error, Is.Not.Null, "Expected IncompleteExpressionError to be logged");
+
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("Incomplete"));
+
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
+    }
+    
+
     #endregion
 
     #region Syntax Error Interface Tests

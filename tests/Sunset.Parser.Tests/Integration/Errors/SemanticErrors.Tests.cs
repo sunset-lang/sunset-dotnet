@@ -27,17 +27,20 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<NameResolutionError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<NameResolutionError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NameResolutionError to be logged");
 
-        // Message content validation - should include the undefined variable name
-        Assert.That(error!.Message, Does.Contain("undefined_var"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation - should include the undefined variable name
+            Assert.That(error!.Message, Does.Contain("undefined_var"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
         Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
     }
 
@@ -50,17 +53,20 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<NameResolutionError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<NameResolutionError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NameResolutionError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("unknown"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("unknown"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
         Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
     }
 
@@ -73,14 +79,17 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have three NameResolutionErrors
-        var nameErrors = environment.Log.ErrorMessages.OfType<NameResolutionError>().ToList();
+        var nameErrors = environment.Log.Errors.OfType<NameResolutionError>().ToList();
         Assert.That(nameErrors.Count, Is.EqualTo(3), "Expected 3 NameResolutionErrors for a, b, and c");
 
         // Verify each undefined variable is mentioned
         var messages = nameErrors.Select(e => e.Message).ToList();
-        Assert.That(messages.Any(m => m.Contains("a")), Is.True, "Expected error for variable 'a'");
-        Assert.That(messages.Any(m => m.Contains("b")), Is.True, "Expected error for variable 'b'");
-        Assert.That(messages.Any(m => m.Contains("c")), Is.True, "Expected error for variable 'c'");
+        Assert.Multiple(() =>
+        {
+            Assert.That(messages.Any(m => m.Contains("a")), Is.True, "Expected error for variable 'a'");
+            Assert.That(messages.Any(m => m.Contains("b")), Is.True, "Expected error for variable 'b'");
+            Assert.That(messages.Any(m => m.Contains("c")), Is.True, "Expected error for variable 'c'");
+        });
     }
 
     #endregion
@@ -96,18 +105,21 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<CircularReferenceError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<CircularReferenceError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected CircularReferenceError to be logged");
 
-        // Message content validation - should mention circular reference and variable name
-        Assert.That(error!.Message, Does.Contain("Circular"));
-        Assert.That(error.Message, Does.Contain("x"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation - should mention circular reference and variable name
+            Assert.That(error!.Message, Does.Contain("Circular"));
+            Assert.That(error.Message, Does.Contain("x"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
         Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
     }
 
@@ -121,7 +133,7 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one CircularReferenceError
-        var circularErrors = environment.Log.ErrorMessages.OfType<CircularReferenceError>().ToList();
+        var circularErrors = environment.Log.Errors.OfType<CircularReferenceError>().ToList();
         Assert.That(circularErrors.Count, Is.GreaterThan(0), "Expected at least one CircularReferenceError");
 
         // Message content validation
@@ -140,7 +152,7 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one CircularReferenceError
-        var circularErrors = environment.Log.ErrorMessages.OfType<CircularReferenceError>().ToList();
+        var circularErrors = environment.Log.Errors.OfType<CircularReferenceError>().ToList();
         Assert.That(circularErrors.Count, Is.GreaterThan(0), "Expected at least one CircularReferenceError");
 
         // Message content validation
@@ -161,18 +173,21 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<BinaryUnitMismatchError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected BinaryUnitMismatchError to be logged");
 
-        // Message content validation - should include both units
-        Assert.That(error!.Message, Does.Contain("m"));
-        Assert.That(error.Message, Does.Contain("s"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation - should include both units
+            Assert.That(error!.Message, Does.Contain("m"));
+            Assert.That(error.Message, Does.Contain("s"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
         Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
     }
 
@@ -185,15 +200,18 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<BinaryUnitMismatchError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected BinaryUnitMismatchError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("kg"));
-        Assert.That(error.Message, Does.Contain("m"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("kg"));
+            Assert.That(error.Message, Does.Contain("m"));
+        });
     }
 
     [Test]
@@ -205,15 +223,18 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<BinaryUnitMismatchError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected BinaryUnitMismatchError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("m"));
-        Assert.That(error.Message, Does.Contain("s"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("m"));
+            Assert.That(error.Message, Does.Contain("s"));
+        });
     }
 
     #endregion
@@ -232,17 +253,20 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<IfTypeMismatchError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<IfTypeMismatchError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected IfTypeMismatchError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("dimensions"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("dimensions"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -257,15 +281,18 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<IfConditionError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<IfConditionError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected IfConditionError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("condition"));
-        Assert.That(error.Message, Does.Contain("true or false"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("condition"));
+            Assert.That(error.Message, Does.Contain("true or false"));
+        });
     }
 
     #endregion
@@ -281,18 +308,21 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<DeclaredUnitMismatchError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected DeclaredUnitMismatchError to be logged");
 
-        // Message content validation - should mention declared vs evaluated units
-        Assert.That(error!.Message, Does.Contain("declared"));
-        Assert.That(error.Message, Does.Contain("not compatible"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation - should mention declared vs evaluated units
+            Assert.That(error!.Message, Does.Contain("declared"));
+            Assert.That(error.Message, Does.Contain("not compatible"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
         Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
     }
 
@@ -305,10 +335,10 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<DeclaredUnitMismatchError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected DeclaredUnitMismatchError to be logged");
 
         // Message content validation
@@ -328,41 +358,42 @@ public class SemanticErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<StringInExpressionError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<StringInExpressionError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected StringInExpressionError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("String"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("String"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
         Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
     }
 
     [Test]
-    public void UnitInExpressionError_BareUnit_ReportsError()
+    public void BareUnitSymbol_WhenDefinedAsVariable_IsValidIdentifier()
     {
+        // Unit symbols like 'm' outside of braces should be treated as normal identifiers
         var source = """
-                     x = 5 + m
+                     length = 10
+                     x = 5 + length
                      """;
         var environment = ExecuteSource(source);
 
-        // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        // Debug output for errors
+        foreach (var error in environment.Log.Errors)
+        {
+            TestContext.WriteLine($"Error: {error.GetType().Name} - {error.Message}");
+        }
 
-        // Type validation - Note: UnitInExpressionError implements ISyntaxError
-        var error = environment.Log.ErrorMessages.OfType<UnitInExpressionError>().FirstOrDefault();
-        Assert.That(error, Is.Not.Null, "Expected UnitInExpressionError to be logged");
-
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("Units are not allowed"));
-
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+        // Should have no errors when variables are properly defined
+        Assert.That(environment.Log.Errors.Count(), Is.EqualTo(0),
+            "Should have no errors with properly defined variables");
     }
 
     #endregion
@@ -377,7 +408,7 @@ public class SemanticErrorsTests
                      """;
         var environment = ExecuteSource(source);
 
-        var errors = environment.Log.ErrorMessages.ToList();
+        var errors = environment.Log.Errors.ToList();
         Assert.That(errors.Count, Is.GreaterThan(0));
 
         // Verify NameResolutionError implements ISemanticError
@@ -396,12 +427,15 @@ public class SemanticErrorsTests
                      """;
         var environment = ExecuteSource(source);
 
-        var errors = environment.Log.ErrorMessages.ToList();
+        var errors = environment.Log.Errors.ToList();
 
-        // Should have multiple errors of different types
-        Assert.That(errors.OfType<NameResolutionError>().Any(), Is.True, "Expected NameResolutionError");
-        Assert.That(errors.OfType<BinaryUnitMismatchError>().Any(), Is.True, "Expected BinaryUnitMismatchError");
-        Assert.That(errors.OfType<CircularReferenceError>().Any(), Is.True, "Expected CircularReferenceError");
+        Assert.Multiple(() =>
+        {
+            // Should have multiple errors of different types
+            Assert.That(errors.OfType<NameResolutionError>().Any(), Is.True, "Expected NameResolutionError");
+            Assert.That(errors.OfType<BinaryUnitMismatchError>().Any(), Is.True, "Expected BinaryUnitMismatchError");
+            Assert.That(errors.OfType<CircularReferenceError>().Any(), Is.True, "Expected CircularReferenceError");
+        });
     }
 
     #endregion

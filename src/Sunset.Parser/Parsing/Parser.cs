@@ -380,8 +380,8 @@ public partial class Parser
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression
 
-        // Always end a variable declaration with a new line.
-        Consume(TokenType.Newline);
+        // Always end a variable declaration with a new line or end of file
+        Consume([TokenType.Newline, TokenType.EndOfFile]);
 
         return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression);
     }
@@ -474,7 +474,21 @@ public partial class Parser
     /// <returns>The consumed token, or null if the TokenType was not found.</returns>
     private IToken? Consume(TokenType[] type, bool optional = false, bool consumeNewLines = false)
     {
-        throw new NotImplementedException();
+        if (consumeNewLines && !type.Contains(TokenType.Newline))
+        {
+            ConsumeNewlines();
+        }
+
+        if (type.Contains(_current.Type))
+        {
+            var consumed = _current;
+            if (_current.Type != TokenType.EndOfFile) Advance();
+            return consumed;
+        }
+
+        if (!optional) Log.Error(new UnexpectedSymbolError(_current));
+
+        return null;
     }
 
     /// <summary>

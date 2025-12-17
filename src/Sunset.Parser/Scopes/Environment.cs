@@ -68,6 +68,12 @@ public class Environment : IScope
 
             ChildScopes.Add(source.Name, sourceScope);
 
+            // Merge parser/lexer errors into the environment's log
+            if (source.ParserLog != null)
+            {
+                Log.Merge(source.ParserLog);
+            }
+
             Log.Debug($"Added file {source.Name} to environment.");
         }
         else

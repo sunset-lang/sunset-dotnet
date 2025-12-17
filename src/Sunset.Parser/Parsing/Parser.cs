@@ -63,18 +63,24 @@ public partial class Parser
         while (_current.Type != TokenType.EndOfFile)
         {
             ConsumeNewlines();
+            if (_current.Type == TokenType.EndOfFile) break;
+
             IDeclaration? declaration = _current.Type switch
             {
                 TokenType.Define => GetElementDeclaration(parentScope),
                 TokenType.Identifier or TokenType.OpenAngleBracket => GetVariableDeclaration(parentScope),
-                // TODO: Handle this error properly
-                _ => throw new ArgumentOutOfRangeException("Unexpected token type: " + _current.Type)
+                _ => null
             };
 
-            if (declaration != null)
+            // If we couldn't parse a declaration, log error and skip the token
+            if (declaration == null)
             {
-                SyntaxTree.Add(declaration);
+                Log.Error(new UnexpectedSymbolError(_current));
+                Advance();
+                continue;
             }
+
+            SyntaxTree.Add(declaration);
         }
 
         return SyntaxTree;
@@ -189,13 +195,24 @@ public partial class Parser
         // Start by looking for a prefix expression
         var prefixParsingRule = GetParsingRule(_current.Type);
 
+        IExpression expression;
         if (prefixParsingRule.prefixParse == null)
-            // TODO: Handle this error a bit better
         {
-            throw new Exception("Error parsing expression");
+            // Log error and return an error constant
+            Log.Error(new UnexpectedSymbolError(_current));
+            var errorToken = new StringToken(
+                _current.ToString().AsMemory(),
+                TokenType.ErrorValue,
+                _current.PositionStart,
+                _current.PositionEnd,
+                _current.LineStart,
+                _current.ColumnStart,
+                _current.SourceFile);
+            Advance();
+            return new Constants.ErrorConstant(errorToken);
         }
 
-        var expression = prefixParsingRule.prefixParse(this);
+        expression = prefixParsingRule.prefixParse(this);
 
         // Assume that the prefix parsing rule has advanced the position to the next token
         // Look for an infix expression

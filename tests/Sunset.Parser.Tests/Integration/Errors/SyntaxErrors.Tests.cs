@@ -13,6 +13,7 @@ public class SyntaxErrorsTests
         var sourceFile = SourceFile.FromString(source);
         var environment = new Environment(sourceFile);
         environment.Analyse();
+        Console.WriteLine(environment.Log.PrintLog(LogEventLevel.Debug));
         return environment;
     }
 
@@ -21,93 +22,97 @@ public class SyntaxErrorsTests
     [Test]
     public void NumberDecimalPlaceError_MultipleDecimals_ReportsError()
     {
-        var source = """
-                     x = 3.14.159
-                     """;
+        var source = "x = 3.14.159";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation - find the NumberDecimalPlaceError
-        var error = environment.Log.ErrorMessages.OfType<NumberDecimalPlaceError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<NumberDecimalPlaceError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberDecimalPlaceError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("decimal"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("decimal"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     [Test]
     public void NumberEndingWithDecimalError_TrailingDecimal_ReportsError()
     {
-        var source = """
-                     x = 42.
-                     """;
+        var source = "x = 42.";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<NumberEndingWithDecimalError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<NumberEndingWithDecimalError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberEndingWithDecimalError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("decimal"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("decimal"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     [Test]
     public void NumberExponentError_MultipleExponents_ReportsError()
     {
-        var source = """
-                     x = 1e2e3
-                     """;
+        var source = "x = 1e2e3";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<NumberExponentError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<NumberExponentError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberExponentError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("exponent"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("exponent"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     [Test]
     public void NumberEndingWithExponentError_NoExponentValue_ReportsError()
     {
-        var source = """
-                     x = 1e
-                     """;
+        var source = "x = 1e";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<NumberEndingWithExponentError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<NumberEndingWithExponentError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected NumberEndingWithExponentError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("exponent"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("exponent"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     #endregion
@@ -123,18 +128,21 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<UnclosedStringError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<UnclosedStringError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected UnclosedStringError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("closed"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("closed"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     [Test]
@@ -144,18 +152,21 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<UnclosedMultilineStringError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<UnclosedMultilineStringError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected UnclosedMultilineStringError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("Multiline"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("Multiline"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     #endregion
@@ -165,47 +176,49 @@ public class SyntaxErrorsTests
     [Test]
     public void IdentifierEndsInUnderscore_TrailingUnderscore_ReportsError()
     {
-        var source = """
-                     x_ = 5
-                     """;
+        var source = "x_ = 5";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<IdentifierSymbolEndsInUnderscoreError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<IdentifierSymbolEndsInUnderscoreError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected IdentifierSymbolEndsInUnderscoreError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("underscore"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("underscore"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     [Test]
     public void IdentifierMultipleUnderscores_ConsecutiveUnderscores_ReportsError()
     {
-        var source = """
-                     x__y = 5
-                     """;
+        var source = "x__y = 5";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<IdentifierSymbolMoreThanOneUnderscoreError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<IdentifierSymbolMoreThanOneUnderscoreError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected IdentifierSymbolMoreThanOneUnderscoreError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("underscore"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("underscore"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     #endregion
@@ -215,24 +228,25 @@ public class SyntaxErrorsTests
     [Test]
     public void UnexpectedSymbolError_DoubleEquals_ReportsError()
     {
-        var source = """
-                     x = = 5
-                     """;
+        var source = "x = = 5";
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<UnexpectedSymbolError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<UnexpectedSymbolError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected UnexpectedSymbolError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("Unexpected"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("Unexpected"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
-        Assert.That(error.StartToken!.LineStart, Is.EqualTo(0));
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
+        Assert.That(error.StartToken.LineStart, Is.EqualTo(0));
     }
 
     [Test]
@@ -247,17 +261,20 @@ public class SyntaxErrorsTests
         var environment = ExecuteSource(source);
 
         // Should have at least one error
-        Assert.That(environment.Log.ErrorMessages.Count(), Is.GreaterThan(0));
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
         // Type validation
-        var error = environment.Log.ErrorMessages.OfType<ElementDeclarationWithoutNameError>().FirstOrDefault();
+        var error = environment.Log.Errors.OfType<ElementDeclarationWithoutNameError>().FirstOrDefault();
         Assert.That(error, Is.Not.Null, "Expected ElementDeclarationWithoutNameError to be logged");
 
-        // Message content validation
-        Assert.That(error!.Message, Does.Contain("name"));
+        Assert.Multiple(() =>
+        {
+            // Message content validation
+            Assert.That(error!.Message, Does.Contain("name"));
 
-        // Source location validation
-        Assert.That(error.StartToken, Is.Not.Null);
+            // Source location validation
+            Assert.That(error.StartToken, Is.Not.Null);
+        });
     }
 
     #endregion
@@ -267,12 +284,10 @@ public class SyntaxErrorsTests
     [Test]
     public void SyntaxErrors_ImplementISyntaxError()
     {
-        var source = """
-                     x = 3.14.159
-                     """;
+        var source = "x = 3.14.159";
         var environment = ExecuteSource(source);
 
-        var errors = environment.Log.ErrorMessages.ToList();
+        var errors = environment.Log.Errors.ToList();
         Assert.That(errors.Count, Is.GreaterThan(0));
 
         // Verify all syntax errors implement ISyntaxError

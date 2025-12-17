@@ -10,6 +10,11 @@ public class SourceFile
 {
     private readonly Parsing.Parser? _parser;
 
+    /// <summary>
+    /// Gets the error log used by the parser and lexer for this source file.
+    /// </summary>
+    public ErrorLog? ParserLog => _parser?.Log;
+
     public static SourceFile Anonymous { get; } = new("$file", string.Empty);
 
     private SourceFile(string name, string source, ErrorLog? log = null)

@@ -66,4 +66,13 @@ public class ErrorLog
     {
         _messages.Add(new AttachedOutputMessage(error, LogEventLevel.Error));
     }
+
+    /// <summary>
+    /// Copies all messages from another error log into this one.
+    /// </summary>
+    /// <param name="other">The error log to copy messages from.</param>
+    public void Merge(ErrorLog other)
+    {
+        _messages.AddRange(other._messages);
+    }
 }

@@ -347,6 +347,107 @@ public class SemanticErrorsTests
 
     #endregion
 
+    #region Variable Unit Declaration Errors
+
+    [Test]
+    public void VariableUnitDeclarationError_ConstantWithUnits_NoError()
+    {
+        // A constant expression with units should NOT trigger an error
+        // because the units are fully known at compile time
+        var source = """
+                     y = 45 {mm}
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have no VariableUnitDeclarationError
+        var unitDeclarationErrors = environment.Log.Errors.OfType<VariableUnitDeclarationError>().ToList();
+        Assert.That(unitDeclarationErrors.Count, Is.EqualTo(0),
+            "Should not report VariableUnitDeclarationError for constant expressions with units");
+    }
+
+    [Test]
+    public void VariableUnitDeclarationError_ConstantExpressionWithUnits_NoError()
+    {
+        // A constant expression (math on constants) with units should NOT trigger an error
+        var source = """
+                     y = (45 + 10) {mm}
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have no VariableUnitDeclarationError
+        var unitDeclarationErrors = environment.Log.Errors.OfType<VariableUnitDeclarationError>().ToList();
+        Assert.That(unitDeclarationErrors.Count, Is.EqualTo(0),
+            "Should not report VariableUnitDeclarationError for constant expressions with units");
+    }
+
+    [Test]
+    public void VariableUnitDeclarationError_VariableReference_ReportsError()
+    {
+        // An expression with variable references should trigger an error
+        // because the units may be unknown
+        var source = """
+                     x {m} = 10 {m}
+                     y = x + 5 {m}
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have one VariableUnitDeclarationError for y
+        var unitDeclarationErrors = environment.Log.Errors.OfType<VariableUnitDeclarationError>().ToList();
+        Assert.That(unitDeclarationErrors.Count, Is.EqualTo(1),
+            "Should report VariableUnitDeclarationError for expressions with variable references");
+        Assert.That(unitDeclarationErrors[0].Message, Does.Contain("y"));
+    }
+
+    [Test]
+    public void VariableUnitDeclarationError_MultipleConstantsWithUnits_NoError()
+    {
+        // Multiple constant expressions with different units should NOT trigger errors
+        var source = """
+                     length = 100 {mm}
+                     duration = 5 {s}
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have no VariableUnitDeclarationError
+        var unitDeclarationErrors = environment.Log.Errors.OfType<VariableUnitDeclarationError>().ToList();
+        Assert.That(unitDeclarationErrors.Count, Is.EqualTo(0),
+            "Should not report VariableUnitDeclarationError for constant expressions with units");
+    }
+
+    [Test]
+    public void VariableUnitDeclarationError_BinaryOperationOnConstants_NoError()
+    {
+        // Binary operations on constants with compatible units should NOT trigger an error
+        var source = """
+                     total = 100 {mm} + 50 {mm}
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have no VariableUnitDeclarationError
+        var unitDeclarationErrors = environment.Log.Errors.OfType<VariableUnitDeclarationError>().ToList();
+        Assert.That(unitDeclarationErrors.Count, Is.EqualTo(0),
+            "Should not report VariableUnitDeclarationError for binary operations on constants");
+    }
+
+    [Test]
+    public void VariableUnitDeclarationError_MixedConstantsAndVariables_ReportsError()
+    {
+        // Mixing constants and variables should trigger an error for the variable without units
+        var source = """
+                     x {m} = 10 {m}
+                     y = 5 {m} + x
+                     """;
+        var environment = ExecuteSource(source);
+
+        // Should have one VariableUnitDeclarationError for y
+        var unitDeclarationErrors = environment.Log.Errors.OfType<VariableUnitDeclarationError>().ToList();
+        Assert.That(unitDeclarationErrors.Count, Is.EqualTo(1),
+            "Should report VariableUnitDeclarationError for expressions mixing constants and variables");
+        Assert.That(unitDeclarationErrors[0].Message, Does.Contain("y"));
+    }
+
+    #endregion
+
     #region String/Unit in Expression Errors
 
     [Test]

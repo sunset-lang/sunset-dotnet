@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -336,6 +336,15 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 case QuantityType { Unit.IsDimensionless: true }:
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
+            }
+
+            // If the expression contains only constants (no variable references), the units are fully known
+            // at compile time, so we can safely assign the evaluated type without logging an error.
+            var references = dest.GetReferences();
+            if (references == null || references.Count == 0)
+            {
+                dest.SetAssignedType(evaluatedType);
+                return evaluatedType;
             }
 
             // Provide a weak unit assignment to the declaration

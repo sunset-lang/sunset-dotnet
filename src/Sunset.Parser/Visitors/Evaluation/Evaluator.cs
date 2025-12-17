@@ -103,6 +103,14 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 _ => null
             };
             if (binaryResult != null) return new QuantityResult(binaryResult);
+
+            // Comparisons require compatible dimensions - check before attempting
+            // The TypeChecker has already logged an error if dimensions don't match
+            if (!Unit.EqualDimensions(leftQuantity.Unit, rightQuantity.Unit))
+            {
+                return ErrorResult;
+            }
+
             bool? comparisonResult = dest.Operator switch
             {
                 TokenType.Equal => Equals(leftQuantity, rightQuantity),
@@ -174,8 +182,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 var result = Visit(ifBranch.Condition, currentScope);
                 if (result is not BooleanResult booleanResult)
                 {
-                    // TODO: Add typing error to deal with this
-                    throw new Exception("If condition is not a boolean");
+                    // IfConditionError was already logged by TypeChecker
+                    return ErrorResult;
                 }
 
                 // Store the result of the boolean result in the branch for this scope

@@ -93,9 +93,11 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                     case TokenType.LessThan or TokenType.GreaterThan or TokenType.LessThanOrEqual
                         or TokenType.GreaterThanOrEqual or TokenType.Equal or TokenType.NotEqual:
                         // Only return a valid boolean result if the units are comparable.
-                        return Unit.EqualDimensions(leftQuantityType.Unit, rightQuantityType.Unit)
-                            ? BooleanType.Instance
-                            : null;
+                        if (Unit.EqualDimensions(leftQuantityType.Unit, rightQuantityType.Unit))
+                            return BooleanType.Instance;
+
+                        Log.Error(new BinaryUnitMismatchError(dest));
+                        return ErrorValueType.Instance;
                     default:
                         throw new NotImplementedException();
                 }

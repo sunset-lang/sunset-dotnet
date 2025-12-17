@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing;
@@ -241,6 +242,17 @@ public partial class Parser
 
             if (infixParsingRule.infixParse == null)
             {
+                if (_current.Type is TokenType.String or TokenType.MultilineString)
+                {
+                    if (_current is not StringToken stringToken)
+                    {
+                        throw new Exception("Did not expect a non-StringToken to be present");
+                    }
+
+                    Log.Error(new StringInExpressionError(stringToken));
+                    return expression;
+                }
+
                 throw new Exception("Error parsing expression, expected an infix parse rule");
             }
 

@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing;
@@ -43,7 +44,7 @@ public partial class Parser
     /// <param name="log">ErrorLog to use for logging errors.</param>
     public Parser(SourceFile source, bool parse = false, ErrorLog? log = null)
     {
-        Log = log ?? new ErrorLog();
+        Log = log ?? ErrorLog.Log ?? new ErrorLog();
         Lexer = new Lexer(source, true, Log);
         _tokens = Lexer.Tokens.ToArray();
         _current = _tokens[0];
@@ -63,18 +64,24 @@ public partial class Parser
         while (_current.Type != TokenType.EndOfFile)
         {
             ConsumeNewlines();
+            if (_current.Type == TokenType.EndOfFile) break;
+
             IDeclaration? declaration = _current.Type switch
             {
                 TokenType.Define => GetElementDeclaration(parentScope),
                 TokenType.Identifier or TokenType.OpenAngleBracket => GetVariableDeclaration(parentScope),
-                // TODO: Handle this error properly
-                _ => throw new ArgumentOutOfRangeException("Unexpected token type: " + _current.Type)
+                _ => null
             };
 
-            if (declaration != null)
+            // If we couldn't parse a declaration, log error and skip the token
+            if (declaration == null)
             {
-                SyntaxTree.Add(declaration);
+                Log.Error(new UnexpectedSymbolError(_current));
+                Advance();
+                continue;
             }
+
+            SyntaxTree.Add(declaration);
         }
 
         return SyntaxTree;
@@ -186,16 +193,43 @@ public partial class Parser
     /// <exception cref="Exception"></exception>
     public IExpression GetArithmeticExpression(Precedence minPrecedence = Precedence.Assignment)
     {
+        // Check for incomplete expression (e.g., "x=" with no value at end of file)
+        if (_current.Type == TokenType.EndOfFile)
+        {
+            Log.Error(new IncompleteExpressionError(_current));
+            var errorToken = new StringToken(
+                _current.ToString().AsMemory(),
+                TokenType.ErrorValue,
+                _current.PositionStart,
+                _current.PositionEnd,
+                _current.LineStart,
+                _current.ColumnStart,
+                _current.SourceFile);
+            return new Constants.ErrorConstant(errorToken);
+        }
+
         // Start by looking for a prefix expression
         var prefixParsingRule = GetParsingRule(_current.Type);
 
+        IExpression expression;
         if (prefixParsingRule.prefixParse == null)
-            // TODO: Handle this error a bit better
         {
-            throw new Exception("Error parsing expression");
+            // Log error and return an error constant
+            Log.Error(new UnexpectedSymbolError(_current));
+            var errorToken = new StringToken(
+                _current.ToString().AsMemory(),
+                TokenType.ErrorValue,
+                _current.PositionStart,
+                _current.PositionEnd,
+                _current.LineStart,
+                _current.ColumnStart,
+                _current.SourceFile);
+            // TODO: This seems to be causing a lot of errors when an arithmetic expression is unfinished
+            Advance();
+            return new Constants.ErrorConstant(errorToken);
         }
 
-        var expression = prefixParsingRule.prefixParse(this);
+        expression = prefixParsingRule.prefixParse(this);
 
         // Assume that the prefix parsing rule has advanced the position to the next token
         // Look for an infix expression
@@ -224,6 +258,17 @@ public partial class Parser
 
             if (infixParsingRule.infixParse == null)
             {
+                if (_current.Type is TokenType.String or TokenType.MultilineString)
+                {
+                    if (_current is not StringToken stringToken)
+                    {
+                        throw new Exception("Did not expect a non-StringToken to be present");
+                    }
+
+                    Log.Error(new StringInExpressionError(stringToken));
+                    return expression;
+                }
+
                 throw new Exception("Error parsing expression, expected an infix parse rule");
             }
 
@@ -358,13 +403,28 @@ public partial class Parser
             }
         }
 
-        Consume(TokenType.Equal);
+        var equalToken = Consume(TokenType.Equal);
+
+        // Check for incomplete expression (e.g., "x =" with no value)
+        if (_current.Type is TokenType.EndOfFile or TokenType.Newline)
+        {
+            Log.Error(new IncompleteExpressionError(equalToken ?? _current));
+            var errorToken = new StringToken(
+                _current.ToString().AsMemory(),
+                TokenType.ErrorValue,
+                _current.PositionStart,
+                _current.PositionEnd,
+                _current.LineStart,
+                _current.ColumnStart,
+                _current.SourceFile);
+            return new VariableDeclaration(nameToken, new Constants.ErrorConstant(errorToken), parentScope, unitAssignment, symbolExpression);
+        }
 
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression
 
-        // Always end a variable declaration with a new line.
-        Consume(TokenType.Newline);
+        // Always end a variable declaration with a new line or end of file
+        Consume([TokenType.Newline, TokenType.EndOfFile]);
 
         return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression);
     }
@@ -457,7 +517,21 @@ public partial class Parser
     /// <returns>The consumed token, or null if the TokenType was not found.</returns>
     private IToken? Consume(TokenType[] type, bool optional = false, bool consumeNewLines = false)
     {
-        throw new NotImplementedException();
+        if (consumeNewLines && !type.Contains(TokenType.Newline))
+        {
+            ConsumeNewlines();
+        }
+
+        if (type.Contains(_current.Type))
+        {
+            var consumed = _current;
+            if (_current.Type != TokenType.EndOfFile) Advance();
+            return consumed;
+        }
+
+        if (!optional) Log.Error(new UnexpectedSymbolError(_current));
+
+        return null;
     }
 
     /// <summary>

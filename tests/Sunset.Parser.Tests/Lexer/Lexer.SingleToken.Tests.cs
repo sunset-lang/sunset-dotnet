@@ -108,7 +108,7 @@ public class LexerSingleTokenTests
     {
         var lex = new Lexing.Lexer(SourceFile.FromString("123.456.789"), false);
         var token = lex.GetNextToken();
-        Assert.That(lex.Log.Errors.Count, Is.GreaterThan(0));
+        Assert.That(lex.Log.ErrorMessages.Count, Is.GreaterThan(0));
         lex.Log.PrintLogToConsole();
     }
 

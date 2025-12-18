@@ -56,6 +56,11 @@ public class AttachedOutputMessage : OutputMessage
     /// </summary>
     private string GetLocationInformation()
     {
+        if (Error.StartToken == null)
+        {
+            return "Location unknown!";
+        }
+
         var filename = Error.StartToken.SourceFile.Name;
         var lineStart = Error.StartToken.LineStart;
         var lineEnd = Error.EndToken?.LineEnd ?? Error.StartToken.LineEnd;
@@ -71,6 +76,7 @@ public class AttachedOutputMessage : OutputMessage
     private string GetSourceCode()
     {
         var builder = new StringBuilder();
+        if (Error.StartToken == null) return "LOCATION UNKNOWN";
         var sourceFile = Error.StartToken.SourceFile;
         var lineStart = Error.StartToken.LineStart;
         var lineEnd = Error.EndToken?.LineEnd ?? Error.StartToken.LineEnd;

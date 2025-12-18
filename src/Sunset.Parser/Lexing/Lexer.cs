@@ -81,7 +81,7 @@ public class Lexer
     {
         _file = source;
         _source = source.SourceCode.AsMemory();
-        Log = log ?? new ErrorLog();
+        Log = log ?? ErrorLog.Log ?? new ErrorLog();
         Reset();
         if (scan) Scan();
     }
@@ -332,6 +332,22 @@ public class Lexer
             Advance();
         }
 
+        // Check if the number ends with a decimal point (e.g., "42.")
+        if (PeekBack() == '.')
+        {
+            var numberErrorToken = new DoubleToken(0, start, _position, _line, _column, _file);
+            Log.Error(new NumberEndingWithDecimalError(numberErrorToken));
+            return numberErrorToken;
+        }
+
+        // Check if the number ends with an exponent character (e.g., "1e")
+        if (PeekBack() is 'e' or 'E')
+        {
+            var numberErrorToken = new DoubleToken(0, start, _position, _line, _column, _file);
+            Log.Error(new NumberEndingWithExponentError(numberErrorToken));
+            return numberErrorToken;
+        }
+
         if (decimalPlaceError || exponentError)
         {
             var numberToken = new DoubleToken(0, start, _position, _line, _column, _file);
@@ -360,13 +376,47 @@ public class Lexer
     private IToken GetIdentifierToken()
     {
         var start = _position;
+        var foundUnderscore = false;
+        var consecutiveUnderscoreError = false;
 
         Advance();
 
-        while (_current == '_' || char.IsLetterOrDigit(_current)) Advance();
+        while (_current == '_' || char.IsLetterOrDigit(_current))
+        {
+            if (_current == '_')
+            {
+                // Having two _ characters consecutively in an identifier is an error
+                if (foundUnderscore)
+                {
+                    consecutiveUnderscoreError = true;
+                }
 
-        return new StringToken(_source[start.._position], TokenType.Identifier, start + 1, _position, _line, _column,
-            _file);
+                foundUnderscore = true;
+            }
+            else
+            {
+                // Reset underscore flag when we see a non-underscore character
+                foundUnderscore = false;
+            }
+
+            Advance();
+        }
+
+        var identifierToken = new StringToken(_source[start.._position], TokenType.Identifier, start + 1, _position,
+            _line, _column, _file);
+
+        if (consecutiveUnderscoreError)
+        {
+            Log.Error(new IdentifierSymbolMoreThanOneUnderscoreError(identifierToken));
+        }
+
+        // Check if identifier ends with underscore
+        if (PeekBack() == '_')
+        {
+            Log.Error(new IdentifierSymbolEndsInUnderscoreError(identifierToken));
+        }
+
+        return identifierToken;
     }
 
     /// <summary>
@@ -390,9 +440,9 @@ public class Lexer
             Advance();
             while (!(_current == '\"' && _peek == '\"' && _peekNext == '\"'))
             {
-                if (_peek == '\0')
+                if (_current == '\0')
                 {
-                    // This is a multiline string parsing error
+                    // End of file reached - multiline string not closed
                     var stringErrorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
                         start, _position, _line, _line, columnStart, _column, _file);
                     Log.Error(new UnclosedMultilineStringError(stringErrorToken));

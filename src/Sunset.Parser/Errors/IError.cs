@@ -17,7 +17,7 @@ public interface IError
     /// <summary>
     ///     The token at the beginning of this error, or the entire token.
     /// </summary>
-    public IToken StartToken { get; }
+    public IToken? StartToken { get; }
 
     /// <summary>
     ///     The token at the end of this error, or null if the error is a single token.

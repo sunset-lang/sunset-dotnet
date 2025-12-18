@@ -62,11 +62,17 @@ public class Environment : IScope
     {
         if (!ChildScopes.ContainsKey(source.Name))
         {
-            var sourceScope = source.Parse(this);
+            var sourceScope = source.Parse();
 
             if (sourceScope == null) throw new Exception($"Could not parse source file {source.FilePath}");
 
             ChildScopes.Add(source.Name, sourceScope);
+
+            // Merge parser/lexer errors into the environment's log
+            if (source.ParserLog != null)
+            {
+                Log.Merge(source.ParserLog);
+            }
 
             Log.Debug($"Added file {source.Name} to environment.");
         }
@@ -82,7 +88,7 @@ public class Environment : IScope
     /// <param name="filePath">Path to the file containing the source code.</param>
     public void AddFile(string filePath)
     {
-        var source = SourceFile.FromFile(filePath);
+        var source = SourceFile.FromFile(filePath, Log);
         AddSource(source);
     }
 

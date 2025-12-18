@@ -32,6 +32,7 @@ public partial class Parser
             { TokenType.Dot, (null, Access, Precedence.Call) },
             { TokenType.Number, (Number, null, Precedence.Primary) },
             { TokenType.String, (String, null, Precedence.Primary) },
+            { TokenType.MultilineString, (MultilineString, null, Precedence.Primary) },
             { TokenType.Identifier, (Name, null, Precedence.Primary) },
             { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
             { TokenType.NamedUnit, (Unit, ImplicitMultiplication, Precedence.Primary) }
@@ -42,7 +43,8 @@ public partial class Parser
     {
         if (ParsingRules.TryGetValue(type, out var rule)) return rule;
 
-        throw new Exception($"Token type {type} not found in parsing rules");
+        // Return a rule with null functions for unknown token types
+        return (null, null, Precedence.None);
     }
 
     private static GroupingExpression Grouping(Parser parser)
@@ -202,6 +204,13 @@ public partial class Parser
         if (parser.Consume(TokenType.String) is StringToken token) return new StringConstant(token);
 
         throw new Exception("Expected a string token");
+    }
+
+    private static StringConstant MultilineString(Parser parser)
+    {
+        if (parser.Consume(TokenType.MultilineString) is StringToken token) return new StringConstant(token);
+
+        throw new Exception("Expected a multiline string token");
     }
 
     private static NumberConstant Number(Parser parser)

@@ -7,9 +7,20 @@ namespace Sunset.Parser.Errors;
 /// </summary>
 public class ErrorLog
 {
+    /// <summary>
+    /// A static instance of the error log that can be used by all stages of the interpreter/compiler.
+    /// </summary>
+    public static ErrorLog? Log { get; set; } = null;
+
     private readonly List<IOutputMessage> _messages = [];
-    public IEnumerable<IOutputMessage> Errors => _messages.Where(message => message.Level == LogEventLevel.Error);
-    public IEnumerable<IOutputMessage> Warnings => _messages.Where(message => message.Level == LogEventLevel.Warning);
+
+    public IEnumerable<IOutputMessage> ErrorMessages =>
+        _messages.Where(message => message.Level == LogEventLevel.Error);
+
+    public IEnumerable<IError> Errors => _messages.OfType<AttachedOutputMessage>().Select(message => message.Error);
+
+    public IEnumerable<IOutputMessage> WarningMessages =>
+        _messages.Where(message => message.Level == LogEventLevel.Warning);
 
     public string PrintLog(LogEventLevel level = LogEventLevel.Information)
     {
@@ -54,5 +65,14 @@ public class ErrorLog
     public void Error(IError error)
     {
         _messages.Add(new AttachedOutputMessage(error, LogEventLevel.Error));
+    }
+
+    /// <summary>
+    /// Copies all messages from another error log into this one.
+    /// </summary>
+    /// <param name="other">The error log to copy messages from.</param>
+    public void Merge(ErrorLog other)
+    {
+        _messages.AddRange(other._messages);
     }
 }

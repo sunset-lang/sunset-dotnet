@@ -37,7 +37,7 @@ public class ReferenceChecker(ErrorLog log)
             CallExpression callExpression => Visit(callExpression, visited),
             Argument argument => Visit(argument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
-            UnitConstant unitConstant => Visit(unitConstant, visited),
+            UnitConstant => null,
             IScope scope => Visit(scope, visited),
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),

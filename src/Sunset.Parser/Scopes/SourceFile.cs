@@ -1,4 +1,6 @@
-﻿namespace Sunset.Parser.Scopes;
+﻿using Sunset.Parser.Errors;
+
+namespace Sunset.Parser.Scopes;
 
 /// <summary>
 ///     Represents a single file containing Sunset source code.
@@ -8,13 +10,18 @@ public class SourceFile
 {
     private readonly Parsing.Parser? _parser;
 
+    /// <summary>
+    /// Gets the error log used by the parser and lexer for this source file.
+    /// </summary>
+    public ErrorLog? ParserLog => _parser?.Log;
+
     public static SourceFile Anonymous { get; } = new("$file", string.Empty);
 
-    private SourceFile(string name, string source)
+    private SourceFile(string name, string source, ErrorLog? log = null)
     {
         Name = name;
         SourceCode = source;
-        _parser = new Parsing.Parser(this);
+        _parser = new Parsing.Parser(this, false, log);
     }
 
     /// <summary>
@@ -38,18 +45,20 @@ public class SourceFile
     ///     Creates a new instance of the <see cref="SourceFile" /> class from a string containing source code.
     /// </summary>
     /// <param name="source">The source code that is to be contained in the virtual file.</param>
-    public static SourceFile FromString(string source)
+    /// <param name="log">Error logger to use when parsing source file.</param>
+    public static SourceFile FromString(string source, ErrorLog? log = null)
     {
         // The file's name and the name of its scope is given as the general "$file".
-        return new SourceFile("$file", source);
+        return new SourceFile("$file", source, log);
     }
 
     /// <summary>
     ///     Loads the source code from the specified file path.
     /// </summary>
     /// <param name="path">File path containing source code to be loaded.</param>
+    /// <param name="log">Error logger to use when parsing source file.</param>
     /// <exception cref="FileNotFoundException">Thrown if the file cannot be found.</exception>
-    public static SourceFile FromFile(string path)
+    public static SourceFile FromFile(string path, ErrorLog? log = null)
     {
         // Check whether the file exists
         if (!File.Exists(path))
@@ -61,7 +70,7 @@ public class SourceFile
         var fileName = Path.GetFileNameWithoutExtension(path);
         var fileContents = File.ReadAllText(path);
 
-        return new SourceFile(fileName, fileContents)
+        return new SourceFile(fileName, fileContents, log)
         {
             FilePath = path
         };
@@ -77,7 +86,7 @@ public class SourceFile
         return environment;
     }
 
-    public FileScope? Parse(Environment environment)
+    public FileScope? Parse()
     {
         if (_parser == null) return null;
 

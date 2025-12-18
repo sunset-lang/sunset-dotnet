@@ -7,10 +7,15 @@ public class TypeResolutionError : ISemanticError
 {
     public TypeResolutionError(IExpression expression)
     {
-        if (expression is UnitAssignmentExpression unitAssignmentExpression)
+        switch (expression)
         {
-            StartToken = unitAssignmentExpression.Open;
-            EndToken = unitAssignmentExpression.Close;
+            case UnitAssignmentExpression unitAssignmentExpression:
+                StartToken = unitAssignmentExpression.Open;
+                EndToken = unitAssignmentExpression.Close;
+                break;
+            case BinaryExpression binaryExpression:
+                StartToken = binaryExpression.OperatorToken;
+                break;
         }
     }
 
@@ -18,6 +23,6 @@ public class TypeResolutionError : ISemanticError
 
     public Dictionary<Language, string> Translations { get; } = [];
 
-    public IToken StartToken { get; }
+    public IToken? StartToken { get; }
     public IToken? EndToken { get; }
 }

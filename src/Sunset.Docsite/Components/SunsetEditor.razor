@@ -4,6 +4,7 @@
 @using BlazorMonaco.Editor
 @using Serilog
 @using Sunset.Markdown.Extensions
+@using Sunset.Parser.Errors
 @using Sunset.Parser.Scopes
 @implements IAsyncDisposable
 
@@ -21,6 +22,11 @@
                 <div @ref="_renderedOutputElement"></div>
             </MudItem>
         </MudGrid>
+        <MudText Typo="Typo.h6">Errors</MudText>
+        @foreach (var line in _outputLines)
+        {
+            <p class="code">@line</p><br />
+        }
     </MudCardContent>
 </MudCard>
 
@@ -32,7 +38,12 @@
     private StandaloneCodeEditor _editor = new();
 
     /// <summary>
-    ///     The output text
+    ///     Logger output as individual lines
+    /// </summary>
+    private string[] _outputLines = [];
+
+    /// <summary>
+    /// Raw text output text
     /// </summary>
     private string _outputText = string.Empty;
 
@@ -95,11 +106,15 @@
             {
                 await _module.InvokeVoidAsync("renderLatexOutput", output, _renderedOutputElement);
             }
+
+            // Show logs
+            _outputLines = environment.Log.PrintLog(LogEventLevel.Warning).Split("\r\n");
         }
         catch (Exception ex)
         {
             // Do nothing with errors for now
             Log.Error(ex, "Could not run code");
+            throw;
         }
     }
 

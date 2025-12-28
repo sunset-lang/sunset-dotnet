@@ -1,6 +1,7 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
@@ -271,8 +272,15 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         return value;
     }
 
-    private ElementInstanceResult Visit(CallExpression dest, IScope currentScope)
+    private IResult Visit(CallExpression dest, IScope currentScope)
     {
+        // Check if this is a built-in function call
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc.HasValue)
+        {
+            return EvaluateBuiltInFunction(builtInFunc.Value, dest, currentScope);
+        }
+
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
             // TODO: Handle error better
@@ -293,12 +301,54 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 throw new Exception("Could not resolve argument.");
             }
 
-            var argumentDeclaration = argument.ArgumentName.GetResolvedDeclaration();
-            // Set the result of the declaration with the element instance as the scope
-            argumentDeclaration?.SetResult(elementResult, argumentResult);
+            // Only named arguments have an argument name that can be resolved
+            if (argument is Argument namedArgument)
+            {
+                var argumentDeclaration = namedArgument.ArgumentName.GetResolvedDeclaration();
+                // Set the result of the declaration with the element instance as the scope
+                argumentDeclaration?.SetResult(elementResult, argumentResult);
+            }
         }
 
         return elementResult;
+    }
+
+    /// <summary>
+    /// Evaluates a built-in function call.
+    /// </summary>
+    private IResult EvaluateBuiltInFunction(BuiltInFunction func, CallExpression call, IScope scope)
+    {
+        // Evaluate the argument
+        if (call.Arguments.Count == 0)
+        {
+            return ErrorResult;
+        }
+
+        var argResult = Visit(call.Arguments[0].Expression, scope);
+        if (argResult is not QuantityResult quantityResult)
+        {
+            return ErrorResult;
+        }
+
+        var value = quantityResult.Result.BaseValue;
+        var resultValue = func switch
+        {
+            BuiltInFunction.Sqrt => Math.Sqrt(value),
+            BuiltInFunction.Sin => Math.Sin(value),
+            BuiltInFunction.Cos => Math.Cos(value),
+            BuiltInFunction.Tan => Math.Tan(value),
+            BuiltInFunction.Asin => Math.Asin(value),
+            BuiltInFunction.Acos => Math.Acos(value),
+            BuiltInFunction.Atan => Math.Atan(value),
+            _ => throw new NotImplementedException($"Built-in function {func} not implemented")
+        };
+
+        // Handle unit for sqrt, dimensionless for others
+        var resultUnit = func == BuiltInFunction.Sqrt
+            ? quantityResult.Result.Sqrt().Unit
+            : DefinedUnits.Dimensionless;
+
+        return new QuantityResult(resultValue, resultUnit);
     }
 
     private IResult Visit(IScope dest, IScope currentScope)

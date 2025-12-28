@@ -1,5 +1,6 @@
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -249,10 +250,26 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private IResultType? Visit(CallExpression dest)
     {
+        // Check if this is a built-in function call
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc.HasValue)
+        {
+            return VisitBuiltInFunction(dest, builtInFunc.Value);
+        }
+
         // Check each argument
         foreach (var argument in dest.Arguments)
         {
-            Visit(argument);
+            // Only named arguments need full argument type checking for element calls
+            if (argument is Argument namedArgument)
+            {
+                Visit(namedArgument);
+            }
+            else
+            {
+                // For positional arguments, just type check the expression
+                Visit(argument.Expression);
+            }
         }
 
         // Check that the evaluated type of the call expression is an element
@@ -260,6 +277,55 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         if (resultType is not ElementType)
         {
             return null;
+        }
+
+        dest.SetEvaluatedType(resultType);
+        return resultType;
+    }
+
+    private IResultType? VisitBuiltInFunction(CallExpression dest, BuiltInFunction function)
+    {
+        // Verify argument count
+        var expectedArgs = BuiltInFunctions.GetArgumentCount(function);
+        if (dest.Arguments.Count != expectedArgs)
+        {
+            // TODO: Add a proper error for wrong argument count
+            Log.Error(new TypeResolutionError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // Type check the argument expression
+        var argType = Visit(dest.Arguments[0].Expression);
+        if (argType == null)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // For trig functions, verify the argument is dimensionless
+        if (BuiltInFunctions.RequiresDimensionlessArgument(function))
+        {
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless)
+            {
+                // TODO: Add a proper error for dimensionless requirement
+                Log.Error(new TypeResolutionError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        // Determine the result type
+        IResultType resultType;
+        if (BuiltInFunctions.ReturnsDimensionless(function))
+        {
+            resultType = QuantityType.Dimensionless;
+        }
+        else if (function == BuiltInFunction.Sqrt && argType is QuantityType sqrtArgType)
+        {
+            // sqrt(x) returns the square root of the unit
+            resultType = new QuantityType(sqrtArgType.Unit.Sqrt());
+        }
+        else
+        {
+            resultType = QuantityType.Dimensionless;
         }
 
         dest.SetEvaluatedType(resultType);

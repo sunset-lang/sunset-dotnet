@@ -179,13 +179,24 @@ public partial class Parser
     {
         // Consume opening parenthesis
         parser.Consume(TokenType.OpenParenthesis, false, true);
-        // Start consuming arguments as variable declarations
-        var arguments = new List<Argument>();
+        // Start consuming arguments
+        var arguments = new List<IArgument>();
         while (parser._current.Type != TokenType.EndOfFile)
         {
-            var argument = parser.GetArgument();
-            if (argument == null) break;
-            arguments.Add(argument);
+            // Try to parse a named argument first (name = expression)
+            var namedArgument = parser.TryGetNamedArgument();
+            if (namedArgument != null)
+            {
+                arguments.Add(namedArgument);
+            }
+            else
+            {
+                // Otherwise, try to parse a positional argument (just an expression)
+                var positionalArgument = parser.TryGetPositionalArgument();
+                if (positionalArgument == null) break;
+                arguments.Add(positionalArgument);
+            }
+
             if (parser._current.Type == TokenType.CloseParenthesis)
             {
                 break;

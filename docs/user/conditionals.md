@@ -57,15 +57,15 @@ Conditions are evaluated sequentially. The first condition that evaluates to `tr
 
 ## Block If Expressions
 
-For more complex conditionals, use block syntax with `if`, `else if`, `else`, and `end`:
+For more complex conditionals, use block syntax with `if`, additional `if` branches, `otherwise`, and `end`:
 
 ```sunset
 @x =
   if y < 20 {mm}:
     A + B * C
-  else if y < 30 {mm}:
+  if y < 30 {mm}:
     35 {MPa} "Description for this branch" {Reference}
-  else:
+  otherwise:
     40 {MPa}
       d: Default description
       r: Default reference
@@ -76,8 +76,8 @@ For more complex conditionals, use block syntax with `if`, `else if`, `else`, an
 
 - Each branch ends with a colon `:`
 - The expression follows on the same line or indented on subsequent lines
-- Use `else if` for additional conditions
-- End with `else:` for the default case
+- Use additional `if` statements for more conditions
+- End with `otherwise:` for the default case
 - Close with `end`
 
 ## Comparison Form
@@ -91,7 +91,7 @@ An alternative syntax when comparing a single variable against multiple values:
       A + B * C
     < 30 {mm}:
       35 {MPa}
-    else:
+    otherwise:
       40 {MPa}
   end
 ```
@@ -101,7 +101,7 @@ The comparison can include combinations like `> 20 {mm} or < 10 {mm}`.
 ## Conditional Rules
 
 1. **Type Consistency**: All branch expressions must evaluate to the same type/units
-2. **Required Else**: Every conditional must have an `otherwise` or `else` branch
+2. **Required Otherwise**: Every conditional must have an `otherwise` branch
 3. **Sequential Evaluation**: Conditions are checked in order; first true condition wins
 
 ## Examples
@@ -139,7 +139,7 @@ define Beam:
         if IsSimplySupported:
             MomentCoefficient = 8
             ShearCoefficient = 2
-        else:
+        otherwise:
             MomentCoefficient = 12
             ShearCoefficient = 2.5
         end
@@ -161,7 +161,7 @@ end
 >
 > The following describes planned functionality.
 
-When an [`Option`](options.md) is provided as the variable in a comparison `if` statement, the `else` branch may be omitted if all options are covered:
+When an [`Option`](options.md) is provided as the variable in a comparison `if` statement, the `otherwise` branch may be omitted if all options are covered:
 
 ```sunset
 options BoltTypes = ["4.6/S", "8.8/S", "8.8/TB", "8.8/TF"]

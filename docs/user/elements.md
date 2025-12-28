@@ -149,13 +149,52 @@ define Column:
         Behaviour =
             if Slenderness > 20:
                 "Slender"
-            else:
+            otherwise:
                 "Stocky"
             end
 end
 ```
 
 For more complex branching behaviour where entire calculation blocks differ, consider using separate elements with a common interface.
+
+### Branching Element Behaviour
+
+> **Status: Design Phase**
+>
+> The following describes design considerations for future implementation.
+
+To conditionally execute calculations within an element, `branch` elements may be created. This would allow elements to dynamically recast themselves to a child element based on certain parameters.
+
+**Use cases:**
+- Slender vs. stocky concrete columns with different calculation approaches
+- CHS vs. UB shear behaviour in steel beams
+- Different connection types with varying capacity calculations
+
+**Possible syntax using `match`:**
+
+```sunset
+define Beam:
+    inputs:
+        Section = Section()
+    outputs:
+        match Section:
+            is CHSSection:
+                // Calculations for CHS beam
+                ShearCapacity = CHSShearCalculation
+            is UBSection:
+                // Calculations for UB beam
+                ShearCapacity = UBShearCalculation
+        end
+end
+```
+
+This is equivalent to multiple `if` statements but with compiler validation that all public calculations are defined in each branch.
+
+**Design considerations:**
+- Relationship between `branch` elements and inherited elements
+- Whether to allow dynamic element recasting (e.g., `this = SlenderColumn if Slenderness > 20`)
+- Type checking requirements across branches
+- Potential use of single inheritance with multiple interfaces (similar to C#)
 
 ## Anonymous Elements
 

@@ -52,7 +52,7 @@ This document tracks features that are documented but not yet implemented in the
 
 ## Priority 2: Collection Types
 
-### Lists/Arrays
+### Lists/Arrays - Basic
 **Status:** ⬜ Not Started
 
 | Feature | Syntax | Status |
@@ -61,6 +61,19 @@ This document tracks features that are documented but not yet implemented in the
 | Index access | `list[index]` | ⬜ |
 | First element | `list.first()` | ⬜ |
 | Last element | `list.last()` | ⬜ |
+
+**Implementation Notes:**
+- Add `ListResult` type
+- Implement list literal parsing
+- Add `CollectionAccess` expression type
+
+---
+
+### Lists/Arrays - Advanced
+**Status:** ⬜ Not Started
+
+| Feature | Syntax | Status |
+|---------|--------|--------|
 | Iteration | `list.foreach(expression)` | ⬜ |
 | Minimum | `list.min()` | ⬜ |
 | Maximum | `list.max()` | ⬜ |
@@ -69,10 +82,8 @@ This document tracks features that are documented but not yet implemented in the
 | Map | `list.select(expression)` | ⬜ |
 
 **Implementation Notes:**
-- Add `ListResult` type
-- Implement list literal parsing
-- Add `CollectionAccess` expression type
 - Implement method call syntax for list operations
+- Add `value` and `index` keywords for foreach expressions
 
 ---
 
@@ -160,7 +171,8 @@ This document tracks features that are documented but not yet implemented in the
 |----------|-------|-----|-----|-----|
 | Math Functions | 7 | 0 | 0 | 7 |
 | Logical Operators | 3 | 0 | 1 | 2 |
-| Lists | 10 | 0 | 0 | 10 |
+| Lists - Basic | 4 | 0 | 0 | 4 |
+| Lists - Advanced | 6 | 0 | 0 | 6 |
 | Dictionaries | 6 | 0 | 0 | 6 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |

@@ -21,7 +21,7 @@ x = 35 {mm}
 y = 50 {N} // This is also a comment
 ```
 
-For report generation, use `#` (excluded from reports) and `##` (included in reports).
+For report generation, use `///` for documentation comments that are included in reports.
 
 ## Units
 

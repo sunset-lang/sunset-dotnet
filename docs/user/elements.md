@@ -11,6 +11,27 @@ An element definition consists of:
 - An `outputs:` section with calculated expressions
 - The `end` keyword
 
+### Exported Outputs
+
+When an output variable has the same name as the element, it becomes an "exported output". This means that when the element is instantiated and assigned to a variable, it evaluates directly to that output value:
+
+```sunset
+define Power:
+    inputs:
+        Exponent = 2
+        Value = 4
+    outputs:
+        Power = Value ^ Exponent
+end
+
+// Evaluates directly to 25 (5^2)
+x = Power(Value = 5, Exponent = 2)
+```
+
+This is useful for elements that compute a single primary result while still allowing access to intermediate calculations if needed.
+
+### Basic Element Definition
+
 ```sunset
 define PadFooting:
     inputs:
@@ -196,16 +217,3 @@ This is equivalent to multiple `if` statements but with compiler validation that
 - Type checking requirements across branches
 - Potential use of single inheritance with multiple interfaces (similar to C#)
 
-## Anonymous Elements
-
-> **Status: Not Yet Implemented**
->
-> Anonymous elements are planned for grouping variables with dynamically generated inputs.
-
-Anonymous elements would allow creation of nested element-like structures using the `.` operator:
-
-```sunset
-result.subvalue = calculation
-```
-
-This feature is under development.

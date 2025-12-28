@@ -33,12 +33,12 @@ x = 35 {mm}  // This is also a comment
 
 ### Documentation Comments
 
-Use `#` for comments not included in reports, and `##` for comments that ARE included in generated reports:
+Use `///` for documentation comments that ARE included in generated reports:
 
 ```sunset
-# This comment is not included in the report
-## This comment IS included in the report
-## You can use **Markdown** formatting here
+// This comment is not included in the report
+/// This comment IS included in the report
+/// You can use **Markdown** formatting here
 ```
 
 ---
@@ -327,9 +327,9 @@ y = 10 if x < 12
 @x =
   if y < 20 {mm}:
     A + B * C
-  else if y < 30 {mm}:
+  if y < 30 {mm}:
     35 {MPa}
-  else:
+  otherwise:
     40 {MPa}
   end
 ```
@@ -337,7 +337,7 @@ y = 10 if x < 12
 ### Rules for Conditionals
 
 - All branches must evaluate to the same type/units
-- The `otherwise` or `else` branch is required
+- The `otherwise` branch is required
 - Conditions are evaluated sequentially; first true condition wins
 
 ---
@@ -445,14 +445,14 @@ Sunset generates reports in Markdown format with LaTeX mathematical formatting.
 
 - Variables with symbols defined are included in calculations
 - Variables without symbols are excluded from reports
-- Documentation comments (`##`) are included as text
-- Regular comments (`#` or `//`) are excluded
+- Documentation comments (`///`) are included as text
+- Regular comments (`//`) are excluded
 
 ### Report Generation Example
 
 ```sunset
-## #### Plate Section Modulus
-## Calculate the **plastic** section modulus of the plate.
+/// #### Plate Section Modulus
+/// Calculate the **plastic** section modulus of the plate.
 
 @b = 150 {mm}
     d: Width of the plate.
@@ -552,9 +552,9 @@ BoltTypes = Options(
 ## Complete Example
 
 ```sunset
-## #### Steel Plate Capacity Calculation
+/// #### Steel Plate Capacity Calculation
 
-## Calculate the axial capacity of a steel plate section.
+/// Calculate the axial capacity of a steel plate section.
 
 // Define material properties
 @f_y = 250 {MPa}

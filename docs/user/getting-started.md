@@ -214,7 +214,7 @@ Performing calculations will result in a report being generated in the format of
 
 ### Text
 
-Comments with a single `#` are not included in the report. If `##` is used to start a comment, it is included in the report. Standard Markdown can be used to style the comment.
+Use `///` to start a documentation comment that will be included in the report. Regular comments with `//` are not included. Standard Markdown can be used to style documentation comments.
 
 ### Calculations
 
@@ -223,13 +223,13 @@ Variables are reported if a symbol is defined for that variable, but are not rep
 All variables with a description will be printed at the end of the calculation with their description.
 
 ```sunset
-## #### Plate section modulus
-# The two "##"s at the beginning of the comment above is used to signal that it will be included in the report.
-# The "#### " following it means that a level 4 heading will be added as per standard Markdown.
-# This line and the two lines above will not be included in the report as they begin with only a single #.
+/// #### Plate section modulus
+// The "///" at the beginning of the comment above signals that it will be included in the report.
+// The "#### " following it means that a level 4 heading will be added as per standard Markdown.
+// This line and the two lines above will not be included in the report as they begin with "//".
 
-## Calculate the **plastic** section modulus of the plate.
-# The **plastic** is Markdown for "make 'plastic' bold".
+/// Calculate the **plastic** section modulus of the plate.
+// The **plastic** is Markdown for "make 'plastic' bold".
 
 @b = 150 {mm}
     d: Width of the plate.

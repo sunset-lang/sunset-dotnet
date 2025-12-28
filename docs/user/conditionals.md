@@ -1,167 +1,182 @@
-## Conditionals
+# Conditionals
 
-Conditions are expressions that evaluate to a `true` or `false` variable. They can be used as either statements or expressions.
-They use the following operators:
+Conditions are expressions that evaluate to `true` or `false`. They can be used to assign different values to variables based on criteria.
 
-- Value comparisons:
-  - `==` Equal to
-  - `!=` Not equal to
-  - `<` Less than
-  - `<=` Less than or equal to
-  - `>` Greater than
-  - `>=` Greater than or equal to
-- Type comparisons:
-  - `is` Types are equivalent
-  - `is not` Types are not equivalent
-- Combinations:
-  - `and`, `or`
-  - `not`
+## Comparison Operators
 
-### In-variable `if` statements
+### Value Comparisons
 
-A conditional can affect a single variable, where the calculations of a variable are interchanged depending on the
-result of a **condition**.
+| Operator | Description |
+|----------|-------------|
+| `==` | Equal to |
+| `!=` | Not equal to |
+| `<` | Less than |
+| `<=` | Less than or equal to |
+| `>` | Greater than |
+| `>=` | Greater than or equal to |
 
-These take one of two forms:
+### Type Comparisons
 
-#### Conditional form
+| Operator | Description |
+|----------|-------------|
+| `is` | Types are equivalent |
+| `is not` | Types are not equivalent |
 
-```sunset
-variable = 
-  if condition:
-    expression
-  else if condition:
-    expression
-  ... # Multiple else if statements allowable prior to else statement
-  else:
-    expression
-  end
-  
-  metadata: values
-```
+### Logical Operators
 
-#### Comparison form
+> **Note:** Logical operators are defined in the lexer but may have limited implementation.
+
+| Operator | Description |
+|----------|-------------|
+| `and` | Logical AND |
+| `or` | Logical OR |
+| `not` | Logical NOT |
+
+## Single-Line If Expressions
+
+The simplest and most commonly used form of conditional:
 
 ```sunset
-variable = 
-  if variable:
-    comparison:
-      expression
-    ... # Multiple comparison statments allowable prior to else statement
-  else:
-      expression
-  end
+x = 15
+y = 12 if x > 10
+  = 3 otherwise
 ```
 
-`comparison` can be a single comparison such as `> 20 {mm}` or can optionally include additional combined comparisons
-like `> 20 {mm} or < 10 {mm}`
+## Multi-Branch If Expressions
 
-Rules:
+Multiple conditions can be chained:
 
-- All of the `expression`s must evaluate to the same units or type.
-- `if` statements are executed sequentially, and are exited once one of them is found to be true.
-- There must be an `else` statement at the end of the statements.
-
-For example:
-
+```sunset
+x = 30
+y = 10 if x < 12
+  = 15 if x >= 30
+  = 20 otherwise
 ```
-@x = 
+
+Conditions are evaluated sequentially. The first condition that evaluates to `true` determines the value.
+
+## Block If Expressions
+
+For more complex conditionals, use block syntax with `if`, additional `if` branches, `otherwise`, and `end`:
+
+```sunset
+@x =
   if y < 20 {mm}:
-    A + B * C         # Note that this must evaluate to {MPa}, as the other conditions all evaluate to the same units
-  else if y < 30 {mm}:
-    35 {MPa} "Description override for this particular branch" {Reference override}
-  else:
+    A + B * C
+  if y < 30 {mm}:
+    35 {MPa} "Description for this branch" {Reference}
+  otherwise:
     40 {MPa}
-      d: Default description if not picked up in one of the branches
-      r: Default reference if not picked up in one of the above branches
+      d: Default description
+      r: Default reference
   end
 ```
 
-In comparison form:
+### Block Syntax Rules
 
-```
-@x = 
+- Each branch ends with a colon `:`
+- The expression follows on the same line or indented on subsequent lines
+- Use additional `if` statements for more conditions
+- End with `otherwise:` for the default case
+- Close with `end`
+
+## Comparison Form
+
+An alternative syntax when comparing a single variable against multiple values:
+
+```sunset
+@x =
   if y:
     > 20 {mm}:
-      A + B * C         # Note that this must evaluate to {MPa}, as the other conditions all evaluate to the same units
+      A + B * C
     < 30 {mm}:
-      35 {MPa} "Description override for this particular branch" {Reference override}
-    else:
+      35 {MPa}
+    otherwise:
       40 {MPa}
-        d: Default description if not picked up in one of the branches
-        r: Default reference if not picked up in one of the above branches
   end
 ```
 
-> **Design notes:** The colon at the end of the `if`, `else if` and `else` statements are not strictly necessary, but
-> are put in
-> place to simulate Python syntax, and to allow a user to transition across to more general programming languages more
-> readily.
+The comparison can include combinations like `> 20 {mm} or < 10 {mm}`.
+
+## Conditional Rules
+
+1. **Type Consistency**: All branch expressions must evaluate to the same type/units
+2. **Required Otherwise**: Every conditional must have an `otherwise` branch
+3. **Sequential Evaluation**: Conditions are checked in order; first true condition wins
+
+## Examples
+
+### Basic Comparison
+
+```sunset
+x = 15
+result = 100 if x > 10
+       = 50 otherwise
+```
+
+### Multiple Conditions with Units
+
+```sunset
+windPressure <p> {kPa} = 1.5 {kPa} if height > 50 {m}
+                       = 1.0 {kPa} if height > 25 {m}
+                       = 0.8 {kPa} otherwise
+```
+
+## Multi-Variable If Statements
+
+> **Status: Partially Implemented**
 >
-> The `else if` is used instead of a plain `if` for the sake of readability so that the `if` and `end` clearly show the
-> limits of the entire condition block.
->
-> The `end` statement is used to align with the multi-variable syntax noted below. Even without these, as the
-> expressions are single lined the tab indentation is not required for parsing the overall syntax.
+> Basic support exists but advanced features may not be available.
 
-### Multi-variable `if` statements
+Conditional statements can span multiple variables when complex calculations require different approaches:
 
-Conditional statements can also be used across a number of different variables should more complex calculations be
-required.
+```sunset
+define Beam:
+    inputs:
+        Length = 5000 {mm}
+        IsSimplySupported = true
+    outputs:
+        if IsSimplySupported:
+            MomentCoefficient = 8
+            ShearCoefficient = 2
+        otherwise:
+            MomentCoefficient = 12
+            ShearCoefficient = 2.5
+        end
 
-The syntax for this is:
-
-```
-element:
-  inputs:
-    ...
-  calculations:
-    ...
-    
-    if condition:
-      variable = expression
-      ...
-    else if condition:
-      variable = expression
-      ...
-    else:
-      variable = expression
-      ...
-    end
-    
-    ...
-```
-
-Rules:
-
-- Both the conditional and comparison forms of conditional statements may be used.
-- All non-anonymous variables must be defined in the same manner between each condition and must have the same
-  dimensions in each of the conditions.
-
-> **Design notes:** The `end` statement is required here to differentiate between the conditional block and the next
-> variable definition below.
-
-### Conditions on Options
-
-If an [`Option`](options.md) is provided as the variable in a comparison `if` statement, the `else` statement may be
-omitted if all the options are included in the comparisons.
-
-For example, the below is valid as all four options are included in the `if` statement comparisons.:
-
-```
-options BoltTypes = ["4.6/S", "8.8/S", "8.8/TB", "8.8/TF"]
-...
-if BoltTypes:
-  is "4.6/S":
-    ...
-  is "8.8/S":
-    ...
-  is "8.8/TB":
-    ...
-  is "8.8/TF":
-    ...
+        MaxMoment = Load * Length^2 / MomentCoefficient
+        MaxShear = Load * Length / ShearCoefficient
 end
 ```
 
-> **Design note:** The aim in doing this is to prevent errors from creeping into the software as additional types are
-> added in. One should explicitly implement behaviour for all options.
+### Multi-Variable Rules
+
+- All non-anonymous variables must be defined in each branch
+- Variables must have the same units/types across all branches
+- Use `end` to close the conditional block
+
+## Conditions on Options
+
+> **Status: Not Yet Implemented**
+>
+> The following describes planned functionality.
+
+When an [`Option`](options.md) is provided as the variable in a comparison `if` statement, the `otherwise` branch may be omitted if all options are covered:
+
+```sunset
+options BoltTypes = ["4.6/S", "8.8/S", "8.8/TB", "8.8/TF"]
+
+boltCapacity =
+  if BoltTypes:
+    is "4.6/S":
+      100 {kN}
+    is "8.8/S":
+      150 {kN}
+    is "8.8/TB":
+      180 {kN}
+    is "8.8/TF":
+      200 {kN}
+  end
+```
+
+This ensures all option values are explicitly handled, preventing errors when new options are added.

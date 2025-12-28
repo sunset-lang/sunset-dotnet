@@ -5,8 +5,7 @@ Markdown, which can be used to then output PDF reports.
 
 ## Text
 
-Comments with a single `#` are not included in the report. If `##` is used to start a comment, it is included in the
-report. Standard Markdown can be used to style the comment.
+Use `///` to start a documentation comment that will be included in the report. Regular comments with `//` are not included. Standard Markdown can be used to style documentation comments.
 
 ## Calculations
 
@@ -16,22 +15,22 @@ reference is defined it will also be added to the report next to the calculation
 All variables with a description will be printed at the end of the calculation with their description.
 
 ```sunset
-## #### Calculation of the plastic section modulus
-# The two "##"s at the beginning of the comment above is used to signal that it will be included in the report.
-# The "#### " following it means that a level 4 heading will be added as per standard Markdown.
-# This line and the two lines above will not be included in the report as they begin with only a single #. 
+/// #### Calculation of the plastic section modulus
+// The "///" at the beginning of the comment above signals that it will be included in the report.
+// The "#### " following it means that a level 4 heading will be added as per standard Markdown.
+// This line and the two lines above will not be included in the report as they begin with "//".
 
-## Calculate the **plastic** section modulus of the plate.
-# The **plastic** is Markdown for "make 'plastic' bold".
+/// Calculate the **plastic** section modulus of the plate.
+// The **plastic** is Markdown for "make 'plastic' bold".
 
 @b = 150 {mm}
     d: Width of the plate.
 @t = 10 {mm}
     d: Thickness of the plate.
-    
-plasticDenominator = 4                      # This variable will not be reported as it does not have a symbol defined
 
-@Z_p {Example reference} = b * t ^ 2 / plasticDenominator
+plasticDenominator = 4  // This variable will not be reported as it does not have a symbol defined
+
+@Z_p {Example reference} = b * t^2 / plasticDenominator
     d: Plastic section modulus.
 ```
 

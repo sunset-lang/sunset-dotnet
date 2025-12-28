@@ -1,45 +1,86 @@
-# Element inheritance
+# Element Inheritance
 
-Elements can inherit from other elements, copying the behaviour (the inputs and outputs) of that element and allowing it
-to be extended.
+> **Note:** Element inheritance is partially implemented. Basic syntax is supported but some advanced features may not be available.
+
+Elements can inherit from other elements, copying the behaviour (inputs and outputs) of that element and allowing it to be extended.
 
 For example, a reinforcement bar can be considered as having inherited from a circle.
 
-```
-Circle:
+```sunset
+define Circle:
     inputs:
-        Diameter <\phi> = 100 {mm} "Diameter of the circle"
-    calculations:
-        Area = (Pi * Diameter ^2) / 4 "Area of the circle"
+        Diameter <phi> = 100 {mm}
+            d: Diameter of the circle
+    outputs:
+        Area = (3.14159 * Diameter^2) / 4
+            d: Area of the circle
+end
 
-Reinforcement(Circle):
+define Reinforcement(Circle):
     inputs:
-        Diameter = parent "Diameter of the reinforcing bar"
-   
-    calculations: 
+        Diameter = parent
+            d: Diameter of the reinforcing bar
+    outputs:
         Area = parent
+end
 ```
 
-The element inheriting from the other element must explicitly inherit all the properties of the parent element, and
-either explicitly declare that they are as per the parent with the keyword `parent`, or they can override certain
-aspects of the parent by re-defining them.
+The element inheriting from another must explicitly inherit all properties of the parent element, either:
+- Using the `parent` keyword to inherit unchanged, or
+- Overriding by re-defining the property
 
-All inputs and calculations must be included in the child element for the sake of readability. Any elements that are not
-inherited from explicitly will throw an error. The intent of this is to encourage full consideration of the inherited
-properties and to encourage consideration of whether inherited properties are actually required.
+All inputs and outputs must be included in the child element for readability. Any properties not explicitly inherited will throw an error. This encourages full consideration of inherited properties.
 
-> [!NOTE] Multiple inheritance was considered, but has been abandoned to allow for branching behaviour to be
-> implemented. Interface-like behaviour is to be considered for multiple inheritance if required.
+## Inheritance Rules
 
-<!--
+1. Use `define ChildElement(ParentElement):` syntax to declare inheritance
+2. All parent inputs must be listed in the child's `inputs:` section
+3. All parent outputs must be listed in the child's `outputs:` section
+4. Use `parent` keyword to inherit a property unchanged
+5. Provide a new expression to override a property
 
-## Multiple inheritance
+## Example: Overriding Properties
 
-An element can inherit from multiple parents. If so, for parents that contain duplicate calculations they must explicitly define which element they are inheriting from with the `parent(Element)` syntax. This is automatically checked by the compiler
+```sunset
+define Rectangle:
+    inputs:
+        Width = 100 {mm}
+        Height = 50 {mm}
+    outputs:
+        Area = Width * Height
+        Perimeter = 2 * (Width + Height)
+end
 
--->
+define Square(Rectangle):
+    inputs:
+        Width = parent
+        Height = Width  // Override to force height = width
+    outputs:
+        Area = parent
+        Perimeter = parent
+end
+```
 
-## Element groups
+## Multiple Inheritance
 
-Inherited elements can be grouped into categories to allow for the definition of inputs to contain a particular group of
-element types.
+> **Status: Not Supported**
+>
+> Multiple inheritance was considered but has been abandoned to simplify the language. Interface-like behaviour may be considered for future implementation if required.
+
+## Element Groups
+
+> **Status: Planned**
+>
+> Inherited elements will be able to be grouped into categories to allow input definitions to accept a particular group of element types.
+
+```sunset
+// Future syntax (not yet implemented)
+group Shape = [Circle, Square, Rectangle]
+
+define Container:
+    inputs:
+        Content: Shape = Circle()  // Accepts any Shape
+    outputs:
+        ContentArea = Content.Area
+end
+```

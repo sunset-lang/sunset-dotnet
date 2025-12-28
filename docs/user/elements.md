@@ -1,147 +1,219 @@
 # Elements
 
-## Defining elements
+Elements are reusable groups of expressions that encapsulate inputs and outputs. They are similar to functions or classes in other programming languages.
 
-Elements are groups of expressions. Their definition consists of a name, one or
-many input variables and their default values and a series of expressions. The inputs are defined in an `inputs:` section and the calculations are defined in a `calculations:` section.
+## Defining Elements
 
-The tabs are included for readability but are not strictly required.
+An element definition consists of:
+- The `define` keyword
+- A name
+- An `inputs:` section with input variables and their default values
+- An `outputs:` section with calculated expressions
+- The `end` keyword
 
-For example, a `PadFooting` element may be as below.
+### Exported Outputs
 
-```
-PadFooting:
+When an output variable has the same name as the element, it becomes an "exported output". This means that when the element is instantiated and assigned to a variable, it evaluates directly to that output value:
+
+```sunset
+define Power:
     inputs:
-        Width <w> = 1200 {mm} "Width of the footing"
-        Length <l> = 1600 {mm} "Length of the footing"
-        Depth <d> = 800 {mm} "Depth of the footing"
-   
-    calculations: 
-        BearingArea <A_bearing> = w * l 
+        Exponent = 2
+        Value = 4
+    outputs:
+        Power = Value ^ Exponent
+end
+
+// Evaluates directly to 25 (5^2)
+x = Power(Value = 5, Exponent = 2)
+```
+
+This is useful for elements that compute a single primary result while still allowing access to intermediate calculations if needed.
+
+### Basic Element Definition
+
+```sunset
+define PadFooting:
+    inputs:
+        Width <w> = 1200 {mm}
+            d: Width of the footing
+        Length <l> = 1600 {mm}
+            d: Length of the footing
+        Depth <d> = 800 {mm}
+            d: Depth of the footing
+    outputs:
+        BearingArea <A_bearing> = Width * Length
             d: Bearing area of the footing on the ground
-            
-        Volume <V> = w * l * d
+        Volume <V> = Width * Length * Depth
             d: Volume of the footing
+end
 ```
 
-The default value of an input variable must be a constant or an element instantiated with constant parameters. As all elements have default values, all instantiated elements can be treated as constants.
+The tabs/indentation are included for readability but are not strictly required.
 
-## Instantiating elements
+## Instantiating Elements
 
-Elements may be instantiated using default values only, with all parameters entered or with named parameters only and the remaining values as default.
+Elements can be instantiated in several ways:
 
+```sunset
+// With default values only
+PadFootingDefault = PadFooting()
+
+// With all parameters (positional)
+PadFootingAll = PadFooting(1400 {mm}, 2400 {mm}, 900 {mm})
+
+// With named parameters (remaining use defaults)
+PadFootingNamed = PadFooting(Width = 1500 {mm})
 ```
-PadFootingDefault = PadFooting() # 1199x1600x800 footing
-PadFootingAll = PadFooting(1399 {mm}, 2400 {mm}, 900 {mm}) # 1400x2400x900 footing
-PadFootingNamed = PadFooting(Width: 1499 {mm}) # 1500x1600x800 footing
+
+The default value of an input variable must be a constant or an element instantiated with constant parameters.
+
+## Accessing Element Properties
+
+The variables within an element can be accessed with the `.` operator:
+
+```sunset
+define Square:
+    inputs:
+        Width <w> {mm} = 100 {mm}
+        Length <l> {mm} = 200 {mm}
+    outputs:
+        Area <A> {mm^2} = Width * Length
+end
+
+SquareInstance = Square(Width = 200 {mm}, Length = 350 {mm})
+Result {mm^2} = SquareInstance.Area
 ```
 
-## Conditional execution of element calculations
+## Elements as Variables in Other Elements
 
-To conditionally execute calculations with an element, `branch` elements can be created.
+Elements can be used as input variables in other elements, allowing for composition:
 
-This allows elements to dynamically recast themselves to a child element based on certain parameters within them.
+```sunset
+define Section:
+    inputs:
+        Width <w> = 10 {mm}
+        Depth <d> = 100 {mm}
+    outputs:
+        Area <A> = Width * Depth
+        @I_xx = Width * Depth^3 / 12
+end
 
-Examples:
+define IsotropicMaterial:
+    inputs:
+        YieldStrength <f_y> = 300 {MPa}
+        Density <rho> = 7800 {kg/m^3}
+end
 
-- Shear behaviour of beam sections
--
+define Beam:
+    inputs:
+        Section = Section()
+        Material = IsotropicMaterial()
+    outputs:
+        AxialCapacity <N> = Section.Area * Material.YieldStrength
+        BendingCapacity <M> = Section.I_xx * Material.YieldStrength
+        Weight <w> = Section.Area * Material.Density
+end
+```
 
-> [!NOTE] This may cause quite a lot of unexpected behaviour. Consider the difference between `branch` elements and inherited elements. If using inherited elements only, it may be necessary to prevent overrides of functions and the creation of new inputs in inherited elements (could result in too many rules for the user). This may be described by the Liskov Substitution Principle?
->
-> One behaviour we have already used is with `if` statements, where the definition of functions changes depending on the output of another function. Can something similar be used for larger branching behaviour that allows code to be separated into different elements and files?
->
-> ```
-> ElementA {
->   inputs {
->       X = 35 {mm}
->   }
->
->   calculations {
->       Y = 45 {mm}
->   }
-> }
-> ```
+Note that for elements used as variables, they do not need to define a symbol as there is no straightforward way of printing them in reports.
 
-> [!NOTE] Consider whether we should allow for conditional branches of execution within an element. For example, if a certain thing is true, do all of these calculations and if not don't do them.
->
-> There may be some benefit to confining this for the purpose of readability and type checking, and using some form of sub-element behaviour if the behaviour is particularly hard to manage.
->
-> As an example, think of slender vs. stocky concrete columns. Perhaps a `this` keyword could be used to reroute a particular element down to an inherited element if there are a lot of calculations that don't apply? Then some type checking can be done if necessary.
->
-> ```
-> Column:
->   inputs:
->       Slenderness = 20
->   
->   this = if (Slenderness > 20: StockyColumn) else (SlenderColumn)
-> ```
->
-> Essentially use an `if` statement, where the element itself can be assigned as a child element.
->
-> Consider how this might work with overridden behaviours - this may be starting to become needlessly complex.
-> Perhaps there is something to be said about partial classes that continue on after the first class is reassigned?
-> Sometimes you want to have common behaviour that uses the results of a particular class. Perhaps the best thing to do then is to be able to pass all of the inputs into another class at once
->
-> ```
-> Column:
->   inputs:
->       Slenderness = 20
->   
->   calculations:
->       ColumnBehaviour = if (Slenderness > 20): StockyColumn(inputs) else: SlenderColumn(inputs)
-> ```
->
-> This would only work if `StockyColumn` derives from `Column` only and doesn't introduce any additional inputs or other behaviours (otherwise you would end up with some uncontrolled default values). I think we just need to call this a partial element. You would almost never want to pass in
->
-> ```
-> Column branch StockyColumn:
->   A =
-> ```
->
-> What about something like CHS vs UB shear behaviour in steel? There may just be a need for including partial behaviour into an element.
->
-> ```
-> Beam:
->   ...
->   match (Section == CHSSection): CHSBeam
->
-> Beam branch CHSBeam:
->   # Just continues on calculations from the previous beam
-> ```
->
-> Perhaps some of it is just:
->
-> ```
-> match (Section):
->   is CHSSection:
->       # Calculations for CHS beam
->       X = CHSCalculationResultX
->       Y = CHSCalculationResultY
->   is UBSection:
->       # Calculations for UB beam
->       X = UBCalculationResultX
->       Y = UBCalculationResultY
-> ```
->
-> And the compiler picks up if there are any dependencies on if branches that aren't common between all branches of the if statement. This is equivalent to:
-> X =
-> if (Section is CHSSection): CHSCalculationResultX
-> else if (Section is UBSection): UBCalculationResultX
-> Y =
-> if (Section is CHSSection): CHSCalculationResultY
-> else if (Section is UBSection): UBCalculationResultY
->
-> A private modifier may be required here such that stronger type checking is imposed - i.e. all public calculations must be duplicated between the different match sections.
->
-> The ability of an element to dynamically cast itself to a different element makes some sense - this way a `Column` instantiated with stocky properties is equivalent to a StockyColumn. That said there's not much point in doing this as one wouldn't want to instantiate a StockyColumn with regular `SlenderColumn` properties and create a logical error.
->
-> Perhaps the best thing to do here is to treat branches instantiated with different behaviours as abstract types using a `branch` keyword as above. This should resolve itself to a `match` statement which then resolves to multiple `if` statements. Type checking is undertaken.
->
-> This precludes the use of multiple inheritance, perhaps we should just copy the C# way of doing things and use single inheritance with multiple interfaces.
+## Element Inheritance
 
-## Anonymous elements
+> **Note:** Element inheritance is partially implemented. Basic syntax is supported but some advanced features may not be available.
 
-Anonymous elements group variables with dynamically generated inputs.
+Elements can inherit from other elements, copying the behaviour (inputs and outputs) of the parent element and allowing extension:
 
-To do this, create a new variable with an unused element name and the `.` operator. This will create an anonymous element that is nested within the current element.
+```sunset
+define Circle:
+    inputs:
+        Diameter <phi> = 100 {mm}
+            d: Diameter of the circle
+    outputs:
+        Area = (3.14159 * Diameter^2) / 4
+            d: Area of the circle
+end
+
+define Reinforcement(Circle):
+    inputs:
+        Diameter = parent
+            d: Diameter of the reinforcing bar
+    outputs:
+        Area = parent
+end
+```
+
+The element inheriting from another must explicitly inherit all properties of the parent element using the `parent` keyword, or override them by re-defining them.
+
+### Inheritance Rules
+
+- All inputs and outputs must be included in the child element
+- Use `parent` to inherit a property unchanged
+- Override properties by providing a new definition
+- Any properties not explicitly included will throw an error
+
+> **Note:** Multiple inheritance is not supported. Interface-like behaviour may be considered for future implementation.
+
+## Conditional Execution in Elements
+
+> **Status: Design Phase**
+>
+> The following describes planned functionality that is not yet implemented.
+
+Elements may need to conditionally execute different calculations based on input values. This can be achieved using `if` expressions within the element outputs:
+
+```sunset
+define Column:
+    inputs:
+        Slenderness = 20
+    outputs:
+        Behaviour =
+            if Slenderness > 20:
+                "Slender"
+            otherwise:
+                "Stocky"
+            end
+end
+```
+
+For more complex branching behaviour where entire calculation blocks differ, consider using separate elements with a common interface.
+
+### Branching Element Behaviour
+
+> **Status: Design Phase**
+>
+> The following describes design considerations for future implementation.
+
+To conditionally execute calculations within an element, `branch` elements may be created. This would allow elements to dynamically recast themselves to a child element based on certain parameters.
+
+**Use cases:**
+- Slender vs. stocky concrete columns with different calculation approaches
+- CHS vs. UB shear behaviour in steel beams
+- Different connection types with varying capacity calculations
+
+**Possible syntax using `match`:**
+
+```sunset
+define Beam:
+    inputs:
+        Section = Section()
+    outputs:
+        match Section:
+            is CHSSection:
+                // Calculations for CHS beam
+                ShearCapacity = CHSShearCalculation
+            is UBSection:
+                // Calculations for UB beam
+                ShearCapacity = UBShearCalculation
+        end
+end
+```
+
+This is equivalent to multiple `if` statements but with compiler validation that all public calculations are defined in each branch.
+
+**Design considerations:**
+- Relationship between `branch` elements and inherited elements
+- Whether to allow dynamic element recasting (e.g., `this = SlenderColumn if Slenderness > 20`)
+- Type checking requirements across branches
+- Potential use of single inheritance with multiple interfaces (similar to C#)
+

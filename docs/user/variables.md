@@ -1,4 +1,4 @@
-# Types of variables
+# Types of Variables
 
 A variable can take on any of the following types:
 
@@ -6,19 +6,16 @@ A variable can take on any of the following types:
 - Expressions
 - Elements
 - Conditionals
-- Lists
-- Dictionaries
+- Lists *(Not Yet Implemented)*
+- Dictionaries *(Not Yet Implemented)*
 
-## Anonymous
+## Anonymous Variables
 
-Temporary variables are defined using the character ? at the beginning of the line. These variables are not accessible
-to be used in external calculations, but are useful for providing intermediate calculation steps.
+Temporary variables are defined using the character `?` at the beginning of the line. These variables are not accessible to external calculations and are useful for providing intermediate calculation steps without cluttering reports.
 
-In the below example, the `numerator` and `denominator` variables are used to calculate the result but are defined as
-anonymous variables and are not reported or included in any future calculations. They cannot be accessed from outside
-the element that they are defined in, if they are defined in an element.
+In the below example, the `numerator` and `denominator` variables are used to calculate the result but are defined as anonymous variables. They are not reported or accessible from outside the element they are defined in.
 
-```
+```sunset
 ?numerator = x / 35
 ?denominator = y / 40
 Result <r> = numerator / denominator
@@ -26,104 +23,139 @@ Result <r> = numerator / denominator
 
 ## Constants
 
-A constant can be a single value or an expression that evaluates to a number of constants.
+A constant can be a single value or an expression that evaluates to a number.
 
-```
-# Single value constant
-YieldStrength <f_y> = 250 {MPa} "The yield strength of steel."
+```sunset
+// Single value constant
+YieldStrength <f_y> = 250 {MPa}
+    d: The yield strength of steel.
 
-# Expression containing multiple constants
-Area <A> = 100 {mm} * 30 {mm} "Cross-sectional area of plate."
+// Expression containing multiple constants
+Area <A> = 100 {mm} * 30 {mm}
+    d: Cross-sectional area of plate.
 
-# Expression that evaluates to a constant
-AxialCapacity <N> = f_y * A "Axial capacity of plate."
+// Expression that evaluates to a constant
+AxialCapacity <N> = f_y * A
+    d: Axial capacity of plate.
 ```
 
 ## Expressions
 
-Expressions are described in the [Fundamentals](fundamentals.md) section.
+Expressions combine variables, constants, and operators to produce calculated values.
+
+```sunset
+x = 35 + 12
+y = x * 2
+z = x - y
+```
+
+Expressions can include:
+- Arithmetic operators: `+`, `-`, `*`, `/`, `^`
+- Parentheses for grouping: `(a + b) * c`
+- Variable references
+- Unit assignments
+
+See [Getting Started](getting-started.md) for more details on calculations.
 
 ## Elements
 
-### As variables in calculations
+### As Variables in Calculations
 
-Elements can be instantiated as variables
+Elements can be instantiated and used as variables. Access their properties with the `.` operator:
 
-The variables within an element can be accessed with the `.` modifier.
+```sunset
+define Square:
+    inputs:
+        Width <w> {mm} = 100 {mm}
+        Length <l> {mm} = 200 {mm}
+    outputs:
+        Area <A> {mm^2} = Width * Length
+end
 
-### As variables in other elements
-
-Elements can also be used as variables in other elements.
-
-If we wanted to calculate the elastic capacity of a section, we might define some elements as below:
-
+mySquare = Square(Width = 150 {mm})
+result = mySquare.Area
 ```
-Section:
+
+### As Variables in Other Elements
+
+Elements can be composed within other elements:
+
+```sunset
+define Section:
     inputs:
         Width <w> = 10 {mm}
         Depth <d> = 100 {mm}
-    
-    Area <A> = w * d
-    @I_xx = w * d^3 / 12
+    outputs:
+        Area <A> = Width * Depth
+        @I_xx = Width * Depth^3 / 12
+end
 
-IsotropicMaterial:
+define IsotropicMaterial:
     inputs:
         YieldStrength <f_y> = 300 {MPa}
-        Density <\rho> = 7800 {kg / m^3}
-        
-Beam:
+        Density <rho> = 7800 {kg/m^3}
+end
+
+define Beam:
     inputs:
         Section = Section()
-        Material = IsotropicMaterial(YieldStrength: 250 {MPa}) 
-    
-    AxialCapacity <N> = Section.Area * Material.YieldStrength
-    BendingCapacity <M> = Section.I_xx * Material.YieldStrength
-    Weight <w> = Section.Area * Material.Density
+        Material = IsotropicMaterial()
+    outputs:
+        AxialCapacity <N> = Section.Area * Material.YieldStrength
+        BendingCapacity <M> = Section.I_xx * Material.YieldStrength
+        Weight <w> = Section.Area * Material.Density
+end
 ```
 
-Note that for elements used as variables, they do not need to define a symbol as there is no straightforward way of
-printing them to the screen.
-
-> [!NOTE] Consider whether they should be provided with a symbol or some kind of name for the purpose of reporting and
-> UI generation.
+Note that for elements used as variables, they do not need to define a symbol as there is no straightforward way of printing them to the screen.
 
 ## Conditionals
 
-Variables can take on different values depending on whether certain conditions are met in the code. See [Conditionals](conditionals.md) for more information.
+Variables can take on different values depending on conditions. See [Conditionals](conditionals.md) for more information.
+
+```sunset
+x = 15
+y = 12 if x > 10
+  = 3 otherwise
+```
 
 ## Lists
 
-Lists contain zero or more variables within them. They are defined using square brackets `[` and `]`, with items separated with commas.
+> **Status: Not Yet Implemented**
+>
+> List functionality is planned but not currently available.
 
-All items within a list must be of the same type.
-
-They are expressed as:
+Lists contain zero or more variables of the same type. They are defined using square brackets `[` and `]`, with items separated by commas:
 
 ```sunset
-reinforcementDiameters = [12 {mm}, 16 {mm}, 20 {mm}, 24 {mm}, 28 {mm}, 32 {mm}, 36 {mm}, 40 {mm}]
+reinforcementDiameters = [12 {mm}, 16 {mm}, 20 {mm}, 24 {mm}, 28 {mm}, 32 {mm}]
 ```
 
-Items within a list can be accessed using square brackets notation `list[index : integer]`, and the first and last elements can be accessed using the `.first()` and `.last()` functions respectively.
+Planned operations:
+- `list[index]` - Access by index
+- `list.first()` - Get first element
+- `list.last()` - Get last element
 
-See [the other collection functions](functions-on-collections.md) for more information on how to iterate over lists.
+See [Functions on Collections](functions-on-collections.md) for more information on planned collection operations.
 
 ## Dictionaries
 
-Dictionaries are lists of key-value pairs. They are also defined with square brackets, with each item defined as a `key : value` pair and separated with commas.
+> **Status: Not Yet Implemented**
+>
+> Dictionary functionality is planned but not currently available.
 
-All keys must be of the same type and all values must be of the same type, but they do not have to match.
+Dictionaries are lists of key-value pairs. They are defined with square brackets, with each item as a `key: value` pair separated by commas:
 
 ```sunset
-windSpeed = ["A2" : 45 {m/s}, "B1" : 52 {m/s}]
+windSpeed = ["A2": 45 {m/s}, "B1": 52 {m/s}]
 ```
 
-Items within a dictionary can be accessed similar to those within a list.
+All keys must be of the same type and all values must be of the same type, but keys and values do not have to match types.
 
-See [the other collection functions](functions-on-collections.md) for more information on how to iterate over dictionaries.
+Planned operations:
+- `dict[key]` - Access by key
+- `dict[~key]` - Linear interpolation between keys
+- `dict[~key-]` - Find value just below key
+- `dict[~key+]` - Find value just above key
 
-Other features of dictionaries:
-
-- Linear interpolation between keys: `dict[~key]`
-- Finding the value just below the key: `dict[~key-]`
-- Finding the value just above the key: `dict[~key+]`
-- Goal seek style iteration **syntax to be confirmed**
+See [Functions on Collections](functions-on-collections.md) for more information on planned dictionary operations.

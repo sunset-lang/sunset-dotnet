@@ -51,6 +51,12 @@ public class NameResolver(ErrorLog log) : INameResolver
             case UnitAssignmentExpression unitAssignmentExpression:
                 Visit(unitAssignmentExpression, parentScope);
                 break;
+            case ListExpression listExpression:
+                Visit(listExpression, parentScope);
+                break;
+            case IndexExpression indexExpression:
+                Visit(indexExpression, parentScope);
+                break;
             // Ignore constants in the name resolver as they are terminal nodes and don't have names.
             case NumberConstant:
             case StringConstant:
@@ -135,6 +141,20 @@ public class NameResolver(ErrorLog log) : INameResolver
     {
         // TODO: Resolve names of units here, currently resolved for named units only in the UnitAssignmentExpression
         // This is to allow custom named units.
+    }
+
+    private void Visit(ListExpression dest, IScope parentScope)
+    {
+        foreach (var element in dest.Elements)
+        {
+            Visit(element, parentScope);
+        }
+    }
+
+    private void Visit(IndexExpression dest, IScope parentScope)
+    {
+        Visit(dest.Target, parentScope);
+        Visit(dest.Index, parentScope);
     }
 
     /// <summary>

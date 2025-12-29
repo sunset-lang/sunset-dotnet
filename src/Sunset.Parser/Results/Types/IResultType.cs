@@ -21,6 +21,8 @@ public interface IResultType
             UnitType leftUnit when right is UnitType rightUnit => Unit.EqualDimensions(leftUnit.Unit, rightUnit.Unit),
             QuantityType => false,
             BooleanType when right is BooleanType => true,
+            ListType leftList when right is ListType rightList => AreCompatible(leftList.ElementType, rightList.ElementType),
+            ListType => false,
             _ => false
         };
     }
@@ -97,5 +99,21 @@ public class BuiltInFunctionType(IBuiltInFunction function) : IResultType
     public override string ToString()
     {
         return $"BuiltIn({Function.Name})";
+    }
+}
+
+/// <summary>
+/// The type representing a list of values.
+/// </summary>
+public class ListType(IResultType elementType) : IResultType
+{
+    /// <summary>
+    /// The type of elements contained in the list.
+    /// </summary>
+    public IResultType ElementType { get; } = elementType;
+
+    public override string ToString()
+    {
+        return $"[{ElementType}]";
     }
 }

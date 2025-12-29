@@ -46,6 +46,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorValueType.Instance,
+            ListExpression listExpression => Visit(listExpression),
+            IndexExpression indexExpression => Visit(indexExpression),
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
         };
@@ -362,6 +364,75 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     private static IResultType Visit(UnitConstant dest)
     {
         return new UnitType(dest.Unit);
+    }
+
+    private IResultType? Visit(ListExpression dest)
+    {
+        if (dest.Elements.Count == 0)
+        {
+            // Empty list - we can't determine element type, but it's valid
+            // Use a placeholder type that will be compatible with any list operation
+            return new ListType(QuantityType.Dimensionless);
+        }
+
+        // Get the type of the first element
+        var firstElementType = Visit(dest.Elements[0]);
+        if (firstElementType == null || firstElementType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Check that all other elements have compatible types
+        for (int i = 1; i < dest.Elements.Count; i++)
+        {
+            var elementType = Visit(dest.Elements[i]);
+            if (elementType == null || elementType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+
+            if (!IResultType.AreCompatible(firstElementType, elementType))
+            {
+                Log.Error(new ListElementTypeMismatchError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        dest.SetEvaluatedType(new ListType(firstElementType));
+        return new ListType(firstElementType);
+    }
+
+    private IResultType? Visit(IndexExpression dest)
+    {
+        var targetType = Visit(dest.Target);
+        var indexType = Visit(dest.Index);
+
+        if (targetType == null || targetType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        if (indexType == null || indexType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Check that the target is a list
+        if (targetType is not ListType listType)
+        {
+            Log.Error(new IndexTargetNotListError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // Check that the index is a dimensionless number
+        if (indexType is not QuantityType { Unit.IsDimensionless: true })
+        {
+            Log.Error(new IndexNotNumberError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        dest.SetEvaluatedType(listType.ElementType);
+        return listType.ElementType;
     }
 
     public IResultType? Visit(VariableDeclaration dest)

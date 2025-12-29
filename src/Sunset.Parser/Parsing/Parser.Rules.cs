@@ -27,7 +27,7 @@ public partial class Parser
             { TokenType.Modulo, (null, Binary, Precedence.Multiplication) },
             { TokenType.Power, (null, Binary, Precedence.Exponentiation) },
             { TokenType.OpenParenthesis, (Grouping, Call, Precedence.Call) },
-            { TokenType.OpenBracket, (null, CollectionAccess, Precedence.Call) },
+            { TokenType.OpenBracket, (ListLiteral, CollectionAccess, Precedence.Call) },
             { TokenType.OpenBrace, (null, UnitAssignment, Precedence.Call) },
             { TokenType.Dot, (null, Access, Precedence.Call) },
             { TokenType.Number, (Number, null, Precedence.Primary) },
@@ -85,10 +85,49 @@ public partial class Parser
         return new UnitAssignmentExpression(openToken, closeToken, left, expression);
     }
 
-    private static IExpression CollectionAccess(Parser parser, IExpression left)
+    private static ListExpression ListLiteral(Parser parser)
     {
-        // TODO: Implement dictionary and array access
-        throw new NotImplementedException();
+        var openToken = parser.Consume(TokenType.OpenBracket);
+        if (openToken == null)
+        {
+            throw new Exception("Expected an opening bracket");
+        }
+
+        var elements = new List<IExpression>();
+
+        // Handle empty list case
+        if (parser._current.Type == TokenType.CloseBracket)
+        {
+            var closeToken = parser.Consume(TokenType.CloseBracket);
+            return new ListExpression(openToken, closeToken, elements);
+        }
+
+        // Parse the first element
+        elements.Add(parser.GetArithmeticExpression());
+
+        // Parse remaining elements separated by commas
+        while (parser._current.Type == TokenType.Comma)
+        {
+            parser.Consume(TokenType.Comma);
+            elements.Add(parser.GetArithmeticExpression());
+        }
+
+        var closeBracket = parser.Consume(TokenType.CloseBracket);
+        return new ListExpression(openToken, closeBracket, elements);
+    }
+
+    private static IndexExpression CollectionAccess(Parser parser, IExpression left)
+    {
+        var openToken = parser.Consume(TokenType.OpenBracket);
+        if (openToken == null)
+        {
+            throw new Exception("Expected an opening bracket");
+        }
+
+        var index = parser.GetArithmeticExpression();
+        var closeToken = parser.Consume(TokenType.CloseBracket);
+
+        return new IndexExpression(left, openToken, index, closeToken);
     }
 
     private static BinaryExpression Binary(Parser parser, IExpression left)

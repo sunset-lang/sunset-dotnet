@@ -1,4 +1,5 @@
 <Solution>
+    <Project Path="src/Sunset.CLI/Sunset.CLI.csproj"/>
     <Project Path="src/Sunset.Docsite/Sunset.Docsite.csproj"/>
     <Project Path="src/Sunset.Markdown/Sunset.Markdown.csproj"/>
     <Project Path="src/Sunset.Parser/Sunset.Parser.csproj"/>

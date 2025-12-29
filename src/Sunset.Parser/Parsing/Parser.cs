@@ -102,7 +102,7 @@ public partial class Parser
             // Must also check for close parentheses and braces as these can be in an expression but do not have parsing rules
         {
             if (!ParsingRules.ContainsKey(_tokens[i].Type) &&
-                _tokens[i].Type is not (TokenType.CloseParenthesis or TokenType.CloseBrace))
+                _tokens[i].Type is not (TokenType.CloseParenthesis or TokenType.CloseBrace or TokenType.CloseBracket))
             {
                 end = i;
                 break;
@@ -240,6 +240,7 @@ public partial class Parser
                 or TokenType.Newline
                 or TokenType.CloseParenthesis
                 or TokenType.CloseBrace
+                or TokenType.CloseBracket
                 or TokenType.Comma
                 or TokenType.If
                 or TokenType.Otherwise)

@@ -59,6 +59,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorResult,
+            ListExpression listExpression => Visit(listExpression, currentScope),
+            IndexExpression indexExpression => Visit(indexExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
@@ -324,5 +326,59 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
+    }
+
+    private IResult Visit(ListExpression dest, IScope currentScope)
+    {
+        var elements = new List<IResult>();
+        foreach (var element in dest.Elements)
+        {
+            var elementResult = Visit(element, currentScope);
+            if (elementResult is ErrorResult)
+            {
+                return ErrorResult;
+            }
+            elements.Add(elementResult);
+        }
+
+        var listResult = new ListResult(elements);
+        dest.SetResult(currentScope, listResult);
+        return listResult;
+    }
+
+    private IResult Visit(IndexExpression dest, IScope currentScope)
+    {
+        var targetResult = Visit(dest.Target, currentScope);
+        var indexResult = Visit(dest.Index, currentScope);
+
+        if (targetResult is ErrorResult || indexResult is ErrorResult)
+        {
+            return ErrorResult;
+        }
+
+        if (targetResult is not ListResult listResult)
+        {
+            // Error already logged by TypeChecker
+            return ErrorResult;
+        }
+
+        if (indexResult is not QuantityResult quantityResult)
+        {
+            // Error already logged by TypeChecker
+            return ErrorResult;
+        }
+
+        var index = (int)quantityResult.Result.BaseValue;
+
+        // Check bounds
+        if (index < 0 || index >= listResult.Count)
+        {
+            Log.Error(new Errors.Semantic.IndexOutOfBoundsError(dest, index, listResult.Count));
+            return ErrorResult;
+        }
+
+        var result = listResult[index];
+        dest.SetResult(currentScope, result);
+        return result;
     }
 }

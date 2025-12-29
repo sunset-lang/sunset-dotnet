@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Errors;
+﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -192,6 +193,12 @@ public class NameResolver(ErrorLog log) : INameResolver
 
     private void Visit(CallExpression dest, IScope parentScope)
     {
+        // Check if the target is a built-in function before resolving as a declaration
+        if (TryResolveBuiltInFunction(dest, parentScope))
+        {
+            return;
+        }
+
         // Resolve the target of the call expression.
         Visit(dest.Target, parentScope);
         // If the target is an element, the argument names should be resolved within the scope of the element
@@ -203,8 +210,41 @@ public class NameResolver(ErrorLog log) : INameResolver
         dest.SetResolvedDeclaration(parentElement);
         foreach (var argument in dest.Arguments)
         {
-            Visit(argument, parentScope, parentElement);
+            // Only named arguments need name resolution for element calls
+            if (argument is Argument namedArgument)
+            {
+                Visit(namedArgument, parentScope, parentElement);
+            }
+            else
+            {
+                // For positional arguments, just resolve the expression
+                Visit(argument.Expression, parentScope);
+            }
         }
+    }
+
+    /// <summary>
+    /// Attempts to resolve a call expression as a built-in function call.
+    /// </summary>
+    /// <returns>True if the call is a built-in function, false otherwise.</returns>
+    private bool TryResolveBuiltInFunction(CallExpression dest, IScope parentScope)
+    {
+        // Built-in functions must have a simple name target
+        if (dest.Target is not NameExpression nameExpr) return false;
+
+        // Check if the name matches a built-in function
+        if (!BuiltInFunctions.TryGet(nameExpr.Name, out var builtInFunc)) return false;
+
+        // Mark this call expression as a built-in function call
+        dest.SetBuiltInFunction(builtInFunc);
+
+        // Resolve the argument expressions (not as named arguments, just the expressions)
+        foreach (var argument in dest.Arguments)
+        {
+            Visit(argument.Expression, parentScope);
+        }
+
+        return true;
     }
 
     private void Visit(Argument dest, IScope parentScope, IScope? parentElement = null)

@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Results.Types;
@@ -82,6 +83,22 @@ public class UnitType(Unit unit) : IResultType
     public override string ToString()
     {
         return Unit.ToString();
+    }
+}
+
+/// <summary>
+/// Represents the type of a built-in function.
+/// </summary>
+public class BuiltInFunctionType(IBuiltInFunction function) : IResultType
+{
+    /// <summary>
+    /// The built-in function this type represents.
+    /// </summary>
+    public IBuiltInFunction Function { get; } = function;
+
+    public override string ToString()
+    {
+        return $"BuiltIn({Function.Name})";
     }
 }
 

@@ -6,7 +6,7 @@ namespace Sunset.Parser.Expressions;
 /// <summary>
 /// Represents a function call, typically the instantation of a new element.
 /// </summary>
-public class CallExpression(IExpression target, List<Argument> arguments) : IExpression
+public class CallExpression(IExpression target, List<IArgument> arguments) : IExpression
 {
     /// <summary>
     /// The target is the declaration that is being called. This is typically an element definition.
@@ -16,7 +16,7 @@ public class CallExpression(IExpression target, List<Argument> arguments) : IExp
     /// <summary>
     /// The arguments are the values that are passed into the declaration being called.
     /// </summary>
-    public List<Argument> Arguments { get; } = arguments;
+    public List<IArgument> Arguments { get; } = arguments;
 
     public Dictionary<string, IPassData> PassData { get; } = [];
 }

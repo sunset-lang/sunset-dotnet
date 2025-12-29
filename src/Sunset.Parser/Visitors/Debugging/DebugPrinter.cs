@@ -109,7 +109,9 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
     private string Visit(CallExpression dest)
     {
         var args = string.Join(", ", dest.Arguments.Select(argument =>
-            argument.ArgumentName.Name.ToString() + " = " + Visit(argument.Expression)).ToArray());
+            argument is Argument namedArg
+                ? namedArg.ArgumentName.Name.ToString() + " = " + Visit(argument.Expression)
+                : Visit(argument.Expression)).ToArray());
         var element = dest.GetResolvedDeclaration() as ElementDeclaration;
         return "(new " + (element?.FullPath ?? "ERROR") + " args (" + args + "))";
     }

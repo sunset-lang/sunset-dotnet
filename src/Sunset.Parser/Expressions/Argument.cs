@@ -6,10 +6,10 @@ using Sunset.Parser.Visitors;
 namespace Sunset.Parser.Expressions;
 
 /// <summary>
-/// An argument in a function call.
+/// A named argument in a function call (name = expression).
 /// </summary>
 public class Argument(StringToken argumentNameToken, IToken equalsToken, IExpression expression)
-    : IEvaluationTarget
+    : IArgument, IEvaluationTarget
 {
     public NameExpression ArgumentName { get; } = new(argumentNameToken);
     public IExpression Expression { get; } = expression;

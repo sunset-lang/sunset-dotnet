@@ -1,5 +1,6 @@
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -251,10 +252,26 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private IResultType? Visit(CallExpression dest)
     {
+        // Check if this is a built-in function call
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc != null)
+        {
+            return VisitBuiltInFunction(dest, builtInFunc);
+        }
+
         // Check each argument
         foreach (var argument in dest.Arguments)
         {
-            Visit(argument);
+            // Only named arguments need full argument type checking for element calls
+            if (argument is Argument namedArgument)
+            {
+                Visit(namedArgument);
+            }
+            else
+            {
+                // For positional arguments, just type check the expression
+                Visit(argument.Expression);
+            }
         }
 
         // Check that the evaluated type of the call expression is an element
@@ -263,6 +280,52 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         {
             return null;
         }
+
+        dest.SetEvaluatedType(resultType);
+        return resultType;
+    }
+
+    private IResultType? VisitBuiltInFunction(CallExpression dest, IBuiltInFunction function)
+    {
+        // Verify argument count
+        if (dest.Arguments.Count != function.ArgumentCount)
+        {
+            // TODO: Add a proper error for wrong argument count
+            Log.Error(new TypeResolutionError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // Type check the argument expression
+        var argType = Visit(dest.Arguments[0].Expression);
+        if (argType == null)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // For inverse trig functions (asin, acos, atan), verify the argument is dimensionless
+        if (function.RequiresDimensionlessArgument)
+        {
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless)
+            {
+                // TODO: Add a proper error for dimensionless requirement
+                Log.Error(new TypeResolutionError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        // For trig functions (sin, cos, tan), verify the argument is an angle
+        if (function.RequiresAngleArgument)
+        {
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless && !Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian))
+            {
+                // TODO: Add a proper error for angle requirement
+                Log.Error(new TypeResolutionError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        // Determine the result type using the function's own logic
+        var resultType = function.GetResultType(argType);
 
         dest.SetEvaluatedType(resultType);
         return resultType;
@@ -403,8 +466,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 // If the expression evaluated to an error, don't log additional errors - the underlying error was already logged
                 case ErrorValueType:
                     return evaluatedType;
-                // Note that it is OK to not assign a unit to a variable with a dimensionless result.
-                case QuantityType { Unit.IsDimensionless: true }:
+                // Note that it is OK to not assign a unit to a variable with a dimensionless or angle result.
+                case QuantityType quantityType when quantityType.Unit.IsDimensionless || Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian):
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
             }

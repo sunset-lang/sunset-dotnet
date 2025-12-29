@@ -9,8 +9,6 @@ rootCommand.AddCommand(CheckCommand.Create());
 rootCommand.AddCommand(BuildCommand.Create());
 rootCommand.AddCommand(NewCommand.Create());
 rootCommand.AddCommand(WatchCommand.Create());
-
-// Future commands to be added:
-// rootCommand.AddCommand(ReplCommand.Create());
+rootCommand.AddCommand(ReplCommand.Create());
 
 return await rootCommand.InvokeAsync(args);

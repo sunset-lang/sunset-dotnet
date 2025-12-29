@@ -301,7 +301,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             return ErrorValueType.Instance;
         }
 
-        // For trig functions, verify the argument is dimensionless
+        // For inverse trig functions (asin, acos, atan), verify the argument is dimensionless
         if (BuiltInFunctions.RequiresDimensionlessArgument(function))
         {
             if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless)
@@ -312,11 +312,27 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             }
         }
 
+        // For trig functions (sin, cos, tan), verify the argument is an angle
+        if (BuiltInFunctions.RequiresAngleArgument(function))
+        {
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless && !quantityType.Unit.IsAngle)
+            {
+                // TODO: Add a proper error for angle requirement
+                Log.Error(new TypeResolutionError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
         // Determine the result type
         IResultType resultType;
         if (BuiltInFunctions.ReturnsDimensionless(function))
         {
             resultType = QuantityType.Dimensionless;
+        }
+        else if (BuiltInFunctions.ReturnsAngle(function))
+        {
+            // Inverse trig functions return angles in radians
+            resultType = new QuantityType(DefinedUnits.Radian);
         }
         else if (function == BuiltInFunction.Sqrt && argType is QuantityType sqrtArgType)
         {
@@ -398,8 +414,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 // If the expression evaluated to an error, don't log additional errors - the underlying error was already logged
                 case ErrorValueType:
                     return evaluatedType;
-                // Note that it is OK to not assign a unit to a variable with a dimensionless result.
-                case QuantityType { Unit.IsDimensionless: true }:
+                // Note that it is OK to not assign a unit to a variable with a dimensionless or angle result.
+                case QuantityType quantityType when quantityType.Unit.IsDimensionless || quantityType.Unit.IsAngle:
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
             }

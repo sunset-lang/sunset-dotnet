@@ -7,17 +7,17 @@ public enum BuiltInFunction
 {
     /// <summary>Square root function</summary>
     Sqrt,
-    /// <summary>Sine function (expects radians)</summary>
+    /// <summary>Sine function (expects angle in radians or degrees)</summary>
     Sin,
-    /// <summary>Cosine function (expects radians)</summary>
+    /// <summary>Cosine function (expects angle in radians or degrees)</summary>
     Cos,
-    /// <summary>Tangent function (expects radians)</summary>
+    /// <summary>Tangent function (expects angle in radians or degrees)</summary>
     Tan,
-    /// <summary>Inverse sine function (returns radians)</summary>
+    /// <summary>Inverse sine function (returns angle in radians)</summary>
     Asin,
-    /// <summary>Inverse cosine function (returns radians)</summary>
+    /// <summary>Inverse cosine function (returns angle in radians)</summary>
     Acos,
-    /// <summary>Inverse tangent function (returns radians)</summary>
+    /// <summary>Inverse tangent function (returns angle in radians)</summary>
     Atan
 }
 
@@ -90,16 +90,33 @@ public static class BuiltInFunctions
     {
         return function switch
         {
-            // Trig functions expect angles in radians (dimensionless)
-            BuiltInFunction.Sin => true,
-            BuiltInFunction.Cos => true,
-            BuiltInFunction.Tan => true,
             // Inverse trig functions expect dimensionless ratios
             BuiltInFunction.Asin => true,
             BuiltInFunction.Acos => true,
             BuiltInFunction.Atan => true,
+            // Trig functions expect angles (not dimensionless)
+            BuiltInFunction.Sin => false,
+            BuiltInFunction.Cos => false,
+            BuiltInFunction.Tan => false,
             // Sqrt can take any unit
             BuiltInFunction.Sqrt => false,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Checks if the built-in function requires an angle argument.
+    /// </summary>
+    /// <param name="function">The built-in function.</param>
+    /// <returns>True if the function requires an angle input.</returns>
+    public static bool RequiresAngleArgument(BuiltInFunction function)
+    {
+        return function switch
+        {
+            // Trig functions expect angles (radians or degrees)
+            BuiltInFunction.Sin => true,
+            BuiltInFunction.Cos => true,
+            BuiltInFunction.Tan => true,
             _ => false
         };
     }
@@ -113,15 +130,33 @@ public static class BuiltInFunctions
     {
         return function switch
         {
-            // All trig functions return dimensionless
+            // Trig functions return dimensionless (ratios)
             BuiltInFunction.Sin => true,
             BuiltInFunction.Cos => true,
             BuiltInFunction.Tan => true,
+            // Inverse trig functions return angles, not dimensionless
+            BuiltInFunction.Asin => false,
+            BuiltInFunction.Acos => false,
+            BuiltInFunction.Atan => false,
+            // Sqrt preserves dimension relationship
+            BuiltInFunction.Sqrt => false,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Checks if the built-in function returns an angle result.
+    /// </summary>
+    /// <param name="function">The built-in function.</param>
+    /// <returns>True if the function returns an angle result.</returns>
+    public static bool ReturnsAngle(BuiltInFunction function)
+    {
+        return function switch
+        {
+            // Inverse trig functions return angles (in radians)
             BuiltInFunction.Asin => true,
             BuiltInFunction.Acos => true,
             BuiltInFunction.Atan => true,
-            // Sqrt preserves dimension relationship
-            BuiltInFunction.Sqrt => false,
             _ => false
         };
     }

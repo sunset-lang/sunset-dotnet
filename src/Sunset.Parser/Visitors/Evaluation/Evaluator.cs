@@ -330,7 +330,9 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
+        // BaseValue is already in base units (radians for angles), so we can use it directly
         var value = quantityResult.Result.BaseValue;
+
         var resultValue = func switch
         {
             BuiltInFunction.Sqrt => Math.Sqrt(value),
@@ -343,10 +345,21 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             _ => throw new NotImplementedException($"Built-in function {func} not implemented")
         };
 
-        // Handle unit for sqrt, dimensionless for others
-        var resultUnit = func == BuiltInFunction.Sqrt
-            ? quantityResult.Result.Sqrt().Unit
-            : DefinedUnits.Dimensionless;
+        // Determine the result unit
+        Unit resultUnit;
+        if (func == BuiltInFunction.Sqrt)
+        {
+            resultUnit = quantityResult.Result.Sqrt().Unit;
+        }
+        else if (BuiltInFunctions.ReturnsAngle(func))
+        {
+            // Inverse trig functions return angles in radians
+            resultUnit = DefinedUnits.Radian;
+        }
+        else
+        {
+            resultUnit = DefinedUnits.Dimensionless;
+        }
 
         return new QuantityResult(resultValue, resultUnit);
     }

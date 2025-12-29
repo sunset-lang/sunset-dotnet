@@ -174,7 +174,7 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
 
     private string PrintElementVariables(string title, List<VariableDeclaration> variableDeclarations,
         IScope currentScope,
-        List<Argument>? arguments = null)
+        List<IArgument>? arguments = null)
     {
         var builder = new StringBuilder();
         builder.AppendLine(eq.Text(title));
@@ -185,7 +185,7 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
         {
             // Check whether the default input variable has been overridden by an argument
             var matchedArgument =
-                arguments?.FirstOrDefault(argument => argument.GetResolvedDeclaration() == declaration);
+                arguments?.OfType<Argument>().FirstOrDefault(argument => argument.GetResolvedDeclaration() == declaration);
             builder.AppendLine(ReportVariable(declaration, currentScope, matchedArgument));
         }
 

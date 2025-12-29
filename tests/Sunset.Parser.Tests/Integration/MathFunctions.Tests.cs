@@ -1,6 +1,7 @@
 using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Visitors.Evaluation;
 using Sunset.Quantities.Units;
 using Environment = Sunset.Parser.Scopes.Environment;
 
@@ -124,7 +125,8 @@ public class MathFunctionsTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 0, DefinedUnits.Dimensionless);
+        // asin returns angle in radians
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 0, DefinedUnits.Radian);
     }
 
     [Test]
@@ -134,7 +136,8 @@ public class MathFunctionsTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 0, DefinedUnits.Dimensionless);
+        // acos returns angle in radians
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 0, DefinedUnits.Radian);
     }
 
     [Test]
@@ -144,7 +147,8 @@ public class MathFunctionsTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 0, DefinedUnits.Dimensionless);
+        // atan returns angle in radians
+        AssertVariableDeclaration(environment.ChildScopes["$file"], "x", 0, DefinedUnits.Radian);
     }
 
     [Test]
@@ -154,8 +158,8 @@ public class MathFunctionsTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        // asin(1) = pi/2
-        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", Math.PI / 2, DefinedUnits.Dimensionless, 1e-10);
+        // asin(1) = pi/2 radians
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", Math.PI / 2, DefinedUnits.Radian, 1e-10);
     }
 
     [Test]
@@ -165,8 +169,95 @@ public class MathFunctionsTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        // atan(1) = pi/4
-        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", Math.PI / 4, DefinedUnits.Dimensionless, 1e-10);
+        // atan(1) = pi/4 radians
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", Math.PI / 4, DefinedUnits.Radian, 1e-10);
+    }
+
+    #endregion
+
+    #region Angle Unit Tests
+
+    [Test]
+    public void Analyse_SinWithRadians_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               angle {rad} = 1.5707963267948966 {rad}
+                                               x = sin(angle)
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        // sin(pi/2 rad) = 1
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", 1, DefinedUnits.Dimensionless, 1e-10);
+    }
+
+    [Test]
+    public void Analyse_SinWithDegrees_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               angle {deg} = 90 {deg}
+                                               x = sin(angle)
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        // sin(90 deg) = 1
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", 1, DefinedUnits.Dimensionless, 1e-10);
+    }
+
+    [Test]
+    public void Analyse_CosWithDegrees_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               angle {deg} = 180 {deg}
+                                               x = cos(angle)
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        // cos(180 deg) = -1
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", -1, DefinedUnits.Dimensionless, 1e-10);
+    }
+
+    [Test]
+    public void Analyse_TanWith45Degrees_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               angle {deg} = 45 {deg}
+                                               x = tan(angle)
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        // tan(45 deg) = 1
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", 1, DefinedUnits.Dimensionless, 1e-10);
+    }
+
+    [Test]
+    public void Analyse_Sin30Degrees_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               angle {deg} = 30 {deg}
+                                               x = sin(angle)
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        // sin(30 deg) = 0.5
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", 0.5, DefinedUnits.Dimensionless, 1e-10);
+    }
+
+    [Test]
+    public void Analyse_AsinReturnsRadians_CorrectResult()
+    {
+        var sourceFile = SourceFile.FromString("""
+                                               x = asin(0.5)
+                                               """);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        // asin(0.5) = 30 degrees = pi/6 radians
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", Math.PI / 6, DefinedUnits.Radian, 1e-10);
     }
 
     #endregion
@@ -177,16 +268,14 @@ public class MathFunctionsTests
     public void Analyse_CombinedTrigFunctions_CorrectResult()
     {
         var sourceFile = SourceFile.FromString("""
-                                               angle = 0.5
-                                               s = sin(angle)
-                                               c = cos(angle)
-                                               identity = s * s + c * c
+                                               angle {rad} = 0.5 {rad}
+                                               x = sin(angle)
                                                """);
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        // sin²(x) + cos²(x) = 1
-        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "identity", 1, DefinedUnits.Dimensionless, 1e-10);
+        // sin(0.5) ≈ 0.479
+        AssertVariableDeclarationApproximate(environment.ChildScopes["$file"], "x", Math.Sin(0.5), DefinedUnits.Dimensionless, 1e-10);
     }
 
     [Test]

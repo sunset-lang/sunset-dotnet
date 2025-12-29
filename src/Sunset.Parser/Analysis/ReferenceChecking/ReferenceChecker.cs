@@ -36,6 +36,7 @@ public class ReferenceChecker(ErrorLog log)
             IfExpression ifExpression => Visit(ifExpression, visited),
             CallExpression callExpression => Visit(callExpression, visited),
             Argument argument => Visit(argument, visited),
+            PositionalArgument positionalArgument => Visit(positionalArgument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             UnitConstant => null,
             IScope scope => Visit(scope, visited),
@@ -137,6 +138,14 @@ public class ReferenceChecker(ErrorLog log)
         var argumentDeclaration = dest.GetResolvedDeclaration();
         var references = Visit(dest.Expression,
             argumentDeclaration == null ? [..visited] : [..visited, argumentDeclaration]);
+        dest.SetReferences(references);
+        return references;
+    }
+
+    private HashSet<IDeclaration>? Visit(PositionalArgument dest, HashSet<IDeclaration> visited)
+    {
+        // Positional arguments (for built-in functions) just need to visit their expression
+        var references = Visit(dest.Expression, visited);
         dest.SetReferences(references);
         return references;
     }

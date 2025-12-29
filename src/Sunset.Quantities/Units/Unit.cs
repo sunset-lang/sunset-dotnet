@@ -315,44 +315,4 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         return result;
     }
 
-    /// <summary>
-    /// Checks whether this unit represents an angle dimension (radians or degrees).
-    /// An angle unit has only the Angle dimension with power 1, and all other dimensions with power 0.
-    /// </summary>
-    /// <returns>True if this unit is an angle unit, false otherwise.</returns>
-    public bool IsAngle
-    {
-        get
-        {
-            // Check that only the Angle dimension has power 1, and all others are 0
-            for (var i = 0; i < Dimension.NumberOfDimensions; i++)
-            {
-                var expectedPower = i == (int)DimensionName.Angle ? 1 : 0;
-                if (UnitDimensions[i].Power != expectedPower)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// Gets the conversion factor to convert from this angle unit to radians.
-    /// For radians, this returns 1. For degrees, this returns π/180.
-    /// </summary>
-    /// <returns>The conversion factor to radians.</returns>
-    public double GetAngleConversionToRadians()
-    {
-        if (!IsAngle)
-        {
-            throw new InvalidOperationException("Cannot get angle conversion factor for a non-angle unit.");
-        }
-
-        // The factor in the Angle dimension represents the conversion relative to the base unit (radians)
-        // For radians: factor = 1, so conversion = 1
-        // For degrees: factor = 180/π (as defined in DefinedUnits), so to convert to radians we divide by that factor
-        var angleFactor = UnitDimensions[(int)DimensionName.Angle].Factor;
-        return 1.0 / angleFactor;
-    }
 }

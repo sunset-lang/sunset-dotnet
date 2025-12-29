@@ -314,7 +314,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         // For trig functions (sin, cos, tan), verify the argument is an angle
         if (function.RequiresAngleArgument)
         {
-            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless && !quantityType.Unit.IsAngle)
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless && !Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian))
             {
                 // TODO: Add a proper error for angle requirement
                 Log.Error(new TypeResolutionError(dest));
@@ -396,7 +396,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 case ErrorValueType:
                     return evaluatedType;
                 // Note that it is OK to not assign a unit to a variable with a dimensionless or angle result.
-                case QuantityType quantityType when quantityType.Unit.IsDimensionless || quantityType.Unit.IsAngle:
+                case QuantityType quantityType when quantityType.Unit.IsDimensionless || Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian):
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
             }

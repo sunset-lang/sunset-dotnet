@@ -102,7 +102,7 @@ public partial class Parser
             // Must also check for close parentheses and braces as these can be in an expression but do not have parsing rules
         {
             if (!ParsingRules.ContainsKey(_tokens[i].Type) &&
-                _tokens[i].Type is not (TokenType.CloseParenthesis or TokenType.CloseBrace))
+                _tokens[i].Type is not (TokenType.CloseParenthesis or TokenType.CloseBrace or TokenType.CloseBracket))
             {
                 end = i;
                 break;
@@ -240,6 +240,7 @@ public partial class Parser
                 or TokenType.Newline
                 or TokenType.CloseParenthesis
                 or TokenType.CloseBrace
+                or TokenType.CloseBracket
                 or TokenType.Comma
                 or TokenType.If
                 or TokenType.Otherwise)
@@ -461,6 +462,43 @@ public partial class Parser
         if (assignmentToken == null) return null;
         var expression = GetArithmeticExpression();
         return new Argument(name, assignmentToken, expression);
+    }
+
+    /// <summary>
+    /// Tries to parse a named argument (name = expression).
+    /// Returns null if the current tokens don't match the pattern.
+    /// </summary>
+    public Argument? TryGetNamedArgument()
+    {
+        // Check if we have an identifier followed by an equals sign
+        if (_current.Type != TokenType.Identifier) return null;
+
+        // Look ahead to see if this is a named argument (identifier = expression)
+        var peek = Peek();
+        if (peek?.Type != TokenType.Equal) return null;
+
+        // It's a named argument, parse it
+        if (Consume(TokenType.Identifier, false, true) is not StringToken name) return null;
+        var assignmentToken = Consume(TokenType.Equal);
+        if (assignmentToken == null) return null;
+        var expression = GetArithmeticExpression();
+        return new Argument(name, assignmentToken, expression);
+    }
+
+    /// <summary>
+    /// Tries to parse a positional argument (just an expression).
+    /// Returns null if there's no valid expression.
+    /// </summary>
+    public PositionalArgument? TryGetPositionalArgument()
+    {
+        // Check if we're at the end of arguments
+        if (_current.Type == TokenType.CloseParenthesis || _current.Type == TokenType.EndOfFile)
+        {
+            return null;
+        }
+
+        var expression = GetArithmeticExpression();
+        return new PositionalArgument(expression);
     }
 
     #region Parser controls

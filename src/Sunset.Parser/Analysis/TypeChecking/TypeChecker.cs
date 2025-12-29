@@ -1,5 +1,6 @@
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -45,6 +46,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorValueType.Instance,
+            ListExpression listExpression => Visit(listExpression),
+            IndexExpression indexExpression => Visit(indexExpression),
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
         };
@@ -249,10 +252,26 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private IResultType? Visit(CallExpression dest)
     {
+        // Check if this is a built-in function call
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc != null)
+        {
+            return VisitBuiltInFunction(dest, builtInFunc);
+        }
+
         // Check each argument
         foreach (var argument in dest.Arguments)
         {
-            Visit(argument);
+            // Only named arguments need full argument type checking for element calls
+            if (argument is Argument namedArgument)
+            {
+                Visit(namedArgument);
+            }
+            else
+            {
+                // For positional arguments, just type check the expression
+                Visit(argument.Expression);
+            }
         }
 
         // Check that the evaluated type of the call expression is an element
@@ -261,6 +280,52 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         {
             return null;
         }
+
+        dest.SetEvaluatedType(resultType);
+        return resultType;
+    }
+
+    private IResultType? VisitBuiltInFunction(CallExpression dest, IBuiltInFunction function)
+    {
+        // Verify argument count
+        if (dest.Arguments.Count != function.ArgumentCount)
+        {
+            // TODO: Add a proper error for wrong argument count
+            Log.Error(new TypeResolutionError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // Type check the argument expression
+        var argType = Visit(dest.Arguments[0].Expression);
+        if (argType == null)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // For inverse trig functions (asin, acos, atan), verify the argument is dimensionless
+        if (function.RequiresDimensionlessArgument)
+        {
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless)
+            {
+                // TODO: Add a proper error for dimensionless requirement
+                Log.Error(new TypeResolutionError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        // For trig functions (sin, cos, tan), verify the argument is an angle
+        if (function.RequiresAngleArgument)
+        {
+            if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless && !Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian))
+            {
+                // TODO: Add a proper error for angle requirement
+                Log.Error(new TypeResolutionError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        // Determine the result type using the function's own logic
+        var resultType = function.GetResultType(argType);
 
         dest.SetEvaluatedType(resultType);
         return resultType;
@@ -301,6 +366,75 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         return new UnitType(dest.Unit);
     }
 
+    private IResultType? Visit(ListExpression dest)
+    {
+        if (dest.Elements.Count == 0)
+        {
+            // Empty list - we can't determine element type, but it's valid
+            // Use a placeholder type that will be compatible with any list operation
+            return new ListType(QuantityType.Dimensionless);
+        }
+
+        // Get the type of the first element
+        var firstElementType = Visit(dest.Elements[0]);
+        if (firstElementType == null || firstElementType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Check that all other elements have compatible types
+        for (int i = 1; i < dest.Elements.Count; i++)
+        {
+            var elementType = Visit(dest.Elements[i]);
+            if (elementType == null || elementType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+
+            if (!IResultType.AreCompatible(firstElementType, elementType))
+            {
+                Log.Error(new ListElementTypeMismatchError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        dest.SetEvaluatedType(new ListType(firstElementType));
+        return new ListType(firstElementType);
+    }
+
+    private IResultType? Visit(IndexExpression dest)
+    {
+        var targetType = Visit(dest.Target);
+        var indexType = Visit(dest.Index);
+
+        if (targetType == null || targetType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        if (indexType == null || indexType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Check that the target is a list
+        if (targetType is not ListType listType)
+        {
+            Log.Error(new IndexTargetNotListError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // Check that the index is a dimensionless number
+        if (indexType is not QuantityType { Unit.IsDimensionless: true })
+        {
+            Log.Error(new IndexNotNumberError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        dest.SetEvaluatedType(listType.ElementType);
+        return listType.ElementType;
+    }
+
     public IResultType? Visit(VariableDeclaration dest)
     {
         // If there is already a type assigned to this variable declaration, the visitor has already passed through here.
@@ -332,8 +466,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 // If the expression evaluated to an error, don't log additional errors - the underlying error was already logged
                 case ErrorValueType:
                     return evaluatedType;
-                // Note that it is OK to not assign a unit to a variable with a dimensionless result.
-                case QuantityType { Unit.IsDimensionless: true }:
+                // Note that it is OK to not assign a unit to a variable with a dimensionless or angle result.
+                case QuantityType quantityType when quantityType.Unit.IsDimensionless || Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian):
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
             }

@@ -36,11 +36,14 @@ public class ReferenceChecker(ErrorLog log)
             IfExpression ifExpression => Visit(ifExpression, visited),
             CallExpression callExpression => Visit(callExpression, visited),
             Argument argument => Visit(argument, visited),
+            PositionalArgument positionalArgument => Visit(positionalArgument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             UnitConstant => null,
             IScope scope => Visit(scope, visited),
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),
+            ListExpression listExpression => Visit(listExpression, visited),
+            IndexExpression indexExpression => Visit(indexExpression, visited),
             _ => throw new ArgumentException($"Cycle checker cannot visit the node of type {dest.GetType()}")
         };
     }
@@ -96,6 +99,27 @@ public class ReferenceChecker(ErrorLog log)
         return null;
     }
 
+    private HashSet<IDeclaration> Visit(ListExpression dest, HashSet<IDeclaration> visited)
+    {
+        var references = new HashSet<IDeclaration>();
+        foreach (var element in dest.Elements)
+        {
+            var elementReferences = Visit(element, visited);
+            if (elementReferences != null)
+            {
+                references.UnionWith(elementReferences);
+            }
+        }
+        return references;
+    }
+
+    private HashSet<IDeclaration>? Visit(IndexExpression dest, HashSet<IDeclaration> visited)
+    {
+        var targetReferences = Visit(dest.Target, visited) ?? [];
+        var indexReferences = Visit(dest.Index, visited) ?? [];
+        return targetReferences.Union(indexReferences).ToHashSet();
+    }
+
     private HashSet<IDeclaration> Visit(IfExpression dest, HashSet<IDeclaration> visited)
     {
         var references = new HashSet<IDeclaration>();
@@ -137,6 +161,14 @@ public class ReferenceChecker(ErrorLog log)
         var argumentDeclaration = dest.GetResolvedDeclaration();
         var references = Visit(dest.Expression,
             argumentDeclaration == null ? [..visited] : [..visited, argumentDeclaration]);
+        dest.SetReferences(references);
+        return references;
+    }
+
+    private HashSet<IDeclaration>? Visit(PositionalArgument dest, HashSet<IDeclaration> visited)
+    {
+        // Positional arguments (for built-in functions) just need to visit their expression
+        var references = Visit(dest.Expression, visited);
         dest.SetReferences(references);
         return references;
     }

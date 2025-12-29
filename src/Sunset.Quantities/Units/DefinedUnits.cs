@@ -68,7 +68,7 @@ public static class DefinedUnits
     // Angle units - note: not technically a base unit, but added as m/m resolves to dimensionless
     public static readonly BaseCoherentUnit Radian = new(DimensionName.Angle, UnitName.Radian, "", "rad");
 
-    public static readonly NamedUnitMultiple Degree = new(Radian, UnitName.Degree, "", "deg", 180 / Math.PI);
+    public static readonly NamedUnitMultiple Degree = new(Radian, UnitName.Degree, "", "deg", Math.PI / 180);
 
     #endregion
 

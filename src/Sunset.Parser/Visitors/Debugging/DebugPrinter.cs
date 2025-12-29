@@ -50,6 +50,8 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             ElementDeclaration element => Visit(element),
             FileScope fileScope => Visit(fileScope),
             Environment environment => Visit(environment),
+            ListExpression listExpression => Visit(listExpression),
+            IndexExpression indexExpression => Visit(indexExpression),
             _ => throw new NotImplementedException()
         };
     }
@@ -107,7 +109,9 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
     private string Visit(CallExpression dest)
     {
         var args = string.Join(", ", dest.Arguments.Select(argument =>
-            argument.ArgumentName.Name.ToString() + " = " + Visit(argument.Expression)).ToArray());
+            argument is Argument namedArg
+                ? namedArg.ArgumentName.Name.ToString() + " = " + Visit(argument.Expression)
+                : Visit(argument.Expression)).ToArray());
         var element = dest.GetResolvedDeclaration() as ElementDeclaration;
         return "(new " + (element?.FullPath ?? "ERROR") + " args (" + args + "))";
     }
@@ -125,6 +129,17 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
     private string Visit(UnitConstant dest)
     {
         return dest.Unit.ToString();
+    }
+
+    private string Visit(ListExpression dest)
+    {
+        var elements = string.Join(", ", dest.Elements.Select(e => Visit(e)));
+        return $"[{elements}]";
+    }
+
+    private string Visit(IndexExpression dest)
+    {
+        return $"{Visit(dest.Target)}[{Visit(dest.Index)}]";
     }
 
     private string Visit(VariableDeclaration dest)
@@ -156,6 +171,7 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             StringResult stringResult => stringResult.Result,
             UnitResult unitResult => unitResult.Result.ToString(),
             ElementInstanceResult => "Element instance result",
+            ListResult listResult => $"[{string.Join(", ", listResult.Elements.Select(e => Visit(e)))}]",
             _ => "ERROR!"
         };
     }

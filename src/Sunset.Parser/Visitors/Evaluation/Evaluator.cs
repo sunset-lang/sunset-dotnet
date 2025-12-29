@@ -1,6 +1,7 @@
 ﻿using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
@@ -59,6 +60,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorResult,
+            ListExpression listExpression => Visit(listExpression, currentScope),
+            IndexExpression indexExpression => Visit(indexExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
@@ -271,8 +274,15 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         return value;
     }
 
-    private ElementInstanceResult Visit(CallExpression dest, IScope currentScope)
+    private IResult Visit(CallExpression dest, IScope currentScope)
     {
+        // Check if this is a built-in function call
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc != null)
+        {
+            return EvaluateBuiltInFunction(builtInFunc, dest, currentScope);
+        }
+
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
             // TODO: Handle error better
@@ -293,12 +303,37 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 throw new Exception("Could not resolve argument.");
             }
 
-            var argumentDeclaration = argument.ArgumentName.GetResolvedDeclaration();
-            // Set the result of the declaration with the element instance as the scope
-            argumentDeclaration?.SetResult(elementResult, argumentResult);
+            // Only named arguments have an argument name that can be resolved
+            if (argument is Argument namedArgument)
+            {
+                var argumentDeclaration = namedArgument.ArgumentName.GetResolvedDeclaration();
+                // Set the result of the declaration with the element instance as the scope
+                argumentDeclaration?.SetResult(elementResult, argumentResult);
+            }
         }
 
         return elementResult;
+    }
+
+    /// <summary>
+    /// Evaluates a built-in function call.
+    /// </summary>
+    private IResult EvaluateBuiltInFunction(IBuiltInFunction func, CallExpression call, IScope scope)
+    {
+        // Evaluate the argument
+        if (call.Arguments.Count == 0)
+        {
+            return ErrorResult;
+        }
+
+        var argResult = Visit(call.Arguments[0].Expression, scope);
+        if (argResult is not QuantityResult quantityResult)
+        {
+            return ErrorResult;
+        }
+
+        // Delegate evaluation to the function implementation
+        return func.Evaluate(quantityResult.Result);
     }
 
     private IResult Visit(IScope dest, IScope currentScope)
@@ -324,5 +359,59 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     private static UnitResult Visit(UnitConstant dest)
     {
         return new UnitResult(dest.Unit);
+    }
+
+    private IResult Visit(ListExpression dest, IScope currentScope)
+    {
+        var elements = new List<IResult>();
+        foreach (var element in dest.Elements)
+        {
+            var elementResult = Visit(element, currentScope);
+            if (elementResult is ErrorResult)
+            {
+                return ErrorResult;
+            }
+            elements.Add(elementResult);
+        }
+
+        var listResult = new ListResult(elements);
+        dest.SetResult(currentScope, listResult);
+        return listResult;
+    }
+
+    private IResult Visit(IndexExpression dest, IScope currentScope)
+    {
+        var targetResult = Visit(dest.Target, currentScope);
+        var indexResult = Visit(dest.Index, currentScope);
+
+        if (targetResult is ErrorResult || indexResult is ErrorResult)
+        {
+            return ErrorResult;
+        }
+
+        if (targetResult is not ListResult listResult)
+        {
+            // Error already logged by TypeChecker
+            return ErrorResult;
+        }
+
+        if (indexResult is not QuantityResult quantityResult)
+        {
+            // Error already logged by TypeChecker
+            return ErrorResult;
+        }
+
+        var index = (int)quantityResult.Result.BaseValue;
+
+        // Check bounds
+        if (index < 0 || index >= listResult.Count)
+        {
+            Log.Error(new Errors.Semantic.IndexOutOfBoundsError(dest, index, listResult.Count));
+            return ErrorResult;
+        }
+
+        var result = listResult[index];
+        dest.SetResult(currentScope, result);
+        return result;
     }
 }

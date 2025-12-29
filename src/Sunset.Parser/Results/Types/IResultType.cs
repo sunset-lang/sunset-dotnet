@@ -1,4 +1,5 @@
-﻿using Sunset.Parser.Parsing.Declarations;
+﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Results.Types;
@@ -20,6 +21,8 @@ public interface IResultType
             UnitType leftUnit when right is UnitType rightUnit => Unit.EqualDimensions(leftUnit.Unit, rightUnit.Unit),
             QuantityType => false,
             BooleanType when right is BooleanType => true,
+            ListType leftList when right is ListType rightList => AreCompatible(leftList.ElementType, rightList.ElementType),
+            ListType => false,
             _ => false
         };
     }
@@ -80,5 +83,37 @@ public class UnitType(Unit unit) : IResultType
     public override string ToString()
     {
         return Unit.ToString();
+    }
+}
+
+/// <summary>
+/// Represents the type of a built-in function.
+/// </summary>
+public class BuiltInFunctionType(IBuiltInFunction function) : IResultType
+{
+    /// <summary>
+    /// The built-in function this type represents.
+    /// </summary>
+    public IBuiltInFunction Function { get; } = function;
+
+    public override string ToString()
+    {
+        return $"BuiltIn({Function.Name})";
+    }
+}
+
+/// <summary>
+/// The type representing a list of values.
+/// </summary>
+public class ListType(IResultType elementType) : IResultType
+{
+    /// <summary>
+    /// The type of elements contained in the list.
+    /// </summary>
+    public IResultType ElementType { get; } = elementType;
+
+    public override string ToString()
+    {
+        return $"[{ElementType}]";
     }
 }

@@ -249,7 +249,8 @@ public class MarkdownVariablePrinterTests
         environment.Analyse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables();
-        Assert.That(result, Is.EqualTo("x &= 100 \\\\\r\n"));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(result),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString("x &= 100 \\\\\n")));
     }
 
     [Test]
@@ -260,7 +261,8 @@ public class MarkdownVariablePrinterTests
         environment.Analyse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables();
-        Assert.That(result, Is.EqualTo("x &= 100 \\text{ mm} \\\\\r\n"));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(result),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString("x &= 100 \\text{ mm} \\\\\n")));
     }
 
     [Test]
@@ -271,6 +273,7 @@ public class MarkdownVariablePrinterTests
         environment.Analyse();
 
         var result = ((FileScope)environment.ChildScopes["$file"]).PrintScopeVariables();
-        Assert.That(result, Is.EqualTo("x &= 12 + 5 \\\\\r\n&= 17 \\\\\r\n"));
+        Assert.That(TestHelpers.TestHelpers.NormalizeString(result),
+            Is.EqualTo(TestHelpers.TestHelpers.NormalizeString("x &= 12 + 5 \\\\\n&= 17 \\\\\n")));
     }
 }

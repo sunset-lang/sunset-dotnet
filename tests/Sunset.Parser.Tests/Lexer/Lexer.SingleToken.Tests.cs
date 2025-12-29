@@ -128,17 +128,14 @@ public class LexerSingleTokenTests
     [Test]
     public void GetNextToken_MultiLineString_HasCorrectValue()
     {
-        var lex = new Lexing.Lexer(SourceFile.FromString("\"\"\"Hello, world\r\nHow are you doing today?\"\"\""),
+        var lex = new Lexing.Lexer(SourceFile.FromString("\"\"\"Hello, world\nHow are you doing today?\"\"\""),
             false);
         var token = lex.GetNextToken();
         Assert.That(token.Type, Is.EqualTo(TokenType.MultilineString));
 
         if (token is StringToken stringToken)
         {
-            Assert.That(stringToken.Value.ToString(), Is.EqualTo("""
-                                                                 Hello, world
-                                                                 How are you doing today?
-                                                                 """));
+            Assert.That(stringToken.Value.ToString(), Is.EqualTo("Hello, world\nHow are you doing today?"));
         }
     }
 

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using Sunset.CLI.Configuration;
 using Sunset.CLI.Infrastructure;
 using Sunset.CLI.Output;
 using Sunset.Markdown;
@@ -22,17 +23,14 @@ public static class BuildCommand
     {
         var filesArgument = new Argument<FileInfo[]>(
             "files",
-            "One or more Sunset source files")
+            "One or more Sunset source files (optional if sunset.toml exists)")
         {
-            Arity = ArgumentArity.OneOrMore
+            Arity = ArgumentArity.ZeroOrMore
         };
 
-        var outputOption = new Option<FileInfo>(
+        var outputOption = new Option<FileInfo?>(
             ["--output", "-o"],
-            "Output file path (required)")
-        {
-            IsRequired = true
-        };
+            "Output file path (uses config if not specified)");
 
         var formatOption = new Option<string>(
             ["--format", "-f"],
@@ -102,8 +100,8 @@ public static class BuildCommand
         command.SetHandler(async (InvocationContext context) =>
         {
             var files = context.ParseResult.GetValueForArgument(filesArgument);
-            var output = context.ParseResult.GetValueForOption(outputOption)!;
-            var format = context.ParseResult.GetValueForOption(formatOption) ?? "markdown";
+            var output = context.ParseResult.GetValueForOption(outputOption);
+            var format = context.ParseResult.GetValueForOption(formatOption);
             var title = context.ParseResult.GetValueForOption(titleOption);
             var toc = context.ParseResult.GetValueForOption(tocOption);
             var numberHeadings = context.ParseResult.GetValueForOption(numberHeadingsOption);
@@ -128,8 +126,8 @@ public static class BuildCommand
 
     private static Task<int> ExecuteAsync(
         FileInfo[] files,
-        FileInfo output,
-        string format,
+        FileInfo? output,
+        string? format,
         string? title,
         bool toc,
         bool numberHeadings,
@@ -143,27 +141,74 @@ public static class BuildCommand
     {
         var console = new ConsoleWriter(!noColor);
 
-        // Validate files exist
-        foreach (var file in files)
+        // Try to load configuration from current directory
+        SunsetConfig? config = null;
+        string? configDir = null;
+        try
         {
-            if (!file.Exists)
+            var configPath = ConfigLoader.FindConfigFile(Directory.GetCurrentDirectory());
+            if (configPath != null)
             {
-                console.WriteError($"error: File not found: {file.FullName}");
+                config = ConfigLoader.LoadFromFile(configPath);
+                configDir = Path.GetDirectoryName(configPath);
+                console.WriteDim($"Using config: {configPath}");
+            }
+        }
+        catch (ConfigurationException ex)
+        {
+            console.WriteWarning($"warning: {ex.Message}");
+        }
+
+        // Resolve files - from args or from config
+        var resolvedFiles = ResolveSourceFiles(files, config, configDir, console);
+        if (resolvedFiles == null)
+        {
+            console.WriteError("error: No source files specified. Provide files as arguments or create a sunset.toml.");
+            return Task.FromResult(ExitCodes.InvalidArguments);
+        }
+
+        // Validate files exist
+        foreach (var file in resolvedFiles)
+        {
+            if (!File.Exists(file))
+            {
+                console.WriteError($"error: File not found: {file}");
                 return Task.FromResult(ExitCodes.FileNotFound);
             }
         }
 
+        // Resolve output path - from args or from config
+        var outputPath = ResolveOutputPath(output, config, configDir);
+        if (outputPath == null)
+        {
+            console.WriteError("error: No output path specified. Use -o option or configure in sunset.toml.");
+            return Task.FromResult(ExitCodes.InvalidArguments);
+        }
+
+        // Resolve other options with config fallback
+        var resolvedFormat = format ?? config?.Output.Format ?? "markdown";
+        var resolvedTitle = title ?? config?.Build.Title ?? (resolvedFiles.Length == 1
+            ? Path.GetFileNameWithoutExtension(resolvedFiles[0])
+            : "Sunset Report");
+        var resolvedToc = toc || (config?.Build.Toc ?? false);
+        var resolvedShowSymbols = showSymbols || (config?.Output.ShowSymbols ?? false);
+        var resolvedShowValues = showValues || (config?.Output.ShowValues ?? true);
+        var resolvedSf = significantFigures ?? config?.Output.SignificantFigures;
+        var resolvedDp = decimalPlaces ?? config?.Output.DecimalPlaces;
+        var resolvedSiUnits = siUnits || (config?.Output.SiUnits ?? false);
+        var resolvedSimplify = simplifyUnits || (config?.Output.SimplifyUnits ?? true);
+
         // Create environment and add all source files
         var environment = new Environment();
-        foreach (var file in files)
+        foreach (var file in resolvedFiles)
         {
             try
             {
-                environment.AddFile(file.FullName);
+                environment.AddFile(file);
             }
             catch (Exception ex)
             {
-                console.WriteError($"error: Failed to read file {file.Name}: {ex.Message}");
+                console.WriteError($"error: Failed to read file {Path.GetFileName(file)}: {ex.Message}");
                 return Task.FromResult(ExitCodes.FileNotFound);
             }
         }
@@ -180,15 +225,10 @@ public static class BuildCommand
 
         // Create printer settings
         var settings = CreatePrinterSettings(
-            toc, showSymbols, showValues,
-            significantFigures, decimalPlaces, siUnits, simplifyUnits);
+            resolvedToc, resolvedShowSymbols, resolvedShowValues,
+            resolvedSf, resolvedDp, resolvedSiUnits, resolvedSimplify);
 
-        // Build report section from environment
-        var reportTitle = title ?? (files.Length == 1
-            ? Path.GetFileNameWithoutExtension(files[0].Name)
-            : "Sunset Report");
-
-        var reportSection = BuildReportSection(environment, reportTitle);
+        var reportSection = BuildReportSection(environment, resolvedTitle);
 
         // Create printer and generate output
         var printer = new MarkdownReportPrinter(settings, environment.Log);
@@ -196,24 +236,24 @@ public static class BuildCommand
         try
         {
             // Ensure output directory exists
-            var outputDir = Path.GetDirectoryName(output.FullName);
+            var outputDir = Path.GetDirectoryName(outputPath);
             if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
             }
 
-            switch (format.ToLowerInvariant())
+            switch (resolvedFormat.ToLowerInvariant())
             {
                 case "html":
-                    printer.SaveReportToHtml(reportSection, output.FullName);
+                    printer.SaveReportToHtml(reportSection, outputPath);
                     break;
                 case "markdown":
                 default:
-                    printer.SaveReportToMarkdown(reportSection, output.FullName);
+                    printer.SaveReportToMarkdown(reportSection, outputPath);
                     break;
             }
 
-            console.WriteSuccess($"Report generated: {output.FullName}");
+            console.WriteSuccess($"Report generated: {outputPath}");
         }
         catch (Exception ex)
         {
@@ -222,6 +262,89 @@ public static class BuildCommand
         }
 
         return Task.FromResult(ExitCodes.Success);
+    }
+
+    private static string[]? ResolveSourceFiles(FileInfo[] cliFiles, SunsetConfig? config, string? configDir, ConsoleWriter console)
+    {
+        // CLI args take precedence
+        if (cliFiles.Length > 0)
+        {
+            return cliFiles.Select(f => f.FullName).ToArray();
+        }
+
+        // Fall back to config
+        if (config?.Build.Sources is { Length: > 0 } sources && configDir != null)
+        {
+            var resolvedFiles = new List<string>();
+            foreach (var pattern in sources)
+            {
+                var fullPattern = Path.Combine(configDir, pattern);
+                var matchedFiles = ExpandGlobPattern(fullPattern, configDir);
+                resolvedFiles.AddRange(matchedFiles);
+            }
+
+            if (resolvedFiles.Count > 0)
+            {
+                return resolvedFiles.ToArray();
+            }
+        }
+
+        return null;
+    }
+
+    private static string? ResolveOutputPath(FileInfo? cliOutput, SunsetConfig? config, string? configDir)
+    {
+        // CLI args take precedence
+        if (cliOutput != null)
+        {
+            return cliOutput.FullName;
+        }
+
+        // Fall back to config
+        if (!string.IsNullOrEmpty(config?.Build.Output) && configDir != null)
+        {
+            return Path.Combine(configDir, config.Build.Output);
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> ExpandGlobPattern(string pattern, string baseDir)
+    {
+        // Simple glob expansion for common patterns
+        // For full glob support, would need a library like Microsoft.Extensions.FileSystemGlobbing
+
+        if (pattern.Contains("**"))
+        {
+            // Handle recursive patterns like "src/**/*.sun"
+            var parts = pattern.Split(new[] { "**" }, 2, StringSplitOptions.None);
+            var rootDir = Path.GetFullPath(Path.Combine(baseDir, parts[0].TrimEnd('/', '\\')));
+            var filePattern = parts[1].TrimStart('/', '\\');
+
+            if (Directory.Exists(rootDir))
+            {
+                var searchPattern = string.IsNullOrEmpty(filePattern) ? "*.sun" : filePattern.Replace("/", "").Replace("\\", "");
+                return Directory.GetFiles(rootDir, searchPattern, SearchOption.AllDirectories);
+            }
+        }
+        else if (pattern.Contains("*"))
+        {
+            // Handle simple patterns like "src/*.sun"
+            var dir = Path.GetDirectoryName(pattern) ?? baseDir;
+            var filePattern = Path.GetFileName(pattern);
+
+            if (Directory.Exists(dir))
+            {
+                return Directory.GetFiles(dir, filePattern, SearchOption.TopDirectoryOnly);
+            }
+        }
+        else if (File.Exists(pattern))
+        {
+            // Direct file path
+            return [pattern];
+        }
+
+        return [];
     }
 
     private static PrinterSettings CreatePrinterSettings(

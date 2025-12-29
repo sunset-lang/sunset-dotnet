@@ -15,8 +15,10 @@ public class IntegrationTests
         var scope = environment.ChildScopes["$file"] as FileScope;
         var result = scope!.PrintScopeVariables();
         Console.WriteLine(result);
-        // Trim results to ignore newlines at end
-        Assert.That(result.Trim(), Is.EqualTo(expected.Trim()));
+        // Normalize line endings and trim to ignore platform differences
+        var normalizedResult = result.Replace("\r\n", "\n").Trim();
+        var normalizedExpected = expected.Replace("\r\n", "\n").Trim();
+        Assert.That(normalizedResult, Is.EqualTo(normalizedExpected));
     }
 
     [Test]

@@ -21,7 +21,7 @@ public static class NameResolverExtensions
     /// <summary>
     /// Gets the built-in function associated with this call expression, if any.
     /// </summary>
-    public static BuiltInFunction? GetBuiltInFunction(this IVisitable dest)
+    public static IBuiltInFunction? GetBuiltInFunction(this IVisitable dest)
     {
         return dest.GetPassData<NamePassData>(PassDataKey).BuiltInFunction;
     }
@@ -29,7 +29,7 @@ public static class NameResolverExtensions
     /// <summary>
     /// Sets the built-in function for this call expression.
     /// </summary>
-    public static void SetBuiltInFunction(this IVisitable dest, BuiltInFunction function)
+    public static void SetBuiltInFunction(this IVisitable dest, IBuiltInFunction function)
     {
         dest.GetPassData<NamePassData>(PassDataKey).BuiltInFunction = function;
     }
@@ -39,6 +39,6 @@ public static class NameResolverExtensions
     /// </summary>
     public static bool IsBuiltInFunctionCall(this IVisitable dest)
     {
-        return dest.GetPassData<NamePassData>(PassDataKey).BuiltInFunction.HasValue;
+        return dest.GetPassData<NamePassData>(PassDataKey).BuiltInFunction != null;
     }
 }

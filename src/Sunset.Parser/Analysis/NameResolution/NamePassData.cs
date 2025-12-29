@@ -9,7 +9,7 @@ public class NamePassData : IPassData
     public IDeclaration? ResolvedDeclaration { get; set; }
 
     /// <summary>
-    /// If this call expression targets a built-in function, stores the function type.
+    /// If this call expression targets a built-in function, stores the function instance.
     /// </summary>
-    public BuiltInFunction? BuiltInFunction { get; set; }
+    public IBuiltInFunction? BuiltInFunction { get; set; }
 }

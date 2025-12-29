@@ -87,15 +87,15 @@ public class UnitType(Unit unit) : IResultType
 /// <summary>
 /// Represents the type of a built-in function.
 /// </summary>
-public class BuiltInFunctionType(BuiltInFunction function) : IResultType
+public class BuiltInFunctionType(IBuiltInFunction function) : IResultType
 {
     /// <summary>
     /// The built-in function this type represents.
     /// </summary>
-    public BuiltInFunction Function { get; } = function;
+    public IBuiltInFunction Function { get; } = function;
 
     public override string ToString()
     {
-        return $"BuiltIn({Function})";
+        return $"BuiltIn({Function.Name})";
     }
 }

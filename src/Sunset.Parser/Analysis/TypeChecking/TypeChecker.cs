@@ -252,9 +252,9 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     {
         // Check if this is a built-in function call
         var builtInFunc = dest.GetBuiltInFunction();
-        if (builtInFunc.HasValue)
+        if (builtInFunc != null)
         {
-            return VisitBuiltInFunction(dest, builtInFunc.Value);
+            return VisitBuiltInFunction(dest, builtInFunc);
         }
 
         // Check each argument
@@ -283,11 +283,10 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         return resultType;
     }
 
-    private IResultType? VisitBuiltInFunction(CallExpression dest, BuiltInFunction function)
+    private IResultType? VisitBuiltInFunction(CallExpression dest, IBuiltInFunction function)
     {
         // Verify argument count
-        var expectedArgs = BuiltInFunctions.GetArgumentCount(function);
-        if (dest.Arguments.Count != expectedArgs)
+        if (dest.Arguments.Count != function.ArgumentCount)
         {
             // TODO: Add a proper error for wrong argument count
             Log.Error(new TypeResolutionError(dest));
@@ -302,7 +301,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         }
 
         // For inverse trig functions (asin, acos, atan), verify the argument is dimensionless
-        if (BuiltInFunctions.RequiresDimensionlessArgument(function))
+        if (function.RequiresDimensionlessArgument)
         {
             if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless)
             {
@@ -313,7 +312,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         }
 
         // For trig functions (sin, cos, tan), verify the argument is an angle
-        if (BuiltInFunctions.RequiresAngleArgument(function))
+        if (function.RequiresAngleArgument)
         {
             if (argType is QuantityType quantityType && !quantityType.Unit.IsDimensionless && !quantityType.Unit.IsAngle)
             {
@@ -323,26 +322,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             }
         }
 
-        // Determine the result type
-        IResultType resultType;
-        if (BuiltInFunctions.ReturnsDimensionless(function))
-        {
-            resultType = QuantityType.Dimensionless;
-        }
-        else if (BuiltInFunctions.ReturnsAngle(function))
-        {
-            // Inverse trig functions return angles in radians
-            resultType = new QuantityType(DefinedUnits.Radian);
-        }
-        else if (function == BuiltInFunction.Sqrt && argType is QuantityType sqrtArgType)
-        {
-            // sqrt(x) returns the square root of the unit
-            resultType = new QuantityType(sqrtArgType.Unit.Sqrt());
-        }
-        else
-        {
-            resultType = QuantityType.Dimensionless;
-        }
+        // Determine the result type using the function's own logic
+        var resultType = function.GetResultType(argType);
 
         dest.SetEvaluatedType(resultType);
         return resultType;

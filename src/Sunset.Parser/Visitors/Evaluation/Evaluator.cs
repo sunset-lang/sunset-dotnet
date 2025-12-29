@@ -276,9 +276,9 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     {
         // Check if this is a built-in function call
         var builtInFunc = dest.GetBuiltInFunction();
-        if (builtInFunc.HasValue)
+        if (builtInFunc != null)
         {
-            return EvaluateBuiltInFunction(builtInFunc.Value, dest, currentScope);
+            return EvaluateBuiltInFunction(builtInFunc, dest, currentScope);
         }
 
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
@@ -316,7 +316,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     /// <summary>
     /// Evaluates a built-in function call.
     /// </summary>
-    private IResult EvaluateBuiltInFunction(BuiltInFunction func, CallExpression call, IScope scope)
+    private IResult EvaluateBuiltInFunction(IBuiltInFunction func, CallExpression call, IScope scope)
     {
         // Evaluate the argument
         if (call.Arguments.Count == 0)
@@ -330,38 +330,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
-        // BaseValue is already in base units (radians for angles), so we can use it directly
-        var value = quantityResult.Result.BaseValue;
-
-        var resultValue = func switch
-        {
-            BuiltInFunction.Sqrt => Math.Sqrt(value),
-            BuiltInFunction.Sin => Math.Sin(value),
-            BuiltInFunction.Cos => Math.Cos(value),
-            BuiltInFunction.Tan => Math.Tan(value),
-            BuiltInFunction.Asin => Math.Asin(value),
-            BuiltInFunction.Acos => Math.Acos(value),
-            BuiltInFunction.Atan => Math.Atan(value),
-            _ => throw new NotImplementedException($"Built-in function {func} not implemented")
-        };
-
-        // Determine the result unit
-        Unit resultUnit;
-        if (func == BuiltInFunction.Sqrt)
-        {
-            resultUnit = quantityResult.Result.Sqrt().Unit;
-        }
-        else if (BuiltInFunctions.ReturnsAngle(func))
-        {
-            // Inverse trig functions return angles in radians
-            resultUnit = DefinedUnits.Radian;
-        }
-        else
-        {
-            resultUnit = DefinedUnits.Dimensionless;
-        }
-
-        return new QuantityResult(resultValue, resultUnit);
+        // Delegate evaluation to the function implementation
+        return func.Evaluate(quantityResult.Result);
     }
 
     private IResult Visit(IScope dest, IScope currentScope)

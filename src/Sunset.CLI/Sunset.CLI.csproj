@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- .NET Global Tool configuration -->
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>sunset</ToolCommandName>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
+        <PackageId>Sunset.CLI</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>Sunset Team</Authors>
+        <Description>CLI tool for the Sunset language - a DSL for physical quantity calculations</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+        <PackageReference Include="Tomlyn" Version="0.19.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Sunset.Markdown\Sunset.Markdown.csproj" />
+        <ProjectReference Include="..\Sunset.Parser\Sunset.Parser.csproj" />
+        <ProjectReference Include="..\Sunset.Reporting\Sunset.Reporting.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -146,7 +146,8 @@ public class ListTests
 
         var listType = (ListType)evaluatedType!;
         Assert.That(listType.ElementType, Is.TypeOf<QuantityType>());
-        Assert.That(((QuantityType)listType.ElementType).Unit, Is.EqualTo(DefinedUnits.Metre));
+        // Compare units by dimensions rather than object equality
+        Assert.That(Unit.EqualDimensions(((QuantityType)listType.ElementType).Unit, DefinedUnits.Metre), Is.True);
     }
 
     [Test]
@@ -216,6 +217,7 @@ public class ListTests
 
         var quantityResult = (QuantityResult)result!;
         Assert.That(quantityResult.Result.ConvertedValue, Is.EqualTo(expectedValue).Within(0.001), $"Variable {variableName} value mismatch");
-        Assert.That(quantityResult.Result.Unit, Is.EqualTo(expectedUnit), $"Variable {variableName} unit mismatch");
+        // Compare units by dimensions rather than object equality
+        Assert.That(Unit.EqualDimensions(quantityResult.Result.Unit, expectedUnit), Is.True, $"Variable {variableName} unit mismatch");
     }
 }

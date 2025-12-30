@@ -50,9 +50,11 @@ public class RuntimeUnitRegistry
     }
 
     /// <summary>
-    ///     Registers a unit multiple (e.g., mm = 0.001 m).
+    ///     Registers a unit multiple (e.g., mm = 0.001 m, kPa = 1000 Pa).
+    ///     For derived units like kPa, the factor is applied to just one dimension
+    ///     (typically the first non-zero dimension), following the pattern used by DefinedUnits.
     /// </summary>
-    /// <param name="symbol">The unit symbol (e.g., "mm").</param>
+    /// <param name="symbol">The unit symbol (e.g., "mm", "kPa").</param>
     /// <param name="factor">The conversion factor relative to the base unit.</param>
     /// <param name="baseUnit">The base unit this is a multiple of.</param>
     /// <returns>The created NamedUnit.</returns>
@@ -60,12 +62,20 @@ public class RuntimeUnitRegistry
     {
         var dimensions = baseUnit.UnitDimensions.ToArray();
 
-        // Apply the factor to each dimension that has a non-zero power
+        // Apply the factor to the first dimension that has a non-zero power
+        // This follows the pattern from DefinedUnits where derived unit multiples
+        // (like kPa) apply the factor to the Mass dimension only
+        var factorApplied = false;
         for (var i = 0; i < dimensions.Length; i++)
         {
             if (dimensions[i].Power != 0)
             {
-                dimensions[i].Factor = baseUnit.UnitDimensions[i].Factor * factor;
+                if (!factorApplied)
+                {
+                    dimensions[i].Factor = baseUnit.UnitDimensions[i].Factor * factor;
+                    factorApplied = true;
+                }
+                // Keep other dimensions unchanged - just copy the power, factor stays at base
             }
         }
 

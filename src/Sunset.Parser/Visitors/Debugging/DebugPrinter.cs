@@ -75,7 +75,13 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
 
     private string Visit(NameExpression dest)
     {
-        return dest.GetResolvedDeclaration()?.FullPath ?? $"{dest.Name}!";
+        var resolved = dest.GetResolvedDeclaration();
+        // For unit declarations, just show the symbol (e.g., "mm" instead of "$env.$stdlib.mm")
+        if (resolved is UnitDeclaration unitDecl)
+        {
+            return unitDecl.Symbol;
+        }
+        return resolved?.FullPath ?? $"{dest.Name}!";
     }
 
     private string Visit(IfExpression dest)

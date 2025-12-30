@@ -288,6 +288,12 @@ public class NameResolver(ErrorLog log) : INameResolver
         // Resolve all names within the expression.
         Visit(dest.Expression, dest.ParentScope);
 
+        // Resolve names in the declared unit assignment if present (e.g., x {m} = ...)
+        if (dest.UnitAssignment != null)
+        {
+            Visit(dest.UnitAssignment, dest.ParentScope);
+        }
+
         // If the variable is declaring a new instance through a CallExpression, set the resolved declaration to the element declaration
         // This acts something like a proxy for the element type
         if (dest.Expression is not CallExpression callExpression) return;

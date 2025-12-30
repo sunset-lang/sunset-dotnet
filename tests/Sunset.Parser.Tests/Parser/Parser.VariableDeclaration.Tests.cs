@@ -8,54 +8,54 @@ namespace Sunset.Parser.Test.Parser;
 [TestFixture]
 public class ParserVariableDeclarationTests
 {
+    /// <summary>
+    /// Gets a variable declaration by running full analysis pipeline.
+    /// This is needed because unit symbols are resolved during name resolution.
+    /// </summary>
+    private VariableDeclaration GetAnalyzedVariableDeclaration(string input)
+    {
+        var sourceFile = SourceFile.FromString(input);
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        var fileScope = environment.ChildScopes["$file"] as FileScope;
+        if (fileScope is null)
+        {
+            throw new Exception("File scope not found.");
+        }
+
+        var declaration = fileScope.ChildDeclarations.Values.OfType<VariableDeclaration>().FirstOrDefault();
+        if (declaration is null)
+        {
+            throw new Exception("Variable declaration not found.");
+        }
+
+        return declaration;
+    }
+
     [Test]
     public void GetVariableDeclaration_WithValidInput_CorrectDeclaration()
     {
-        // Use Environment to get access to standard library units
-        var sourceFile = SourceFile.FromString("area <A> {mm^2} = 100 {mm} * 200 {mm}");
-        var environment = new Environment(sourceFile);
-        environment.Analyse(); // Run name resolution and type checking
+        var variable = GetAnalyzedVariableDeclaration("area <A> {mm^2} = 100 {mm} * 200 {mm}");
+        var stringRepresentation = DebugPrinter.Singleton.PrintVariableDeclaration(variable);
 
-        var fileScope = environment.ChildScopes["$file"] as FileScope;
-        Assert.That(fileScope, Is.Not.Null);
-
-        var variable = fileScope!.ChildDeclarations.GetValueOrDefault("area") as VariableDeclaration;
-        Assert.That(variable, Is.Not.Null);
-
-        var stringRepresentation = DebugPrinter.Singleton.PrintVariableDeclaration(variable!);
-        // Unit names are resolved to their full paths from the standard library
-        // TODO: Declared unit should show as {mm^2} but currently shows as {} - investigate
-        Assert.That(stringRepresentation, Is.EqualTo("area <A> {} = (* (assign 100 $env.$stdlib.mm) (assign 200 $env.$stdlib.mm))"));
+        Assert.That(stringRepresentation, Is.EqualTo("area <A> {mm^2} = (* (assign 100 mm) (assign 200 mm))"));
     }
 
     [Test]
     public void GetVariableDeclaration_WithComplexUnit_CorrectDeclaration()
     {
-        // Use Environment to get access to standard library units
-        var sourceFile = SourceFile.FromString("force <F> {kN} = 100 {kg} * 200 {m} / (400 {s})^2");
-        var environment = new Environment(sourceFile);
-        environment.Analyse(); // Run name resolution and type checking
+        var variable = GetAnalyzedVariableDeclaration("force <F> {kN} = 100 {kg} * 200 {m} / (400 {s})^2");
+        var stringRepresentation = DebugPrinter.Singleton.PrintVariableDeclaration(variable);
 
-        var fileScope = environment.ChildScopes["$file"] as FileScope;
-        Assert.That(fileScope, Is.Not.Null);
-
-        var variable = fileScope!.ChildDeclarations.GetValueOrDefault("force") as VariableDeclaration;
-        Assert.That(variable, Is.Not.Null);
-
-        var stringRepresentation = DebugPrinter.Singleton.PrintVariableDeclaration(variable!);
-        // Unit names are resolved to their full paths from the standard library
-        // TODO: Declared unit should show as {kN} but currently shows as {} - investigate
         Assert.That(stringRepresentation,
-            Is.EqualTo("force <F> {} = (/ (* (assign 100 $env.$stdlib.kg) (assign 200 $env.$stdlib.m)) (^ (assign 400 $env.$stdlib.s) 2))"));
+            Is.EqualTo("force <F> {kN} = (/ (* (assign 100 kg) (assign 200 m)) (^ (assign 400 s) 2))"));
     }
 
     [Test]
     public void GetVariableDeclaration_WithGreekLetter_CorrectDeclaration()
     {
-        var parser = new Parsing.Parser(SourceFile.FromString("""
-                                        phi <\phi> = 35
-                                        """));
-        var variable = parser.GetVariableDeclaration(new FileScope("$", null));
+        var variable = GetAnalyzedVariableDeclaration("phi <\\phi> = 35");
 
         Assert.That(variable.Variable.Symbol, Is.EqualTo("\\phi"));
     }

@@ -117,3 +117,19 @@ public class ListType(IResultType elementType) : IResultType
         return $"[{ElementType}]";
     }
 }
+
+/// <summary>
+/// The type representing a dimension declaration.
+/// </summary>
+public class DimensionType(DimensionDeclaration declaration) : IResultType
+{
+    /// <summary>
+    /// The dimension declaration this type represents.
+    /// </summary>
+    public DimensionDeclaration Declaration { get; } = declaration;
+
+    public override string ToString()
+    {
+        return $"Dimension({Declaration.Name})";
+    }
+}

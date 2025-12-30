@@ -75,8 +75,6 @@ public enum TokenType
     False, // false
     ErrorValue, // Represents an error passed through the calculations
 
-    NamedUnit, // e.g. m, s, kg, etc. See Common.Sunset.Units.BaseUnit.NamedCoherentUnitsBySymbol
-
     // Elements
     Define,
     Input,
@@ -85,4 +83,8 @@ public enum TokenType
     // List iteration context
     Value, // Current element value in list iteration
     Index, // Current element index in list iteration
+
+    // Units and Dimensions
+    Dimension, // dimension keyword for dimension declarations
+    Unit, // unit keyword for unit declarations
 }

@@ -38,6 +38,8 @@ public class ReferenceChecker(ErrorLog log)
             Argument argument => Visit(argument, visited),
             PositionalArgument positionalArgument => Visit(positionalArgument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
+            DimensionDeclaration => null, // Dimension declarations have no cyclic references
+            UnitDeclaration unitDeclaration => Visit(unitDeclaration, visited),
             UnitConstant => null,
             ValueConstant => null,
             IndexConstant => null,
@@ -98,6 +100,16 @@ public class ReferenceChecker(ErrorLog log)
 
     private HashSet<IDeclaration>? Visit(UnitAssignmentExpression dest, HashSet<IDeclaration> visited)
     {
+        return null;
+    }
+
+    private HashSet<IDeclaration>? Visit(UnitDeclaration dest, HashSet<IDeclaration> visited)
+    {
+        // Unit declarations may reference other units in their expression
+        if (dest.UnitExpression != null)
+        {
+            return Visit(dest.UnitExpression, visited);
+        }
         return null;
     }
 

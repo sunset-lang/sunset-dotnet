@@ -50,6 +50,8 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             UnitConstant unit => Visit(unit),
             VariableDeclaration variable => Visit(variable),
             ElementDeclaration element => Visit(element),
+            DimensionDeclaration dimension => Visit(dimension),
+            UnitDeclaration unit => Visit(unit),
             FileScope fileScope => Visit(fileScope),
             Environment environment => Visit(environment),
             ListExpression listExpression => Visit(listExpression),
@@ -75,7 +77,13 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
 
     private string Visit(NameExpression dest)
     {
-        return dest.GetResolvedDeclaration()?.FullPath ?? $"{dest.Name}!";
+        var resolved = dest.GetResolvedDeclaration();
+        // For unit declarations, just show the symbol (e.g., "mm" instead of "$env.$stdlib.mm")
+        if (resolved is UnitDeclaration unitDecl)
+        {
+            return unitDecl.Symbol;
+        }
+        return resolved?.FullPath ?? $"{dest.Name}!";
     }
 
     private string Visit(IfExpression dest)
@@ -137,6 +145,20 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
     {
         var elements = string.Join(", ", dest.Elements.Select(e => Visit(e)));
         return $"[{elements}]";
+    }
+
+    private string Visit(DimensionDeclaration dest)
+    {
+        return $"(dimension {dest.Name})";
+    }
+
+    private string Visit(UnitDeclaration dest)
+    {
+        if (dest.IsBaseUnit)
+        {
+            return $"(unit {dest.Symbol} : {dest.DimensionReference?.Name ?? "?"})";
+        }
+        return $"(unit {dest.Symbol} = {(dest.UnitExpression != null ? Visit(dest.UnitExpression) : "?")})";
     }
 
     private string Visit(IndexExpression dest)

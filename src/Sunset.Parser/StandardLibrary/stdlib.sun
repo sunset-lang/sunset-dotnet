@@ -1,0 +1,142 @@
+// SI Base Dimensions
+// These are the fundamental dimensions of physical quantities
+
+dimension Mass
+dimension Length
+dimension Time
+dimension ElectricCurrent
+dimension Temperature
+dimension Substance
+dimension LuminousIntensity
+dimension Angle
+
+// SI Base Units and Derived Units
+
+// Mass units - base unit is kilogram
+unit kg : Mass
+unit g = 0.001 kg
+unit mg = 1e-6 kg
+unit T = 1000 kg
+
+// Length units - base unit is metre
+unit m : Length
+unit nm = 1e-9 m
+unit um = 1e-6 m
+unit mm = 0.001 m
+unit cm = 0.01 m
+unit km = 1000 m
+
+// Time units - base unit is second
+unit s : Time
+unit ms = 0.001 s
+unit min = 60 s
+unit hr = 3600 s
+unit day = 86400 s
+unit month = 2.628e6 s
+unit year = 3.154e7 s
+
+// Electric current units - base unit is ampere
+unit A : ElectricCurrent
+unit mA = 0.001 A
+unit uA = 1e-6 A
+unit kA = 1000 A
+
+// Temperature units - base unit is kelvin
+unit K : Temperature
+unit mK = 0.001 K
+
+// Amount of substance units - base unit is mole
+unit mol : Substance
+unit mmol = 0.001 mol
+unit umol = 1e-6 mol
+unit kmol = 1000 mol
+
+// Luminous intensity units - base unit is candela
+unit cd : LuminousIntensity
+
+// Angle units - base unit is radian
+unit rad : Angle
+unit deg = 0.01745329251994 rad
+
+// Force units (derived: kg m / s^2)
+unit N = kg m / s^2
+unit kN = 1000 N
+unit MN = 1e6 N
+
+// Pressure units (derived: N / m^2 = kg / (m s^2))
+unit Pa = N / m^2
+unit kPa = 1000 Pa
+unit MPa = 1e6 Pa
+unit GPa = 1e9 Pa
+
+// Energy units (derived: N m = kg m^2 / s^2)
+unit J = N m
+unit kJ = 1000 J
+unit MJ = 1e6 J
+unit GJ = 1e9 J
+
+// Power units (derived: J / s = kg m^2 / s^3)
+unit W = J / s
+unit mW = 0.001 W
+unit kW = 1000 W
+unit MW = 1e6 W
+unit GW = 1e9 W
+
+// Electric charge units (derived: A s)
+unit C = A s
+unit mC = 0.001 C
+unit uC = 1e-6 C
+
+// Electric potential units (derived: W / A = kg m^2 / (A s^3))
+unit V = W / A
+unit mV = 0.001 V
+unit kV = 1000 V
+unit MV = 1e6 V
+
+// Electric resistance units (derived: V / A = kg m^2 / (A^2 s^3))
+unit Ohm = V / A
+unit mOhm = 0.001 Ohm
+unit kOhm = 1000 Ohm
+unit MOhm = 1e6 Ohm
+
+// Electric capacitance units (derived: C / V = A^2 s^4 / (kg m^2))
+unit F = C / V
+unit mF = 0.001 F
+unit uF = 1e-6 F
+unit nF = 1e-9 F
+unit pF = 1e-12 F
+
+// Frequency units (derived: 1 / s)
+unit Hz = 1 / s
+unit mHz = 0.001 Hz
+unit kHz = 1000 Hz
+unit MHz = 1e6 Hz
+unit GHz = 1e9 Hz
+
+// Velocity units (derived: m / s)
+unit mps = m / s
+
+// Acceleration units (derived: m / s^2)
+unit mps2 = m / s^2
+
+// Area units (derived: m^2)
+unit m2 = m^2
+unit mm2 = mm^2
+unit cm2 = cm^2
+unit km2 = km^2
+
+// Volume units (derived: m^3)
+unit m3 = m^3
+unit mm3 = mm^3
+unit cm3 = cm^3
+unit L = 0.001 m3
+unit mL = 1e-6 m3
+
+// Density units (derived: kg / m^3)
+unit kgpm3 = kg / m^3
+
+// Luminous flux units (derived: cd sr, where sr is dimensionless for our purposes)
+unit lm = cd
+
+// Illuminance units (derived: lm / m^2)
+unit lx = lm / m^2

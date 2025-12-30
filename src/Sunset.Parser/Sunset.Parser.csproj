@@ -17,4 +17,8 @@
         <ProjectReference Include="..\Sunset.Quantities\Sunset.Quantities.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Include="StandardLibrary\*.sun" />
+    </ItemGroup>
+
 </Project>

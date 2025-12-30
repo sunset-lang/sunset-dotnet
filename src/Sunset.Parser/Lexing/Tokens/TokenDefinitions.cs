@@ -66,5 +66,7 @@ public static class TokenDefinitions
         { "error", TokenType.ErrorValue },
         { "value", TokenType.Value },
         { "index", TokenType.Index },
+        { "dimension", TokenType.Dimension },
+        { "unit", TokenType.Unit },
     };
 }

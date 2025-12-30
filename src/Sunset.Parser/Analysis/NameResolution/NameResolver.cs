@@ -46,6 +46,12 @@ public class NameResolver(ErrorLog log) : INameResolver
             case IScope scope:
                 Visit(scope);
                 break;
+            case DimensionDeclaration dimensionDeclaration:
+                // Dimensions are terminal - no names to resolve
+                break;
+            case UnitDeclaration unitDeclaration:
+                Visit(unitDeclaration, parentScope);
+                break;
             case UnitConstant unitConstant:
                 Visit(unitConstant, parentScope);
                 break;
@@ -137,8 +143,23 @@ public class NameResolver(ErrorLog log) : INameResolver
 
     private void Visit(UnitAssignmentExpression dest, IScope parentScope)
     {
-        // TODO: Resolve names of units here, currently resolved for named units only in the UnitConstant itself
-        // This is to allow custom named units.
+        // Resolve names in the unit expression (e.g., kg, m, s in {kg m / s^2})
+        Visit(dest.UnitExpression, parentScope);
+    }
+
+    private void Visit(UnitDeclaration dest, IScope parentScope)
+    {
+        // For base units, resolve the dimension reference
+        if (dest.IsBaseUnit && dest.DimensionReference != null)
+        {
+            Visit(dest.DimensionReference, parentScope);
+        }
+
+        // For derived units, resolve names in the unit expression
+        if (dest.UnitExpression != null)
+        {
+            Visit(dest.UnitExpression, parentScope);
+        }
     }
 
     private void Visit(UnitConstant dest, IScope parentScope)
@@ -315,6 +336,12 @@ public class NameResolver(ErrorLog log) : INameResolver
 
         // Resolve all names within the expression.
         Visit(dest.Expression, dest.ParentScope);
+
+        // Resolve names in the declared unit assignment if present (e.g., x {m} = ...)
+        if (dest.UnitAssignment != null)
+        {
+            Visit(dest.UnitAssignment, dest.ParentScope);
+        }
 
         // If the variable is declaring a new instance through a CallExpression, set the resolved declaration to the element declaration
         // This acts something like a proxy for the element type

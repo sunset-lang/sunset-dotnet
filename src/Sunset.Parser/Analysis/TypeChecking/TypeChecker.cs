@@ -55,6 +55,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             ErrorConstant => ErrorValueType.Instance,
             ValueConstant => _iterationValueType ?? ErrorValueType.Instance,
             IndexConstant => QuantityType.Dimensionless,
+            DimensionDeclaration dimensionDeclaration => Visit(dimensionDeclaration),
+            UnitDeclaration unitDeclaration => Visit(unitDeclaration),
             ListExpression listExpression => Visit(listExpression),
             IndexExpression indexExpression => Visit(indexExpression),
             IScope scope => Visit(scope),
@@ -129,8 +131,16 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
                 return resultUnit == null ? null : new UnitType(resultUnit);
             }
+            // Handle quantity * unit (e.g., 0.001 kg) which produces a quantity type
+            // This pattern only occurs within unit declarations (like "unit g = 0.001 kg")
+            // because the parser doesn't allow bare unit symbols in regular expressions.
+            case QuantityType leftQuantityType when rightResult is UnitType rightUnitType:
+            {
+                var resultUnit = BinaryUnitOperation(dest, leftQuantityType.Unit, rightUnitType.Unit);
+                return resultUnit == null ? null : new QuantityType(resultUnit);
+            }
             default:
-                throw new NotImplementedException();
+                throw new NotImplementedException($"Binary expression type checking not implemented for left: {leftResult.GetType()}, right: {rightResult.GetType()}");
         }
     }
 
@@ -190,6 +200,12 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 // Compare with the declared unit of the variable, not the evaluated unit of the variable.
                 Visit(variableDeclaration),
             ElementDeclaration elementDeclaration => Visit(elementDeclaration),
+            UnitDeclaration unitDeclaration =>
+                // When referencing a unit in an expression, return its type
+                Visit(unitDeclaration),
+            DimensionDeclaration dimensionDeclaration =>
+                // When referencing a dimension, return the dimension type
+                new DimensionType(dimensionDeclaration),
             null =>
                 // Name resolution error was already logged by NameResolver, propagate error state
                 ErrorValueType.Instance,
@@ -455,6 +471,62 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     private static IResultType Visit(UnitConstant dest)
     {
         return new UnitType(dest.Unit);
+    }
+
+    private static IResultType Visit(DimensionDeclaration dest)
+    {
+        return new DimensionType(dest);
+    }
+
+    private IResultType? Visit(UnitDeclaration dest)
+    {
+        // Units are registered during environment loading in Environment.RegisterUnit().
+        // TypeChecker only needs to return the appropriate type for type checking purposes.
+
+        // If the unit is already resolved (registered during loading), return its type
+        if (dest.ResolvedUnit != null)
+        {
+            return new UnitType(dest.ResolvedUnit);
+        }
+
+        // For derived units, evaluate the unit expression to get its type
+        if (dest.UnitExpression != null)
+        {
+            var exprType = Visit(dest.UnitExpression);
+
+            // Unit expressions can evaluate to either UnitType (pure unit like kg m / s^2)
+            // or QuantityType (scaled unit like 1000 kg or 0.001 m)
+            if (exprType is UnitType unitType)
+            {
+                return unitType;
+            }
+
+            if (exprType is QuantityType quantityType)
+            {
+                // For scaled units like "unit T = 1000 kg", the expression evaluates to a quantity
+                // We extract the unit from the quantity type
+                return new UnitType(quantityType.Unit);
+            }
+
+            Log.Error(new TypeResolutionError(dest.UnitExpression));
+            return ErrorValueType.Instance;
+        }
+
+        // For base units with unresolved dimensions
+        if (dest.IsBaseUnit && dest.DimensionReference != null)
+        {
+            var dimensionType = Visit(dest.DimensionReference);
+            if (dimensionType is DimensionType)
+            {
+                // Base unit registration is handled in Environment.RegisterUnit()
+                return null;
+            }
+
+            Log.Error(new TypeResolutionError(dest.DimensionReference));
+            return ErrorValueType.Instance;
+        }
+
+        return null;
     }
 
     private IResultType? Visit(ListExpression dest)

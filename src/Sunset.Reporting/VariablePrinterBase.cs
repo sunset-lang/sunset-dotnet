@@ -103,9 +103,22 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
 
                         break;
                     }
-                    case IfExpression:
-                        result += eq.AlignEquals + ReportValueExpression(evaluationTarget, currentScope) + eq.Newline;
+                    case IfExpression ifExpression:
+                    {
+                        // Only print the value expression if the evaluated branch body has references
+                        // or is a binary expression (which would show the calculation with values substituted).
+                        // Skip for simple constants to avoid redundant output like "= 15 \\ = 15".
+                        if (ifExpression.GetResult(currentScope) is BranchResult branchResult)
+                        {
+                            var branchBody = branchResult.Result.Body;
+                            var branchReferences = branchBody.GetReferences();
+                            if (branchReferences?.Count > 0 || branchBody is BinaryExpression)
+                            {
+                                result += eq.AlignEquals + ReportValueExpression(evaluationTarget, currentScope) + eq.Newline;
+                            }
+                        }
                         break;
+                    }
                 }
 
                 result += eq.AlignEquals + ReportValue(evaluationTarget, currentScope) + eq.Linebreak;

@@ -226,7 +226,7 @@ public class Lexer
                 return GetIdentifierSymbolToken();
             case '"':
                 return GetStringToken();
-            case '#':
+            case '/' when _peek == '/':
                 return GetCommentToken();
         }
 
@@ -244,30 +244,19 @@ public class Lexer
     }
 
     /// <summary>
-    ///     Returns a string token of type Comment or Documentation from.
+    ///     Returns a string token of type Comment from // style comments.
     /// </summary>
     private StringToken GetCommentToken()
     {
         var start = _position;
 
+        // Consume both / characters
         Advance();
-
-        var isDocumentation = false;
-        if (_current == '#')
-        {
-            isDocumentation = true;
-            Advance();
-        }
+        Advance();
 
         while (_current != '\n' && _current != '\0') Advance();
 
-        if (isDocumentation)
-        {
-            return new StringToken(_source[(start + 2).._position], TokenType.Documentation, start, _position, _line,
-                _column, _file);
-        }
-
-        return new StringToken(_source[(start + 1).._position], TokenType.Comment, start, _position, _line, _column,
+        return new StringToken(_source[(start + 2).._position], TokenType.Comment, start, _position, _line, _column,
             _file);
     }
 
@@ -326,6 +315,18 @@ public class Lexer
                 }
 
                 foundExponent = true;
+
+                // Advance past 'e' or 'E'
+                Advance();
+
+                // Consume optional sign after exponent
+                if (_current is '+' or '-')
+                {
+                    Advance();
+                }
+
+                // Continue loop to consume exponent digits
+                continue;
             }
 
             // Advance to next char

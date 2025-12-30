@@ -30,8 +30,12 @@ public partial class Unit
             if (dimension.Power.Numerator == 0) continue;
 
             // Find the base unit for the dimension
-            var baseUnit = Units.DefinedUnits.BaseCoherentUnits[dimension.Name];
-            baseUnits.Add((baseUnit, dimension.Power));
+            // Try to parse the dimension name as a DimensionName enum for backwards compatibility
+            if (Enum.TryParse<DimensionName>(dimension.Name, out var dimensionName) &&
+                Units.DefinedUnits.BaseCoherentUnits.TryGetValue(dimensionName, out var baseUnit))
+            {
+                baseUnits.Add((baseUnit, dimension.Power));
+            }
         }
 
         return baseUnits;
@@ -226,7 +230,7 @@ public partial class Unit
     public int WholeUnitDivisorExponent(NamedUnit divisor)
     {
         var divisors = new List<int>();
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < UnitDimensions.Length; i++)
         {
             // If the dividend has a power of zero and the divisor also has a power of zero, the dimension is not 
             // relevant to the calculation. For example, m^2 and m both have a time dimension of zero, so the time
@@ -271,7 +275,7 @@ public partial class Unit
     public Rational PartialUnitDivisorExponent(BaseCoherentUnit divisor)
     {
         var divisors = new List<Rational>();
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < UnitDimensions.Length; i++)
         {
             // If the dividend has a power of zero and the divisor also has a power of zero, the dimension is not 
             // relevant to the calculation. For example, m^2 and m both have a time dimension of zero, so the time

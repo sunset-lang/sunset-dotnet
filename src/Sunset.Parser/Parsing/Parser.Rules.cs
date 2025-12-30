@@ -33,9 +33,8 @@ public partial class Parser
             { TokenType.Number, (Number, null, Precedence.Primary) },
             { TokenType.String, (String, null, Precedence.Primary) },
             { TokenType.MultilineString, (MultilineString, null, Precedence.Primary) },
-            { TokenType.Identifier, (Name, null, Precedence.Primary) },
-            { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
-            { TokenType.NamedUnit, (Unit, ImplicitMultiplication, Precedence.Primary) }
+            { TokenType.Identifier, (Name, ImplicitMultiplication, Precedence.Primary) },
+            { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) }
         };
 
     private static (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
@@ -182,9 +181,9 @@ public partial class Parser
 
     private static BinaryExpression ImplicitMultiplication(Parser parser, IExpression left)
     {
-        if (parser._current is not StringToken && parser._current.Type != TokenType.NamedUnit)
+        if (parser._current is not StringToken || parser._current.Type != TokenType.Identifier)
         {
-            throw new Exception("Expected a string token of type NamedUnit");
+            throw new Exception("Expected an identifier token for implicit multiplication");
         }
 
         var right = parser.GetArithmeticExpression(GetInfixTokenPrecedence(TokenType.Multiply));
@@ -203,13 +202,6 @@ public partial class Parser
     private static NameExpression Name(Parser parser)
     {
         if (parser.Consume(TokenType.Identifier) is StringToken token) return new NameExpression(token);
-
-        throw new Exception("Expected a string token");
-    }
-
-    private static UnitConstant Unit(Parser parser)
-    {
-        if (parser.Consume(TokenType.NamedUnit) is StringToken token) return new UnitConstant(token);
 
         throw new Exception("Expected a string token");
     }

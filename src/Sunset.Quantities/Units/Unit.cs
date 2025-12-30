@@ -69,7 +69,9 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     ///     The dimensions of the unit. Each dimension has a power and a factor.
     ///     <seealso cref="Dimension" />
     /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete - default value for legacy compatibility
     public ImmutableArray<Dimension> UnitDimensions { get; protected internal set; } = [..Dimension.DimensionlessSet()];
+#pragma warning restore CS0618
 
     public bool IsDimensionless => EqualDimensions(this, Units.DefinedUnits.Dimensionless);
 
@@ -144,7 +146,7 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         // If we are not cloning the factors, set them all to 1.
         if (!cloneFactors)
         {
-            for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+            for (var i = 0; i < dimensions.Length; i++)
             {
                 dimensions[i].Factor = 1;
             }
@@ -167,11 +169,29 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     /// <returns>True if the units have equal dimensions, false if not.</returns>
     public static bool EqualDimensions(Unit left, Unit right)
     {
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        // Use the smaller dimension count and check all dimensions match
+        var count = Math.Min(left.UnitDimensions.Length, right.UnitDimensions.Length);
+        for (var i = 0; i < count; i++)
         {
             if (left.UnitDimensions[i].Power != right.UnitDimensions[i].Power)
             {
                 return false;
+            }
+        }
+
+        // If one has more dimensions, those extra dimensions must all be zero power
+        if (left.UnitDimensions.Length > count)
+        {
+            for (var i = count; i < left.UnitDimensions.Length; i++)
+            {
+                if (left.UnitDimensions[i].Power != 0) return false;
+            }
+        }
+        if (right.UnitDimensions.Length > count)
+        {
+            for (var i = count; i < right.UnitDimensions.Length; i++)
+            {
+                if (right.UnitDimensions[i].Power != 0) return false;
             }
         }
 
@@ -196,7 +216,7 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     {
         double factor = 1;
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < UnitDimensions.Length; i++)
         {
             if (UnitDimensions[i].Power != 0)
             {
@@ -229,7 +249,7 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
         // For example, if converting a current unit in mm^2 (LengthFactor = 0.001) to a current unit in m
         // (LengthFactor = 1), the factor should be (1/0.001)^2 = 1,000,000
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < UnitDimensions.Length; i++)
         {
             if (UnitDimensions[i].Power != 0)
             {

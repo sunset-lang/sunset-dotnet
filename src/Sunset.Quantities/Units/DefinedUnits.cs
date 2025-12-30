@@ -78,7 +78,9 @@ public static class DefinedUnits
     // Pressure units
     private static ImmutableArray<Dimension> PressureUnitDimensions(double factor)
     {
+#pragma warning disable CS0618 // Type or member is obsolete - needed for legacy DefinedUnits
         var dimensions = Dimension.DimensionlessSet();
+#pragma warning restore CS0618
         dimensions[(int)DimensionName.Mass].Power = 1;
         dimensions[(int)DimensionName.Mass].Factor = factor;
         dimensions[(int)DimensionName.Length].Power = -1;
@@ -109,7 +111,9 @@ public static class DefinedUnits
     // Force units
     private static ImmutableArray<Dimension> ForceUnitDimensions(double factor)
     {
+#pragma warning disable CS0618 // Type or member is obsolete - needed for legacy DefinedUnits
         var dimensions = Dimension.DimensionlessSet();
+#pragma warning restore CS0618
         dimensions[(int)DimensionName.Mass].Power = 1;
         dimensions[(int)DimensionName.Mass].Factor = factor;
         dimensions[(int)DimensionName.Length].Power = 1;

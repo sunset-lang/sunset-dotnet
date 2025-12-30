@@ -44,23 +44,80 @@ public class ErrorFormattingTests
     [Test]
     public void ErrorMessage_BinaryUnitMismatch_ContainsBothUnits()
     {
-        var source = "x = 5 {mm} + 3 {s}";
+        var source = "x = 5 {m} + 3 {s}";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().First();
-        Assert.That(error.Message, Does.Contain("mm").And.Contain("s"),
+        Assert.That(error.Message, Does.Contain("m").And.Contain("s"),
             "Error message should include both mismatched units");
     }
 
     [Test]
     public void ErrorMessage_DeclaredUnitMismatch_ContainsBothUnits()
     {
-        var source = "x {mm} = 5 {s}";
+        var source = "x {m} = 5 {s}";
         var environment = ExecuteSource(source);
 
         var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().First();
-        Assert.That(error.Message, Does.Contain("mm").And.Contain("s"),
+        Assert.That(error.Message, Does.Contain("m").And.Contain("s"),
             "Error message should include both declared and evaluated units");
+    }
+
+    [Test]
+    public void ErrorMessage_BinaryUnitMismatch_WithUnitMultiples_ContainsBothUnits()
+    {
+        var source = "x = 5 {mm} + 3 {ms}";
+        var environment = ExecuteSource(source);
+
+        var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().First();
+        Assert.That(error.Message, Does.Contain("mm").And.Contain("ms"),
+            "Error message should include both mismatched unit multiples");
+    }
+
+    [Test]
+    public void ErrorMessage_BinaryUnitMismatch_WithDerivedUnits_ContainsBothUnits()
+    {
+        var source = "x = 5 {N} + 3 {Pa}";
+        var environment = ExecuteSource(source);
+
+        var error = environment.Log.Errors.OfType<BinaryUnitMismatchError>().First();
+        Assert.That(error.Message, Does.Contain("N").And.Contain("Pa"),
+            "Error message should include both mismatched derived units");
+    }
+
+    [Test]
+    public void ErrorMessage_DeclaredUnitMismatch_WithUnitMultiples_ContainsBothUnits()
+    {
+        var source = "x {mm} = 5 {ms}";
+        var environment = ExecuteSource(source);
+
+        var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().First();
+        Assert.That(error.Message, Does.Contain("mm").And.Contain("ms"),
+            "Error message should include both unit multiples");
+    }
+
+    [Test]
+    public void ErrorMessage_DeclaredUnitMismatch_WithDerivedUnits_ContainsBothUnits()
+    {
+        var source = "force {N} = 5 {Pa}";
+        var environment = ExecuteSource(source);
+
+        var error = environment.Log.Errors.OfType<DeclaredUnitMismatchError>().First();
+        Assert.That(error.Message, Does.Contain("N").And.Contain("Pa"),
+            "Error message should include both derived units");
+    }
+
+    [Test]
+    public void ErrorMessage_QuantityUnitMultiply_OutsideUnitDeclaration_IsSyntaxError()
+    {
+        // Using quantity * unit syntax (like 0.001 kg) outside unit declarations
+        // results in a syntax error because unit symbols are not valid in expressions
+        var source = "x = 0.001 kg";
+        var environment = ExecuteSource(source);
+
+        // Should have errors (Unexpected symbol kg)
+        Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0),
+            "Should report error when bare unit symbol is used outside unit declaration");
     }
 
     #endregion

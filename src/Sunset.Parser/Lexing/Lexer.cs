@@ -365,7 +365,15 @@ public class Lexer
                 start, _position, _line, _column, _file);
         }
 
-        return new IntToken(int.Parse(_source[start.._position].Span), start, _position, _line, _column, _file);
+        // Try to parse as int first, fall back to double for large numbers (fixes issue #71)
+        var numberSpan = _source[start.._position].Span;
+        if (int.TryParse(numberSpan, out var intValue))
+        {
+            return new IntToken(intValue, start, _position, _line, _column, _file);
+        }
+
+        // Number is too large for int, parse as double instead
+        return new DoubleToken(double.Parse(numberSpan), start, _position, _line, _column, _file);
     }
 
     /// <summary>

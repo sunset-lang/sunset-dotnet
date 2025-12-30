@@ -112,6 +112,45 @@ public class LexerSingleTokenTests
         lex.Log.PrintLogToConsole();
     }
 
+    /// <summary>
+    /// Regression test for issue #71: Large values should not truncate.
+    /// Numbers larger than int.MaxValue should be parsed as doubles.
+    /// </summary>
+    [Test]
+    public void GetNextToken_LargeInteger_ParsesAsDouble()
+    {
+        // 10 billion - larger than int.MaxValue (2,147,483,647)
+        var lex = new Lexing.Lexer(SourceFile.FromString("10000000000"), false);
+        var token = lex.GetNextToken();
+        Assert.That(token.Type, Is.EqualTo(TokenType.Number));
+        if (token is DoubleToken doubleToken)
+        {
+            Assert.That(doubleToken.Value, Is.EqualTo(10000000000.0));
+            return;
+        }
+
+        Assert.Fail("Large integer should be parsed as DoubleToken, not IntToken");
+    }
+
+    /// <summary>
+    /// Regression test for issue #71: Very large values should not truncate.
+    /// </summary>
+    [Test]
+    public void GetNextToken_VeryLargeInteger_ParsesCorrectly()
+    {
+        // 1 followed by 20 zeros - a very large number
+        var lex = new Lexing.Lexer(SourceFile.FromString("100000000000000000000"), false);
+        var token = lex.GetNextToken();
+        Assert.That(token.Type, Is.EqualTo(TokenType.Number));
+        if (token is DoubleToken doubleToken)
+        {
+            Assert.That(doubleToken.Value, Is.EqualTo(1e20));
+            return;
+        }
+
+        Assert.Fail("Very large integer should be parsed as DoubleToken");
+    }
+
     [Test]
     public void GetNextToken_SingleLineString_HasCorrectValue()
     {

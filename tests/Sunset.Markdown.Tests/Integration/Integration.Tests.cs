@@ -70,6 +70,38 @@ public class IntegrationTests
         AssertResultingReport(source, expected);
     }
 
+    /// <summary>
+    /// Regression test for issue #45: if expression should not print redundant value expression for constant values.
+    /// When a branch body is a simple constant (no references, no binary expression), the value expression
+    /// would be identical to the final result, so we skip printing it.
+    /// </summary>
+    [Test]
+    public void PrintDefaultValues_IfExpressionWithConstant_NoRedundantValueExpression()
+    {
+        var source = """
+                     x = 2
+                     y = 15 if x < 20
+                       = x + 5 if x < 30
+                       = 30 otherwise
+                     z = x + y + 5
+                     """;
+        // Note: The "= 15" value expression line should NOT appear because 15 is a constant.
+        // It would be redundant to show "= 15" followed by "= 15" (the final value).
+        var expected = """
+                       x &= 2 \\
+                       y &= \begin{cases}
+                       15 & \text{if}\quad x < 20 & \Rightarrow & 2 < 20 & \text{is true} \\
+                       x + 5 & \text{if}\quad x < 30 & & & \text{ignored} \\
+                       30 & \text{otherwise}\quad \\
+                       \end{cases} \\
+                       &= 15 \\
+                       z &= x + y + 5 \\
+                       &= 2 + 15 + 5 \\
+                       &= 22 \\
+                       """;
+        AssertResultingReport(source, expected);
+    }
+
     [Test]
     public void PrintDefaultValues_SquaredVariable_CorrectResult()
     {

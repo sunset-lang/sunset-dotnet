@@ -39,6 +39,8 @@ public class ReferenceChecker(ErrorLog log)
             PositionalArgument positionalArgument => Visit(positionalArgument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             UnitConstant => null,
+            ValueConstant => null,
+            IndexConstant => null,
             IScope scope => Visit(scope, visited),
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),

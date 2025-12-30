@@ -13,6 +13,9 @@ public static class ListMethods
         ["min"] = MinMethod.Instance,
         ["max"] = MaxMethod.Instance,
         ["average"] = AverageMethod.Instance,
+        ["foreach"] = ForEachMethod.Instance,
+        ["where"] = WhereMethod.Instance,
+        ["select"] = SelectMethod.Instance,
     };
 
     /// <summary>

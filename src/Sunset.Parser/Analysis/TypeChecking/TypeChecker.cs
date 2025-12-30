@@ -24,6 +24,12 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private static readonly TypeChecker Singleton = new(new ErrorLog());
 
+    /// <summary>
+    /// The current iteration context type for 'value' keyword in list methods.
+    /// This is set when type-checking expressions inside foreach/where/select.
+    /// </summary>
+    private IResultType? _iterationValueType;
+
     public IResultType? Visit(IVisitable dest)
     {
         // Protect against infinite recursion
@@ -47,6 +53,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorValueType.Instance,
+            ValueConstant => _iterationValueType ?? ErrorValueType.Instance,
+            IndexConstant => QuantityType.Dimensionless,
             ListExpression listExpression => Visit(listExpression),
             IndexExpression indexExpression => Visit(indexExpression),
             IScope scope => Visit(scope),
@@ -371,10 +379,47 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             }
         }
 
+        // For methods with expression arguments (foreach, where, select)
+        if (method is IListMethodWithExpression methodWithExpr)
+        {
+            if (dest.Arguments.Count == 0)
+            {
+                Log.Error(new ListMethodMissingArgumentError(dest, method.Name));
+                return ErrorValueType.Instance;
+            }
+
+            // Set the iteration context type for 'value' keyword
+            var previousValueType = _iterationValueType;
+            _iterationValueType = listType.ElementType;
+
+            // Type check the expression argument
+            var exprType = Visit(dest.Arguments[0].Expression);
+
+            // Restore the previous context
+            _iterationValueType = previousValueType;
+
+            if (exprType == null || exprType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+
+            // For 'where', check that the expression returns a boolean
+            if (method is WhereMethod && exprType is not BooleanType)
+            {
+                Log.Error(new ListMethodWrongArgumentTypeError(dest, method.Name, "boolean"));
+                return ErrorValueType.Instance;
+            }
+
+            // Determine result type using the expression type
+            var resultType = methodWithExpr.GetResultType(listType, exprType);
+            dest.SetEvaluatedType(resultType);
+            return resultType;
+        }
+
         // Determine the result type using the method's own logic
-        var resultType = method.GetResultType(listType);
-        dest.SetEvaluatedType(resultType);
-        return resultType;
+        var simpleResultType = method.GetResultType(listType);
+        dest.SetEvaluatedType(simpleResultType);
+        return simpleResultType;
     }
 
     private IResultType? Visit(Argument dest)

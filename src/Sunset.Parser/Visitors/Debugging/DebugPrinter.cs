@@ -45,6 +45,8 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             NumberConstant number => Visit(number),
             StringConstant str => Visit(str),
             ErrorConstant => "Error!",
+            ValueConstant => "value",
+            IndexConstant => "index",
             UnitConstant unit => Visit(unit),
             VariableDeclaration variable => Visit(variable),
             ElementDeclaration element => Visit(element),

@@ -81,4 +81,8 @@ public enum TokenType
     Define,
     Input,
     Output,
+
+    // List iteration context
+    Value, // Current element value in list iteration
+    Index, // Current element index in list iteration
 }

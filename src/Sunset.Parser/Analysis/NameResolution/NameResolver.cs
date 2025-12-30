@@ -62,6 +62,9 @@ public class NameResolver(ErrorLog log) : INameResolver
             case NumberConstant:
             case StringConstant:
             case ErrorConstant:
+            // Value and index are special iteration context variables resolved at evaluation time
+            case ValueConstant:
+            case IndexConstant:
                 break;
             default:
                 throw new ArgumentException($"Name resolver cannot visit the node of type {dest.GetType()}");
@@ -283,7 +286,13 @@ public class NameResolver(ErrorLog log) : INameResolver
         // Resolve the left side (the list expression)
         Visit(dotExpr.Left, parentScope);
 
-        // List methods don't have arguments that need resolution
+        // For methods with expression arguments (foreach, where, select),
+        // resolve the argument expression - value and index keywords are allowed
+        if (listMethod is IListMethodWithExpression && dest.Arguments.Count > 0)
+        {
+            Visit(dest.Arguments[0].Expression, parentScope);
+        }
+
         return true;
     }
 

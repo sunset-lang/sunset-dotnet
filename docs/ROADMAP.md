@@ -74,22 +74,23 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 ---
 
 ### Lists/Arrays - Advanced
-**Status:** 🔶 Partially Implemented
+**Status:** ✅ Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
 | Minimum | `list.min()` | ✅ |
 | Maximum | `list.max()` | ✅ |
 | Average | `list.average()` | ✅ |
-| Iteration | `list.foreach(expression)` | ⬜ |
-| Filter | `list.where(condition)` | ⬜ |
-| Map | `list.select(expression)` | ⬜ |
+| Iteration | `list.foreach(expression)` | ✅ |
+| Filter | `list.where(condition)` | ✅ |
+| Map | `list.select(expression)` | ✅ |
 
 **Implementation Notes:**
 - List method infrastructure implemented in `src/Sunset.Parser/BuiltIns/ListMethods/`
 - All methods preserve units when operating on lists with units
 - Proper error handling for empty lists and non-list targets
-- Add `value` and `index` keywords for foreach expressions
+- `value` and `index` keywords available in foreach/where/select expressions
+- Methods can be chained: `list.where(value > 5).select(value * 2).max()`
 
 ---
 
@@ -191,13 +192,13 @@ The following bugs have been fixed:
 | Math Functions | 7 | 7 | 0 | 0 |
 | Logical Operators | 3 | 0 | 1 | 2 |
 | Lists - Basic | 4 | 4 | 0 | 0 |
-| Lists - Advanced | 6 | 3 | 0 | 3 |
+| Lists - Advanced | 6 | 6 | 0 | 0 |
 | Dictionaries | 6 | 0 | 0 | 6 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **38** | **15** | **1** | **22** |
+| **Total** | **38** | **18** | **1** | **19** |
 
 ---
 

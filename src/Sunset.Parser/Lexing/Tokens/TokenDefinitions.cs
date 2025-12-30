@@ -64,5 +64,7 @@ public static class TokenDefinitions
         { "true", TokenType.True },
         { "false", TokenType.False },
         { "error", TokenType.ErrorValue },
+        { "value", TokenType.Value },
+        { "index", TokenType.Index },
     };
 }

@@ -61,31 +61,34 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 |---------|--------|--------|
 | List literal | `[item1, item2, item3]` | ✅ |
 | Index access | `list[index]` | ✅ |
-| First element | `list.first()` | ⬜ |
-| Last element | `list.last()` | ⬜ |
+| First element | `list.first()` | ✅ |
+| Last element | `list.last()` | ✅ |
 
 **Implementation Details:**
 - `ListExpression` class in `src/Sunset.Parser/Expressions/ListExpression.cs`
 - `IndexExpression` class in `src/Sunset.Parser/Expressions/IndexExpression.cs`
 - `ListType` for type checking in `src/Sunset.Parser/Results/Types/`
+- List methods in `src/Sunset.Parser/BuiltIns/ListMethods/`
 - Error handling in `src/Sunset.Parser/Errors/Semantic/ListErrors.cs`
 
 ---
 
 ### Lists/Arrays - Advanced
-**Status:** ⬜ Not Started
+**Status:** 🔶 Partially Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
+| Minimum | `list.min()` | ✅ |
+| Maximum | `list.max()` | ✅ |
+| Average | `list.average()` | ✅ |
 | Iteration | `list.foreach(expression)` | ⬜ |
-| Minimum | `list.min()` | ⬜ |
-| Maximum | `list.max()` | ⬜ |
-| Average | `list.average()` | ⬜ |
 | Filter | `list.where(condition)` | ⬜ |
 | Map | `list.select(expression)` | ⬜ |
 
 **Implementation Notes:**
-- Implement method call syntax for list operations
+- List method infrastructure implemented in `src/Sunset.Parser/BuiltIns/ListMethods/`
+- All methods preserve units when operating on lists with units
+- Proper error handling for empty lists and non-list targets
 - Add `value` and `index` keywords for foreach expressions
 
 ---
@@ -187,14 +190,14 @@ The following bugs have been fixed:
 |----------|-------|-----|-----|-----|
 | Math Functions | 7 | 7 | 0 | 0 |
 | Logical Operators | 3 | 0 | 1 | 2 |
-| Lists - Basic | 4 | 2 | 0 | 2 |
-| Lists - Advanced | 6 | 0 | 0 | 6 |
+| Lists - Basic | 4 | 4 | 0 | 0 |
+| Lists - Advanced | 6 | 3 | 0 | 3 |
 | Dictionaries | 6 | 0 | 0 | 6 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **38** | **10** | **1** | **27** |
+| **Total** | **38** | **15** | **1** | **22** |
 
 ---
 

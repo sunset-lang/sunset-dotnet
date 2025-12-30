@@ -47,8 +47,10 @@ public class ParserExpressionsTests
     [Test]
     public void Parse_UnitAssignment_CorrectTree()
     {
+        // Unit symbols inside {} are now parsed as NameExpression nodes (with ! suffix when unresolved)
+        // Name resolution happens during semantic analysis, not at parse time
         var stringRepresentation = PrintParsedExpression("12.5 {kg mm / s ^ 2} * 45 {kN m}");
-        Assert.That(stringRepresentation, Is.EqualTo("(* (assign 12.5 (/ (* kg mm) (^ s 2))) (assign 45 (* kN m)))"));
+        Assert.That(stringRepresentation, Is.EqualTo("(* (assign 12.5 (/ (* kg! mm!) (^ s! 2))) (assign 45 (* kN! m!)))"));
     }
 
     [Test]

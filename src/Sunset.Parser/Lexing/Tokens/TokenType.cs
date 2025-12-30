@@ -75,8 +75,6 @@ public enum TokenType
     False, // false
     ErrorValue, // Represents an error passed through the calculations
 
-    NamedUnit, // e.g. m, s, kg, etc. See Common.Sunset.Units.BaseUnit.NamedCoherentUnitsBySymbol
-
     // Elements
     Define,
     Input,

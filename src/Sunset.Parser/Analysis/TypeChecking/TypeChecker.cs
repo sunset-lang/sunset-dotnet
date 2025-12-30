@@ -1,6 +1,7 @@
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -259,6 +260,13 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             return VisitBuiltInFunction(dest, builtInFunc);
         }
 
+        // Check if this is a list method call
+        var listMethod = dest.GetListMethod();
+        if (listMethod != null)
+        {
+            return VisitListMethod(dest, listMethod);
+        }
+
         // Check each argument
         foreach (var argument in dest.Arguments)
         {
@@ -327,6 +335,44 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         // Determine the result type using the function's own logic
         var resultType = function.GetResultType(argType);
 
+        dest.SetEvaluatedType(resultType);
+        return resultType;
+    }
+
+    private IResultType? VisitListMethod(CallExpression dest, IListMethod method)
+    {
+        // The target should be a dot expression (list.methodName)
+        if (dest.Target is not BinaryExpression { Operator: TokenType.Dot } dotExpr)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Get the type of the target (the list expression)
+        var targetType = Visit(dotExpr.Left);
+        if (targetType == null || targetType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Check that the target is a list
+        if (targetType is not ListType listType)
+        {
+            Log.Error(new ListMethodOnNonListError(dest, method.Name));
+            return ErrorValueType.Instance;
+        }
+
+        // For min, max, average - check that the element type is numeric
+        if (method is MinMethod or MaxMethod or AverageMethod)
+        {
+            if (listType.ElementType is not QuantityType)
+            {
+                Log.Error(new NonNumericListMethodError(dest, method.Name));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        // Determine the result type using the method's own logic
+        var resultType = method.GetResultType(listType);
         dest.SetEvaluatedType(resultType);
         return resultType;
     }

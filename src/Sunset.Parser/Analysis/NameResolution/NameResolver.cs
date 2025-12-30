@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -199,6 +200,12 @@ public class NameResolver(ErrorLog log) : INameResolver
             return;
         }
 
+        // Check if this is a list method call (target.methodName())
+        if (TryResolveListMethod(dest, parentScope))
+        {
+            return;
+        }
+
         // Resolve the target of the call expression.
         Visit(dest.Target, parentScope);
         // If the target is an element, the argument names should be resolved within the scope of the element
@@ -244,6 +251,39 @@ public class NameResolver(ErrorLog log) : INameResolver
             Visit(argument.Expression, parentScope);
         }
 
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to resolve a call expression as a list method call (e.g., list.first()).
+    /// </summary>
+    /// <returns>True if the call is a list method, false otherwise.</returns>
+    private bool TryResolveListMethod(CallExpression dest, IScope parentScope)
+    {
+        // List methods must have a dot expression as target (e.g., list.first)
+        if (dest.Target is not BinaryExpression { Operator: TokenType.Dot } dotExpr) return false;
+
+        // The right side can be a name expression or a unit constant
+        // (some method names like 'min' are also unit symbols and get lexed as NamedUnit)
+        string? methodNameString = dotExpr.Right switch
+        {
+            NameExpression nameExpr => nameExpr.Name,
+            UnitConstant unitConst => unitConst.Token.Value.ToString(),
+            _ => null
+        };
+
+        if (methodNameString == null) return false;
+
+        // Check if the name matches a list method
+        if (!ListMethods.TryGet(methodNameString, out var listMethod)) return false;
+
+        // Mark this call expression as a list method call
+        dest.SetListMethod(listMethod);
+
+        // Resolve the left side (the list expression)
+        Visit(dotExpr.Left, parentScope);
+
+        // List methods don't have arguments that need resolution
         return true;
     }
 

@@ -2,7 +2,9 @@
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -283,6 +285,13 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return EvaluateBuiltInFunction(builtInFunc, dest, currentScope);
         }
 
+        // Check if this is a list method call
+        var listMethod = dest.GetListMethod();
+        if (listMethod != null)
+        {
+            return EvaluateListMethod(listMethod, dest, currentScope);
+        }
+
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
             // TODO: Handle error better
@@ -334,6 +343,43 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         // Delegate evaluation to the function implementation
         return func.Evaluate(quantityResult.Result);
+    }
+
+    /// <summary>
+    /// Evaluates a list method call (e.g., list.first(), list.max()).
+    /// </summary>
+    private IResult EvaluateListMethod(IListMethod method, CallExpression call, IScope scope)
+    {
+        // The target should be a dot expression (list.methodName)
+        if (call.Target is not BinaryExpression { Operator: TokenType.Dot } dotExpr)
+        {
+            return ErrorResult;
+        }
+
+        // Evaluate the list expression (the left side of the dot)
+        var listResult = Visit(dotExpr.Left, scope);
+        if (listResult is ErrorResult)
+        {
+            return ErrorResult;
+        }
+
+        if (listResult is not ListResult list)
+        {
+            // Error already logged by TypeChecker
+            return ErrorResult;
+        }
+
+        // Check for empty list
+        if (list.Count == 0)
+        {
+            Log.Error(new EmptyListMethodError(call, method.Name));
+            return ErrorResult;
+        }
+
+        // Delegate evaluation to the method implementation
+        var result = method.Evaluate(list);
+        call.SetResult(scope, result);
+        return result;
     }
 
     private IResult Visit(IScope dest, IScope currentScope)

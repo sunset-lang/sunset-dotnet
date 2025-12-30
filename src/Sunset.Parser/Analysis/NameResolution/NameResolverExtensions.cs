@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
@@ -40,5 +41,29 @@ public static class NameResolverExtensions
     public static bool IsBuiltInFunctionCall(this IVisitable dest)
     {
         return dest.GetPassData<NamePassData>(PassDataKey).BuiltInFunction != null;
+    }
+
+    /// <summary>
+    /// Gets the list method associated with this call expression, if any.
+    /// </summary>
+    public static IListMethod? GetListMethod(this IVisitable dest)
+    {
+        return dest.GetPassData<NamePassData>(PassDataKey).ListMethod;
+    }
+
+    /// <summary>
+    /// Sets the list method for this call expression.
+    /// </summary>
+    public static void SetListMethod(this IVisitable dest, IListMethod method)
+    {
+        dest.GetPassData<NamePassData>(PassDataKey).ListMethod = method;
+    }
+
+    /// <summary>
+    /// Checks if this call expression is a list method call.
+    /// </summary>
+    public static bool IsListMethodCall(this IVisitable dest)
+    {
+        return dest.GetPassData<NamePassData>(PassDataKey).ListMethod != null;
     }
 }

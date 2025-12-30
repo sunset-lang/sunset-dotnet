@@ -20,6 +20,9 @@ dotnet test tests/Sunset.Parser.Tests --filter "FullyQualifiedName~TestMethodNam
 # Run the Blazor docsite locally
 dotnet run --project src/Sunset.Docsite
 
+# Run the CLI on a Sunset file
+dotnet run --project src/Sunset.CLI -- path/to/file.sun
+
 # Publish docsite for deployment
 dotnet publish -c Release -o release src/Sunset.Docsite
 ```
@@ -39,7 +42,8 @@ Sunset.Reporting (uses Parser)
     ↑
 Sunset.Markdown (uses Parser + Reporting)
     ↑
-Sunset.Docsite (Blazor UI, uses Parser + Markdown)
+├── Sunset.Docsite (Blazor UI, uses Parser + Markdown)
+└── Sunset.CLI (uses Parser + Markdown)
 ```
 
 ### Core Projects
@@ -57,6 +61,8 @@ Sunset.Docsite (Blazor UI, uses Parser + Markdown)
 - **Sunset.Markdown**: Markdown output implementation using Markdig
 
 - **Sunset.Docsite**: Blazor WebAssembly app with Monaco editor for live compilation
+
+- **Sunset.CLI**: Command-line interface for running Sunset files
 
 ## Key Patterns
 
@@ -122,7 +128,20 @@ if (assignedType != null && evaluatedType != null &&
 
 ### Results
 
-- `IResult` hierarchy: `QuantityResult`, `ElementInstanceResult`, `BooleanResult`, `ErrorResult`, `SuccessResult`
+- `IResult` hierarchy: `QuantityResult`, `ElementInstanceResult`, `BooleanResult`, `ErrorResult`, `SuccessResult`, `ListResult`
+
+### Built-in Functions
+
+Mathematical functions are implemented in `BuiltIns/Functions/`:
+- `sqrt(x)`, `sin(x)`, `cos(x)`, `tan(x)`, `asin(x)`, `acos(x)`, `atan(x)`
+- Registry in `BuiltIns/BuiltInFunction.cs`
+- Type checking handles angle units; inverse trig functions return dimensionless results
+
+### Collections
+
+- **Lists**: `ListExpression` for `[item1, item2, ...]` syntax
+- **Index Access**: `IndexExpression` for `list[index]` syntax
+- **Type Checking**: `ListType` ensures element type consistency
 
 ## Testing Pattern
 

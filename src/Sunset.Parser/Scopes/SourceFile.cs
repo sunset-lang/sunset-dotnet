@@ -53,6 +53,17 @@ public class SourceFile
     }
 
     /// <summary>
+    ///     Creates a new instance of the <see cref="SourceFile" /> class from a string containing source code.
+    /// </summary>
+    /// <param name="source">The source code that is to be contained in the virtual file.</param>
+    /// <param name="log">Error logger to use when parsing source file.</param>
+    /// <param name="name">The name to give this source file.</param>
+    public static SourceFile FromString(string source, ErrorLog? log, string name)
+    {
+        return new SourceFile(name, source, log);
+    }
+
+    /// <summary>
     ///     Loads the source code from the specified file path.
     /// </summary>
     /// <param name="path">File path containing source code to be loaded.</param>

@@ -33,7 +33,7 @@ public partial class Parser
             { TokenType.Number, (Number, null, Precedence.Primary) },
             { TokenType.String, (String, null, Precedence.Primary) },
             { TokenType.MultilineString, (MultilineString, null, Precedence.Primary) },
-            { TokenType.Identifier, (Name, null, Precedence.Primary) },
+            { TokenType.Identifier, (Name, ImplicitMultiplication, Precedence.Primary) },
             { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
             { TokenType.NamedUnit, (Unit, ImplicitMultiplication, Precedence.Primary) }
         };
@@ -182,9 +182,9 @@ public partial class Parser
 
     private static BinaryExpression ImplicitMultiplication(Parser parser, IExpression left)
     {
-        if (parser._current is not StringToken && parser._current.Type != TokenType.NamedUnit)
+        if (parser._current is not StringToken && parser._current.Type != TokenType.NamedUnit && parser._current.Type != TokenType.Identifier)
         {
-            throw new Exception("Expected a string token of type NamedUnit");
+            throw new Exception("Expected a string token of type NamedUnit or Identifier");
         }
 
         var right = parser.GetArithmeticExpression(GetInfixTokenPrecedence(TokenType.Multiply));

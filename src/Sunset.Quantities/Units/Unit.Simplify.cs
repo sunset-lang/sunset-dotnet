@@ -30,8 +30,12 @@ public partial class Unit
             if (dimension.Power.Numerator == 0) continue;
 
             // Find the base unit for the dimension
-            var baseUnit = Units.DefinedUnits.BaseCoherentUnits[dimension.Name];
-            baseUnits.Add((baseUnit, dimension.Power));
+            // Try to parse the dimension name as a DimensionName enum for backwards compatibility
+            if (Enum.TryParse<DimensionName>(dimension.Name, out var dimensionName) &&
+                Units.DefinedUnits.BaseCoherentUnits.TryGetValue(dimensionName, out var baseUnit))
+            {
+                baseUnits.Add((baseUnit, dimension.Power));
+            }
         }
 
         return baseUnits;

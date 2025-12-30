@@ -69,6 +69,8 @@ public partial class Parser
             IDeclaration? declaration = _current.Type switch
             {
                 TokenType.Define => GetElementDeclaration(parentScope),
+                TokenType.Dimension => GetDimensionDeclaration(parentScope),
+                TokenType.Unit => GetUnitDeclaration(parentScope),
                 TokenType.Identifier or TokenType.OpenAngleBracket => GetVariableDeclaration(parentScope),
                 _ => null
             };
@@ -252,7 +254,8 @@ public partial class Parser
             // the parsing rules.
             if (!_inUnitExpression && _current.Type == TokenType.Identifier)
             {
-                throw new Exception("Implicit multiplication is not allowed outside unit expressions");
+                // Break out of the loop - this identifier starts a new expression, not implicit multiplication
+                break;
             }
 
             var infixParsingRule = GetParsingRule(_current.Type);
@@ -270,7 +273,7 @@ public partial class Parser
                     return expression;
                 }
 
-                throw new Exception("Error parsing expression, expected an infix parse rule");
+                throw new Exception($"Error parsing expression, expected an infix parse rule for token type {_current.Type} with value '{_current}'");
             }
 
             if (infixParsingRule.infixPrecedence <= minPrecedence) break;
@@ -282,6 +285,91 @@ public partial class Parser
         return expression;
     }
 
+
+    /// <summary>
+    ///     Parses a dimension declaration (e.g., "dimension Mass").
+    /// </summary>
+    /// <param name="parentScope">The parent scope for this declaration.</param>
+    /// <returns>The parsed DimensionDeclaration.</returns>
+    public DimensionDeclaration? GetDimensionDeclaration(IScope parentScope)
+    {
+        var dimensionToken = Consume(TokenType.Dimension);
+        if (dimensionToken == null)
+        {
+            throw new Exception("Expected a dimension token");
+        }
+
+        if (Consume(TokenType.Identifier) is not StringToken nameToken)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            return null;
+        }
+
+        // End with a newline or end of file
+        Consume([TokenType.Newline, TokenType.EndOfFile]);
+
+        return new DimensionDeclaration(nameToken, parentScope);
+    }
+
+    /// <summary>
+    ///     Parses a unit declaration.
+    ///     Can be a base unit (e.g., "unit kg : Mass"),
+    ///     a unit multiple (e.g., "unit g = 0.001 kg"),
+    ///     or a derived unit (e.g., "unit N = kg * m / s^2").
+    /// </summary>
+    /// <param name="parentScope">The parent scope for this declaration.</param>
+    /// <returns>The parsed UnitDeclaration.</returns>
+    public UnitDeclaration? GetUnitDeclaration(IScope parentScope)
+    {
+        var unitToken = Consume(TokenType.Unit);
+        if (unitToken == null)
+        {
+            throw new Exception("Expected a unit token");
+        }
+
+        if (Consume(TokenType.Identifier) is not StringToken symbolToken)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            return null;
+        }
+
+        // Check for base unit syntax: unit kg : Mass
+        if (_current.Type == TokenType.Colon)
+        {
+            Consume(TokenType.Colon);
+
+            if (Consume(TokenType.Identifier) is not StringToken dimensionNameToken)
+            {
+                Log.Error(new UnexpectedSymbolError(_current));
+                return null;
+            }
+
+            var dimensionReference = new NameExpression(dimensionNameToken);
+
+            // End with a newline or end of file
+            Consume([TokenType.Newline, TokenType.EndOfFile]);
+
+            return new UnitDeclaration(symbolToken, dimensionReference, parentScope);
+        }
+
+        // Otherwise derived/multiple syntax: unit g = 0.001 kg
+        var equalToken = Consume(TokenType.Equal);
+        if (equalToken == null)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            return null;
+        }
+
+        // Enable unit expression mode for parsing the unit expression
+        _inUnitExpression = true;
+        var unitExpression = GetArithmeticExpression();
+        _inUnitExpression = false;
+
+        // End with a newline or end of file
+        Consume([TokenType.Newline, TokenType.EndOfFile]);
+
+        return new UnitDeclaration(symbolToken, unitExpression, parentScope);
+    }
 
     public ElementDeclaration? GetElementDeclaration(IScope parentScope)
     {
@@ -512,6 +600,14 @@ public partial class Parser
         _position++;
         // TODO: Handle token errors here
         _current = _tokens[_position];
+
+        // Skip comment tokens - they are not part of the parse tree
+        while (_current.Type is TokenType.Comment or TokenType.Documentation && _position < _tokens.Length - 1)
+        {
+            _position++;
+            _current = _tokens[_position];
+        }
+
         _peek = Peek();
         _peekNext = PeekNext();
     }
@@ -573,13 +669,21 @@ public partial class Parser
     }
 
     /// <summary>
-    ///     Consumes all new line tokens until a non-new line token is found.
+    ///     Consumes all new line and comment tokens until a non-newline/non-comment token is found.
     /// </summary>
     private void ConsumeNewlines()
     {
-        while (_current.Type is TokenType.Newline)
+        while (_current.Type is TokenType.Newline or TokenType.Comment or TokenType.Documentation)
         {
-            Consume(TokenType.Newline);
+            if (_current.Type == TokenType.Newline)
+            {
+                Consume(TokenType.Newline);
+            }
+            else
+            {
+                // Skip comment tokens by advancing
+                Advance();
+            }
         }
     }
 
@@ -624,6 +728,14 @@ public partial class Parser
     {
         _position = 0;
         _current = _tokens[_position];
+
+        // Skip comment tokens at the beginning
+        while (_current.Type is TokenType.Comment or TokenType.Documentation && _position < _tokens.Length - 1)
+        {
+            _position++;
+            _current = _tokens[_position];
+        }
+
         _peek = Peek();
         _peekNext = PeekNext();
     }

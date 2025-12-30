@@ -63,6 +63,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             ListExpression listExpression => Visit(listExpression, currentScope),
             IndexExpression indexExpression => Visit(indexExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
+            DimensionDeclaration => SuccessResult,  // Dimensions don't need evaluation
+            UnitDeclaration => SuccessResult,  // Units don't need evaluation (already registered)
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
         };

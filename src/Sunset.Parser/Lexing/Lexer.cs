@@ -226,8 +226,6 @@ public class Lexer
                 return GetIdentifierSymbolToken();
             case '"':
                 return GetStringToken();
-            case '#':
-                return GetCommentToken();
             case '/' when _peek == '/':
                 return GetCommentToken();
         }
@@ -246,42 +244,19 @@ public class Lexer
     }
 
     /// <summary>
-    ///     Returns a string token of type Comment or Documentation.
-    ///     Supports both # and // style comments.
+    ///     Returns a string token of type Comment from // style comments.
     /// </summary>
     private StringToken GetCommentToken()
     {
         var start = _position;
-        var commentStart = _current;
 
+        // Consume both / characters
         Advance();
-
-        var isDocumentation = false;
-        var prefixLength = 1;
-
-        // Handle // style comments
-        if (commentStart == '/')
-        {
-            Advance(); // consume second /
-            prefixLength = 2;
-        }
-        // Handle ## documentation comments
-        else if (_current == '#')
-        {
-            isDocumentation = true;
-            Advance();
-            prefixLength = 2;
-        }
+        Advance();
 
         while (_current != '\n' && _current != '\0') Advance();
 
-        if (isDocumentation)
-        {
-            return new StringToken(_source[(start + prefixLength).._position], TokenType.Documentation, start, _position, _line,
-                _column, _file);
-        }
-
-        return new StringToken(_source[(start + prefixLength).._position], TokenType.Comment, start, _position, _line, _column,
+        return new StringToken(_source[(start + 2).._position], TokenType.Comment, start, _position, _line, _column,
             _file);
     }
 

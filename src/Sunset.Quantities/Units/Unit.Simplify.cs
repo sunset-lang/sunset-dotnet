@@ -230,7 +230,7 @@ public partial class Unit
     public int WholeUnitDivisorExponent(NamedUnit divisor)
     {
         var divisors = new List<int>();
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < UnitDimensions.Length; i++)
         {
             // If the dividend has a power of zero and the divisor also has a power of zero, the dimension is not 
             // relevant to the calculation. For example, m^2 and m both have a time dimension of zero, so the time
@@ -275,7 +275,7 @@ public partial class Unit
     public Rational PartialUnitDivisorExponent(BaseCoherentUnit divisor)
     {
         var divisors = new List<Rational>();
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < UnitDimensions.Length; i++)
         {
             // If the dividend has a power of zero and the divisor also has a power of zero, the dimension is not 
             // relevant to the calculation. For example, m^2 and m both have a time dimension of zero, so the time

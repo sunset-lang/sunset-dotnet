@@ -123,6 +123,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 return resultUnit == null ? null : new UnitType(resultUnit);
             }
             // Handle quantity * unit (e.g., 0.001 kg) which produces a quantity type
+            // This pattern only occurs within unit declarations (like "unit g = 0.001 kg")
+            // because the parser doesn't allow bare unit symbols in regular expressions.
             case QuantityType leftQuantityType when rightResult is UnitType rightUnitType:
             {
                 var resultUnit = BinaryUnitOperation(dest, leftQuantityType.Unit, rightUnitType.Unit);
@@ -387,13 +389,16 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private IResultType? Visit(UnitDeclaration dest)
     {
-        // If the unit is already resolved (base units registered during loading), return its type
+        // Units are registered during environment loading in Environment.RegisterUnit().
+        // TypeChecker only needs to return the appropriate type for type checking purposes.
+
+        // If the unit is already resolved (registered during loading), return its type
         if (dest.ResolvedUnit != null)
         {
             return new UnitType(dest.ResolvedUnit);
         }
 
-        // For derived units, evaluate the unit expression
+        // For derived units, evaluate the unit expression to get its type
         if (dest.UnitExpression != null)
         {
             var exprType = Visit(dest.UnitExpression);
@@ -402,7 +407,6 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             // or QuantityType (scaled unit like 1000 kg or 0.001 m)
             if (exprType is UnitType unitType)
             {
-                // TODO: Register the derived unit with the registry
                 return unitType;
             }
 
@@ -410,7 +414,6 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             {
                 // For scaled units like "unit T = 1000 kg", the expression evaluates to a quantity
                 // We extract the unit from the quantity type
-                // TODO: Register the unit multiple with the registry, including the scale factor
                 return new UnitType(quantityType.Unit);
             }
 
@@ -424,7 +427,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             var dimensionType = Visit(dest.DimensionReference);
             if (dimensionType is DimensionType)
             {
-                // TODO: Register the base unit with the registry
+                // Base unit registration is handled in Environment.RegisterUnit()
                 return null;
             }
 

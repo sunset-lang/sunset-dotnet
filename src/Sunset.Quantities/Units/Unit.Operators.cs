@@ -24,7 +24,7 @@ public partial class Unit
     {
         var dimensions = left.UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < dimensions.Length; i++)
         {
             dimensions[i].Power -= right.UnitDimensions[i].Power;
         }
@@ -46,7 +46,7 @@ public partial class Unit
     {
         var dimensions = left.UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++)
+        for (var i = 0; i < dimensions.Length; i++)
         {
             dimensions[i].Power += right.UnitDimensions[i].Power;
         }
@@ -74,7 +74,7 @@ public partial class Unit
 
         var dimensions = UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power *= rationalPower;
+        for (var i = 0; i < dimensions.Length; i++) dimensions[i].Power *= rationalPower;
 
         return new Unit
         {
@@ -89,7 +89,7 @@ public partial class Unit
 
         var dimensions = UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power *= power;
+        for (var i = 0; i < dimensions.Length; i++) dimensions[i].Power *= power;
 
         return new Unit
         {
@@ -104,7 +104,7 @@ public partial class Unit
     {
         var dimensions = UnitDimensions.ToArray();
 
-        for (var i = 0; i < Dimension.NumberOfDimensions; i++) dimensions[i].Power /= 2;
+        for (var i = 0; i < dimensions.Length; i++) dimensions[i].Power /= 2;
 
         return new Unit
         {

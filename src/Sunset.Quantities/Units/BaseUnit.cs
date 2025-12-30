@@ -20,7 +20,9 @@ public class BaseCoherentUnit : NamedUnit
         : base(unitName, prefixSymbol, baseUnitSymbol)
     {
         PrimaryDimension = dimensionName;
+#pragma warning disable CS0618 // Type or member is obsolete - needed for legacy DefinedUnits
         var dimensions = Dimension.DimensionlessSet();
+#pragma warning restore CS0618
         dimensions[(int)dimensionName].Power = 1;
         UnitDimensions = [..dimensions];
         Symbol = prefixSymbol + baseUnitSymbol;

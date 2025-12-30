@@ -1,4 +1,5 @@
 ﻿using Sunset.Parser.Scopes;
+using Sunset.Quantities.Units;
 
 namespace Sunset.Parser.Lexing.Tokens;
 
@@ -20,10 +21,15 @@ public class StringToken : ValueTokenBase<ReadOnlyMemory<char>>
             if (TokenDefinitions.Keywords.TryGetValue(valueString, out var keywordType))
             {
                 Type = keywordType;
+                return;
             }
 
-            // Note: Unit symbol resolution is now deferred to semantic analysis
-            // to support runtime-defined units from the standard library
+            // Check for known unit symbols in the DefinedUnits dictionary
+            // This supports both built-in units and runtime-registered units
+            if (DefinedUnits.IsUnitSymbol(valueString))
+            {
+                Type = TokenType.NamedUnit;
+            }
         }
     }
 

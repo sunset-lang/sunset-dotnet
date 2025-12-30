@@ -327,7 +327,9 @@ public partial class Parser
             throw new Exception("Expected a unit token");
         }
 
-        if (Consume(TokenType.Identifier) is not StringToken symbolToken)
+        // Accept both Identifier and NamedUnit tokens for the symbol
+        // (NamedUnit token occurs when re-declaring a unit that's already known)
+        if (Consume([TokenType.Identifier, TokenType.NamedUnit]) is not StringToken symbolToken)
         {
             Log.Error(new UnexpectedSymbolError(_current));
             return null;

@@ -23,8 +23,8 @@ public class ParserVariableDeclarationTests
         Assert.That(variable, Is.Not.Null);
 
         var stringRepresentation = DebugPrinter.Singleton.PrintVariableDeclaration(variable!);
-        // Unit names are now fully qualified paths from the standard library
-        Assert.That(stringRepresentation, Is.EqualTo("area <A> {} = (* (assign 100 $env.$stdlib.mm) (assign 200 $env.$stdlib.mm))"));
+        // The declared unit is {mm^2}, and unit symbols are printed directly
+        Assert.That(stringRepresentation, Is.EqualTo("area <A> {mm^2} = (* (assign 100 mm) (assign 200 mm))"));
     }
 
     [Test]
@@ -42,9 +42,9 @@ public class ParserVariableDeclarationTests
         Assert.That(variable, Is.Not.Null);
 
         var stringRepresentation = DebugPrinter.Singleton.PrintVariableDeclaration(variable!);
-        // Unit names are now fully qualified paths from the standard library
+        // The declared unit is {kN}, and unit symbols are printed directly
         Assert.That(stringRepresentation,
-            Is.EqualTo("force <F> {} = (/ (* (assign 100 $env.$stdlib.kg) (assign 200 $env.$stdlib.m)) (^ (assign 400 $env.$stdlib.s) 2))"));
+            Is.EqualTo("force <F> {kN} = (/ (* (assign 100 kg) (assign 200 m)) (^ (assign 400 s) 2))"));
     }
 
     [Test]

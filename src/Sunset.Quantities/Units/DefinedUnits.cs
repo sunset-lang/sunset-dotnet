@@ -205,9 +205,28 @@ public static class DefinedUnits
 
     /// <summary>
     ///     A dictionary that maps the symbol of each named coherent unit to the unit itself.
+    ///     This dictionary can be extended at runtime using RegisterUnit.
     /// </summary>
-    public static readonly Dictionary<string, NamedUnit> NamedUnits = UnitList
+    public static Dictionary<string, NamedUnit> NamedUnits { get; } = UnitList
         .ToDictionary(unit => unit.Symbol, unit => unit);
+
+    /// <summary>
+    ///     Registers a unit symbol to the NamedUnits dictionary.
+    ///     This allows runtime-defined units to be recognized by the lexer.
+    /// </summary>
+    /// <param name="symbol">The unit symbol (e.g., "kg", "m").</param>
+    /// <param name="unit">The unit to register.</param>
+    public static void RegisterUnit(string symbol, NamedUnit unit)
+    {
+        NamedUnits[symbol] = unit;
+    }
+
+    /// <summary>
+    ///     Checks if a unit symbol is registered.
+    /// </summary>
+    /// <param name="symbol">The unit symbol to check.</param>
+    /// <returns>True if the symbol is registered, false otherwise.</returns>
+    public static bool IsUnitSymbol(string symbol) => NamedUnits.ContainsKey(symbol);
 
     private static Dictionary<NamedUnit, List<NamedUnitMultiple>> GetNamedUnitMultiples()
     {

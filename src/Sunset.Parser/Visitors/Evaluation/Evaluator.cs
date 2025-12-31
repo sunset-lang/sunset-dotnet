@@ -2,7 +2,9 @@
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Errors;
+using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -25,6 +27,16 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
     private static readonly ErrorResult ErrorResult = ErrorResult.Instance;
     private static readonly SuccessResult SuccessResult = SuccessResult.Instance;
+
+    /// <summary>
+    /// Current value in list iteration context (for 'value' keyword).
+    /// </summary>
+    private IResult? _iterationValue;
+
+    /// <summary>
+    /// Current index in list iteration context (for 'index' keyword).
+    /// </summary>
+    private int _iterationIndex;
 
     public static IResult EvaluateExpression(IExpression expression)
     {
@@ -60,6 +72,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorResult,
+            ValueConstant => _iterationValue ?? ErrorResult,
+            IndexConstant => new QuantityResult(_iterationIndex, DefinedUnits.Dimensionless),
             ListExpression listExpression => Visit(listExpression, currentScope),
             IndexExpression indexExpression => Visit(indexExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
@@ -285,6 +299,13 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return EvaluateBuiltInFunction(builtInFunc, dest, currentScope);
         }
 
+        // Check if this is a list method call
+        var listMethod = dest.GetListMethod();
+        if (listMethod != null)
+        {
+            return EvaluateListMethod(listMethod, dest, currentScope);
+        }
+
         if (dest.GetResolvedDeclaration() is not ElementDeclaration elementDeclaration)
         {
             // TODO: Handle error better
@@ -336,6 +357,70 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         // Delegate evaluation to the function implementation
         return func.Evaluate(quantityResult.Result);
+    }
+
+    /// <summary>
+    /// Evaluates a list method call (e.g., list.first(), list.max()).
+    /// </summary>
+    private IResult EvaluateListMethod(IListMethod method, CallExpression call, IScope scope)
+    {
+        // The target should be a dot expression (list.methodName)
+        if (call.Target is not BinaryExpression { Operator: TokenType.Dot } dotExpr)
+        {
+            return ErrorResult;
+        }
+
+        // Evaluate the list expression (the left side of the dot)
+        var listResult = Visit(dotExpr.Left, scope);
+        if (listResult is ErrorResult)
+        {
+            return ErrorResult;
+        }
+
+        if (listResult is not ListResult list)
+        {
+            // Error already logged by TypeChecker
+            return ErrorResult;
+        }
+
+        // Check for empty list (except for where which can handle empty lists)
+        if (list.Count == 0 && method is not WhereMethod)
+        {
+            Log.Error(new EmptyListMethodError(call, method.Name));
+            return ErrorResult;
+        }
+
+        // For methods with expression arguments (foreach, where, select)
+        if (method is IListMethodWithExpression methodWithExpr && call.Arguments.Count > 0)
+        {
+            var expression = call.Arguments[0].Expression;
+
+            // Create an evaluator function that sets up the iteration context
+            IResult EvaluateWithContext(IExpression expr, IScope s, IResult value, int index)
+            {
+                var previousValue = _iterationValue;
+                var previousIndex = _iterationIndex;
+
+                _iterationValue = value;
+                _iterationIndex = index;
+
+                var result = Visit(expr, s);
+
+                _iterationValue = previousValue;
+                _iterationIndex = previousIndex;
+
+                return result;
+            }
+
+            var result = methodWithExpr.Evaluate(list, expression, scope, EvaluateWithContext);
+            call.SetResult(scope, result);
+            return result;
+        }
+
+        // Delegate evaluation to the method implementation
+        var simpleResult = method.Evaluate(list);
+        call.SetResult(scope, simpleResult);
+        return simpleResult;
     }
 
     private IResult Visit(IScope dest, IScope currentScope)

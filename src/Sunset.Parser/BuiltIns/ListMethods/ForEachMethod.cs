@@ -1,0 +1,59 @@
+using Sunset.Parser.Expressions;
+using Sunset.Parser.Results;
+using Sunset.Parser.Results.Types;
+using Sunset.Parser.Scopes;
+
+namespace Sunset.Parser.BuiltIns.ListMethods;
+
+/// <summary>
+/// Executes an expression for each element in a list.
+/// Returns a list of the evaluated results (same as select).
+/// </summary>
+public class ForEachMethod : IListMethodWithExpression
+{
+    public static ForEachMethod Instance { get; } = new();
+
+    public string Name => "foreach";
+
+    /// <summary>
+    /// The result type is a list of whatever type the expression evaluates to.
+    /// </summary>
+    public IResultType GetResultType(ListType listType, IResultType expressionType)
+    {
+        return new ListType(expressionType);
+    }
+
+    // IListMethod interface - not used directly, but required
+    public IResultType GetResultType(ListType listType)
+    {
+        // Default to element type if we don't know the expression type
+        return new ListType(listType.ElementType);
+    }
+
+    public IResult Evaluate(ListResult list)
+    {
+        // This method requires an expression argument, so return error if called without
+        return ErrorResult.Instance;
+    }
+
+    public IResult Evaluate(ListResult list, IExpression expression, IScope scope,
+        Func<IExpression, IScope, IResult, int, IResult> evaluator)
+    {
+        var results = new List<IResult>();
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            var elementValue = list[i];
+            var result = evaluator(expression, scope, elementValue, i);
+
+            if (result is ErrorResult)
+            {
+                return ErrorResult.Instance;
+            }
+
+            results.Add(result);
+        }
+
+        return new ListResult(results);
+    }
+}

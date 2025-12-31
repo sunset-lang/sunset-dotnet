@@ -80,6 +80,10 @@ public enum TokenType
     Input,
     Output,
 
+    // List iteration context
+    Value, // Current element value in list iteration
+    Index, // Current element index in list iteration
+
     // Units and Dimensions
     Dimension, // dimension keyword for dimension declarations
     Unit, // unit keyword for unit declarations

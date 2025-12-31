@@ -54,3 +54,103 @@ public class IndexOutOfBoundsError(IndexExpression indexExpression, int index, i
     public IToken StartToken { get; } = indexExpression.OpenBracket;
     public IToken? EndToken => indexExpression.CloseBracket;
 }
+
+/// <summary>
+/// Error when calling a list method on a non-list type.
+/// </summary>
+public class ListMethodOnNonListError : ISemanticError
+{
+    public ListMethodOnNonListError(CallExpression call, string methodName)
+    {
+        Message = $"Cannot call list method '{methodName}()' on a non-list value.";
+        if (call.Target is BinaryExpression bin)
+        {
+            StartToken = bin.OperatorToken;
+        }
+    }
+
+    public string Message { get; }
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; }
+    public IToken? EndToken => null;
+}
+
+/// <summary>
+/// Error when calling a list method on an empty list.
+/// </summary>
+public class EmptyListMethodError : ISemanticError
+{
+    public EmptyListMethodError(CallExpression call, string methodName)
+    {
+        Message = $"Cannot call '{methodName}()' on an empty list.";
+        if (call.Target is BinaryExpression bin)
+        {
+            StartToken = bin.OperatorToken;
+        }
+    }
+
+    public string Message { get; }
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; }
+    public IToken? EndToken => null;
+}
+
+/// <summary>
+/// Error when calling min/max/average on a list of non-numeric elements.
+/// </summary>
+public class NonNumericListMethodError : ISemanticError
+{
+    public NonNumericListMethodError(CallExpression call, string methodName)
+    {
+        Message = $"Cannot call '{methodName}()' on a list containing non-numeric elements.";
+        if (call.Target is BinaryExpression bin)
+        {
+            StartToken = bin.OperatorToken;
+        }
+    }
+
+    public string Message { get; }
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; }
+    public IToken? EndToken => null;
+}
+
+/// <summary>
+/// Error when a list method that requires an expression argument is called without one.
+/// </summary>
+public class ListMethodMissingArgumentError : ISemanticError
+{
+    public ListMethodMissingArgumentError(CallExpression call, string methodName)
+    {
+        Message = $"The list method '{methodName}()' requires an expression argument.";
+        if (call.Target is BinaryExpression bin)
+        {
+            StartToken = bin.OperatorToken;
+        }
+    }
+
+    public string Message { get; }
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; }
+    public IToken? EndToken => null;
+}
+
+/// <summary>
+/// Error when a list method argument has the wrong type.
+/// </summary>
+public class ListMethodWrongArgumentTypeError : ISemanticError
+{
+    public ListMethodWrongArgumentTypeError(CallExpression call, string methodName, string expectedType)
+    {
+        Message = $"The list method '{methodName}()' requires a {expectedType} expression.";
+        if (call.Target is BinaryExpression bin)
+        {
+            StartToken = bin.OperatorToken;
+        }
+    }
+
+    public string Message { get; }
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; }
+    public IToken? EndToken => null;
+}

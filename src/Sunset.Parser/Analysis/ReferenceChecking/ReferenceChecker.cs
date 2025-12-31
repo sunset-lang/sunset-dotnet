@@ -41,6 +41,8 @@ public class ReferenceChecker(ErrorLog log)
             DimensionDeclaration => null, // Dimension declarations have no cyclic references
             UnitDeclaration unitDeclaration => Visit(unitDeclaration, visited),
             UnitConstant => null,
+            ValueConstant => null,
+            IndexConstant => null,
             IScope scope => Visit(scope, visited),
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),

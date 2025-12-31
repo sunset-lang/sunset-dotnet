@@ -34,7 +34,9 @@ public partial class Parser
             { TokenType.String, (String, null, Precedence.Primary) },
             { TokenType.MultilineString, (MultilineString, null, Precedence.Primary) },
             { TokenType.Identifier, (Name, ImplicitMultiplication, Precedence.Primary) },
-            { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) }
+            { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
+            { TokenType.Value, (ValueKeyword, null, Precedence.Primary) },
+            { TokenType.Index, (IndexKeyword, null, Precedence.Primary) }
         };
 
     private static (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
@@ -267,6 +269,20 @@ public partial class Parser
         if (parser.Consume(TokenType.ErrorValue) is StringToken token) return new ErrorConstant(token);
 
         throw new Exception("Expected an error token");
+    }
+
+    private static ValueConstant ValueKeyword(Parser parser)
+    {
+        var token = parser.Consume(TokenType.Value);
+        if (token == null) throw new Exception("Expected a value token");
+        return new ValueConstant(token);
+    }
+
+    private static IndexConstant IndexKeyword(Parser parser)
+    {
+        var token = parser.Consume(TokenType.Index);
+        if (token == null) throw new Exception("Expected an index token");
+        return new IndexConstant(token);
     }
 
     private static Precedence GetInfixTokenPrecedence(TokenType type)

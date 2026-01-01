@@ -244,6 +244,7 @@ public partial class Parser
                 or TokenType.CloseBrace
                 or TokenType.CloseBracket
                 or TokenType.Comma
+                or TokenType.Colon
                 or TokenType.If
                 or TokenType.Otherwise)
             {
@@ -256,6 +257,17 @@ public partial class Parser
             {
                 // Break out of the loop - this identifier starts a new expression, not implicit multiplication
                 break;
+            }
+
+            // Special handling for dictionary interpolation modifiers: dict[~key-] or dict[~key+]
+            // When we see - or + followed by ], treat them as interpolation modifiers, not binary operators
+            if (_current.Type is TokenType.Minus or TokenType.Plus)
+            {
+                var nextToken = Peek();
+                if (nextToken?.Type == TokenType.CloseBracket)
+                {
+                    break;
+                }
             }
 
             var infixParsingRule = GetParsingRule(_current.Type);

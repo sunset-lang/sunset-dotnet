@@ -58,6 +58,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             DimensionDeclaration dimensionDeclaration => Visit(dimensionDeclaration),
             UnitDeclaration unitDeclaration => Visit(unitDeclaration),
             ListExpression listExpression => Visit(listExpression),
+            DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
@@ -565,6 +566,63 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         return new ListType(firstElementType);
     }
 
+    private IResultType? Visit(DictionaryExpression dest)
+    {
+        if (dest.Entries.Count == 0)
+        {
+            // Empty dictionary - we can't determine key/value types, but it's valid
+            // Use placeholder types
+            return new DictionaryType(QuantityType.Dimensionless, QuantityType.Dimensionless);
+        }
+
+        // Get the type of the first key and value
+        var firstKeyType = Visit(dest.Entries[0].Key);
+        var firstValueType = Visit(dest.Entries[0].Value);
+
+        if (firstKeyType == null || firstKeyType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        if (firstValueType == null || firstValueType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Check that all other entries have compatible key and value types
+        for (int i = 1; i < dest.Entries.Count; i++)
+        {
+            var keyType = Visit(dest.Entries[i].Key);
+            var valueType = Visit(dest.Entries[i].Value);
+
+            if (keyType == null || keyType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+
+            if (valueType == null || valueType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+
+            if (!IResultType.AreCompatible(firstKeyType, keyType))
+            {
+                Log.Error(new DictionaryKeyTypeMismatchError(dest));
+                return ErrorValueType.Instance;
+            }
+
+            if (!IResultType.AreCompatible(firstValueType, valueType))
+            {
+                Log.Error(new DictionaryValueTypeMismatchError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        var dictType = new DictionaryType(firstKeyType, firstValueType);
+        dest.SetEvaluatedType(dictType);
+        return dictType;
+    }
+
     private IResultType? Visit(IndexExpression dest)
     {
         var targetType = Visit(dest.Target);
@@ -580,10 +638,29 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             return ErrorValueType.Instance;
         }
 
-        // Check that the target is a list
-        if (targetType is not ListType listType)
+        // Handle dictionary access
+        if (targetType is DictionaryType dictType)
         {
-            Log.Error(new IndexTargetNotListError(dest));
+            return VisitDictionaryAccess(dest, dictType, indexType);
+        }
+
+        // Handle list access
+        if (targetType is ListType listType)
+        {
+            return VisitListAccess(dest, listType, indexType);
+        }
+
+        // Neither list nor dictionary
+        Log.Error(new IndexTargetNotListError(dest));
+        return ErrorValueType.Instance;
+    }
+
+    private IResultType? VisitListAccess(IndexExpression dest, ListType listType, IResultType indexType)
+    {
+        // Interpolation modes are not allowed on lists
+        if (dest.AccessMode != CollectionAccessMode.Direct)
+        {
+            Log.Error(new InterpolationOnNonDictionaryError(dest));
             return ErrorValueType.Instance;
         }
 
@@ -596,6 +673,50 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
         dest.SetEvaluatedType(listType.ElementType);
         return listType.ElementType;
+    }
+
+    private IResultType? VisitDictionaryAccess(IndexExpression dest, DictionaryType dictType, IResultType indexType)
+    {
+        // For interpolation modes, keys must be numeric
+        if (dest.AccessMode != CollectionAccessMode.Direct)
+        {
+            if (dictType.KeyType is not QuantityType)
+            {
+                Log.Error(new DictionaryInterpolationRequiresNumericKeysError(dest));
+                return ErrorValueType.Instance;
+            }
+
+            // For linear interpolation (not floor/ceiling), values must also be numeric
+            if (dest.AccessMode == CollectionAccessMode.Interpolate)
+            {
+                if (dictType.ValueType is not QuantityType)
+                {
+                    Log.Error(new DictionaryInterpolationRequiresNumericValuesError(dest));
+                    return ErrorValueType.Instance;
+                }
+            }
+
+            // Index must be a dimensionless number for interpolation
+            if (indexType is not QuantityType { Unit.IsDimensionless: true })
+            {
+                Log.Error(new IndexNotNumberError(dest));
+                return ErrorValueType.Instance;
+            }
+        }
+        else
+        {
+            // For direct access, check that the key type is compatible
+            if (!IResultType.AreCompatible(dictType.KeyType, indexType))
+            {
+                var expectedType = dictType.KeyType.ToString() ?? "unknown";
+                var actualType = indexType.ToString() ?? "unknown";
+                Log.Error(new DictionaryKeyTypeMismatchAccessError(dest, expectedType, actualType));
+                return ErrorValueType.Instance;
+            }
+        }
+
+        dest.SetEvaluatedType(dictType.ValueType);
+        return dictType.ValueType;
     }
 
     public IResultType? Visit(VariableDeclaration dest)

@@ -86,7 +86,7 @@ public partial class Parser
         return new UnitAssignmentExpression(openToken, closeToken, left, expression);
     }
 
-    private static ListExpression ListLiteral(Parser parser)
+    private static IExpression ListLiteral(Parser parser)
     {
         var openToken = parser.Consume(TokenType.OpenBracket);
         if (openToken == null)
@@ -94,17 +94,37 @@ public partial class Parser
             throw new Exception("Expected an opening bracket");
         }
 
-        var elements = new List<IExpression>();
-
-        // Handle empty list case
+        // Handle empty list case: []
         if (parser._current.Type == TokenType.CloseBracket)
         {
             var closeToken = parser.Consume(TokenType.CloseBracket);
-            return new ListExpression(openToken, closeToken, elements);
+            return new ListExpression(openToken, closeToken, new List<IExpression>());
+        }
+
+        // Handle empty dictionary case: [:]
+        if (parser._current.Type == TokenType.Colon)
+        {
+            parser.Consume(TokenType.Colon);
+            var closeToken = parser.Consume(TokenType.CloseBracket);
+            return new DictionaryExpression(openToken, closeToken, new List<DictionaryEntry>());
         }
 
         // Parse the first element
-        elements.Add(parser.GetArithmeticExpression());
+        var firstExpr = parser.GetArithmeticExpression();
+
+        // Check if this is a dictionary (colon after first expression)
+        if (parser._current.Type == TokenType.Colon)
+        {
+            return ParseDictionaryLiteral(parser, openToken, firstExpr);
+        }
+
+        // Otherwise, continue as list
+        return ParseListLiteral(parser, openToken, firstExpr);
+    }
+
+    private static ListExpression ParseListLiteral(Parser parser, IToken openToken, IExpression firstElement)
+    {
+        var elements = new List<IExpression> { firstElement };
 
         // Parse remaining elements separated by commas
         while (parser._current.Type == TokenType.Comma)
@@ -117,6 +137,38 @@ public partial class Parser
         return new ListExpression(openToken, closeBracket, elements);
     }
 
+    private static DictionaryExpression ParseDictionaryLiteral(Parser parser, IToken openToken, IExpression firstKey)
+    {
+        var entries = new List<DictionaryEntry>();
+
+        // Parse first entry (we already have the key, now get colon and value)
+        var colonToken = parser.Consume(TokenType.Colon);
+        if (colonToken == null)
+        {
+            throw new Exception("Expected a colon in dictionary entry");
+        }
+        var firstValue = parser.GetArithmeticExpression();
+        entries.Add(new DictionaryEntry(firstKey, colonToken, firstValue));
+
+        // Parse remaining entries separated by commas
+        while (parser._current.Type == TokenType.Comma)
+        {
+            parser.Consume(TokenType.Comma);
+
+            var key = parser.GetArithmeticExpression();
+            var colon = parser.Consume(TokenType.Colon);
+            if (colon == null)
+            {
+                throw new Exception("Expected a colon in dictionary entry");
+            }
+            var value = parser.GetArithmeticExpression();
+            entries.Add(new DictionaryEntry(key, colon, value));
+        }
+
+        var closeBracket = parser.Consume(TokenType.CloseBracket);
+        return new DictionaryExpression(openToken, closeBracket, entries);
+    }
+
     private static IndexExpression CollectionAccess(Parser parser, IExpression left)
     {
         var openToken = parser.Consume(TokenType.OpenBracket);
@@ -125,10 +177,35 @@ public partial class Parser
             throw new Exception("Expected an opening bracket");
         }
 
+        var accessMode = CollectionAccessMode.Direct;
+
+        // Check for ~ prefix (interpolation modes)
+        if (parser._current.Type == TokenType.Tilde)
+        {
+            parser.Consume(TokenType.Tilde);
+            accessMode = CollectionAccessMode.Interpolate;
+        }
+
         var index = parser.GetArithmeticExpression();
+
+        // Check for interpolation modifiers (- or +) after the index
+        if (accessMode == CollectionAccessMode.Interpolate)
+        {
+            if (parser._current.Type == TokenType.Minus)
+            {
+                parser.Consume(TokenType.Minus);
+                accessMode = CollectionAccessMode.InterpolateBelow;
+            }
+            else if (parser._current.Type == TokenType.Plus)
+            {
+                parser.Consume(TokenType.Plus);
+                accessMode = CollectionAccessMode.InterpolateAbove;
+            }
+        }
+
         var closeToken = parser.Consume(TokenType.CloseBracket);
 
-        return new IndexExpression(left, openToken, index, closeToken);
+        return new IndexExpression(left, openToken, index, closeToken, accessMode);
     }
 
     private static BinaryExpression Binary(Parser parser, IExpression left)

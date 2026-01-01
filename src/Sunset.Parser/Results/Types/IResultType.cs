@@ -23,6 +23,10 @@ public interface IResultType
             BooleanType when right is BooleanType => true,
             ListType leftList when right is ListType rightList => AreCompatible(leftList.ElementType, rightList.ElementType),
             ListType => false,
+            DictionaryType leftDict when right is DictionaryType rightDict =>
+                AreCompatible(leftDict.KeyType, rightDict.KeyType) &&
+                AreCompatible(leftDict.ValueType, rightDict.ValueType),
+            DictionaryType => false,
             _ => false
         };
     }
@@ -115,6 +119,27 @@ public class ListType(IResultType elementType) : IResultType
     public override string ToString()
     {
         return $"[{ElementType}]";
+    }
+}
+
+/// <summary>
+/// The type representing a dictionary of key-value pairs.
+/// </summary>
+public class DictionaryType(IResultType keyType, IResultType valueType) : IResultType
+{
+    /// <summary>
+    /// The type of keys in the dictionary.
+    /// </summary>
+    public IResultType KeyType { get; } = keyType;
+
+    /// <summary>
+    /// The type of values in the dictionary.
+    /// </summary>
+    public IResultType ValueType { get; } = valueType;
+
+    public override string ToString()
+    {
+        return $"[{KeyType}: {ValueType}]";
     }
 }
 

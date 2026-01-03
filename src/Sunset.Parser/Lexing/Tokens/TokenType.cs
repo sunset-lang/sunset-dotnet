@@ -87,4 +87,7 @@ public enum TokenType
     // Units and Dimensions
     Dimension, // dimension keyword for dimension declarations
     Unit, // unit keyword for unit declarations
+
+    // Dictionary access
+    Tilde, // ~ for dictionary interpolation
 }

@@ -1,9 +1,5 @@
 # Functions on Collections
 
-> **Status: Not Yet Implemented**
->
-> Collection functions are planned for future implementation but are not currently functional. This document describes the intended functionality.
-
 There are a number of functions that can be performed on collections to effectively loop over or aggregate data.
 
 ## Lists
@@ -64,7 +60,76 @@ lastItem = items.last()    // 20 {mm}
 
 ## Dictionaries
 
+Dictionaries are key-value collections that support exact key lookup and interpolation-based access for numeric keys.
+
+### Creating Dictionaries
+
+```sunset
+// Dictionary with numeric keys
+temperatures = [0: 20, 100: 100, 200: 180]
+
+// Dictionary with string keys
+windSpeeds = ["A2": 45 {m/s}, "B1": 52 {m/s}]
+
+// Empty dictionary
+emptyDict = [:]
+
+// Dictionary with expressions
+x = 10
+y = 20
+data = [0: x, 100: y, 200: x + y]
+```
+
+### Accessing Values
+
+| Syntax | Description | Status |
+|--------|-------------|--------|
+| `dict[key]` | Access value by exact key | ✅ Implemented |
+| `dict[~key]` | Linear interpolation between keys | ✅ Implemented |
+| `dict[~key-]` | Find value for largest key ≤ lookup key | ✅ Implemented |
+| `dict[~key+]` | Find value for smallest key ≥ lookup key | ✅ Implemented |
+
+#### Exact Key Lookup
+
+```sunset
+windSpeeds = ["A2": 45 {m/s}, "B1": 52 {m/s}]
+speedA2 = windSpeeds["A2"]  // 45 {m/s}
+
+temps = [0: 20, 100: 100, 200: 180]
+t100 = temps[100]  // 100
+```
+
+#### Linear Interpolation
+
+Use the `~` prefix for linear interpolation between adjacent keys. The lookup key must be within the range of existing keys.
+
+```sunset
+// Linear interpolation between keys
+stressStrain = [0: 0, 100: 100]
+interpolated = stressStrain[~50]  // 50 (halfway between 0 and 100)
+
+// Works with units too
+temps = [0: 20 {kg}, 100: 100 {kg}]
+t25 = temps[~25]  // 40 {kg} (20 + 0.25 * (100-20))
+```
+
+#### Floor/Ceiling Lookup
+
+Use `~key-` to find the value for the largest key less than or equal to the lookup key (floor), or `~key+` to find the value for the smallest key greater than or equal to the lookup key (ceiling).
+
+```sunset
+table = [0: 10, 100: 100, 200: 180]
+
+// Find below (floor): largest key <= 150 is 100
+belowValue = table[~150-]  // 100 (value at key 100)
+
+// Find above (ceiling): smallest key >= 150 is 200
+aboveValue = table[~150+]  // 180 (value at key 200)
+```
+
 ### Iterators
+
+> **Status: Not Yet Implemented**
 
 `dictionary.foreach(expression)`
 
@@ -73,30 +138,6 @@ Iterates over all key-value pairs with `key` and `value` as keywords:
 ```sunset
 materials = ["Steel": 250 {MPa}, "Aluminum": 270 {MPa}]
 descriptions = materials.foreach(key + ": " + value)
-```
-
-### Accessing Values
-
-| Syntax | Description |
-|--------|-------------|
-| `dict[key]` | Access value by exact key |
-| `dict[~key]` | Linear interpolation between keys |
-| `dict[~key-]` | Find value for nearest key below |
-| `dict[~key+]` | Find value for nearest key above |
-
-```sunset
-// Exact key lookup
-windSpeeds = ["A2": 45 {m/s}, "B1": 52 {m/s}]
-speedA2 = windSpeeds["A2"]  // 45 {m/s}
-
-// Interpolation (for numeric keys)
-stressStrain = [0.001: 200 {MPa}, 0.002: 400 {MPa}]
-interpolated = stressStrain[~0.0015]  // 300 {MPa}
-
-// Find below/above
-table = [10: 100, 20: 200, 30: 300]
-belowValue = table[~25-]  // 200 (value at key 20)
-aboveValue = table[~25+]  // 300 (value at key 30)
 ```
 
 ## Goal-Seek Iteration

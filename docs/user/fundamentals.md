@@ -86,7 +86,7 @@ thickness <t> = 10 {mm}
 area <A> = width * thickness
 ```
 
-> **Note:** Mathematical functions (`sqrt`, `sin`, `cos`, `tan`, etc.) are planned but not yet implemented.
+Mathematical functions are available: `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`.
 
 ## Elements
 
@@ -129,11 +129,12 @@ See [Conditionals](conditionals.md) for more details.
 - [x] Units and dimensional analysis
 - [x] Metadata (symbol, description, reference)
 - [x] Reporting (Markdown output)
+- [x] Mathematical functions (sqrt, sin, cos, tan, asin, acos, atan)
+- [x] Lists with methods (foreach, where, select, min, max, average, first, last)
+- [x] Dictionaries with interpolation access
 
 ### Planned
 
-- [ ] Mathematical functions (sqrt, sin, cos, tan, etc.)
-- [ ] Arrays/Lists
-- [ ] Collection functions
-- [ ] Dictionaries
+- [ ] Dictionary iteration (foreach)
 - [ ] Options type
+- [ ] Logical operators (and, or)

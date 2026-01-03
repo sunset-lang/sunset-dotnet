@@ -55,6 +55,7 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             FileScope fileScope => Visit(fileScope),
             Environment environment => Visit(environment),
             ListExpression listExpression => Visit(listExpression),
+            DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
             _ => throw new NotImplementedException()
         };
@@ -147,6 +148,16 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
         return $"[{elements}]";
     }
 
+    private string Visit(DictionaryExpression dest)
+    {
+        if (dest.Entries.Count == 0)
+        {
+            return "[:]";
+        }
+        var entries = string.Join(", ", dest.Entries.Select(e => $"{Visit(e.Key)}: {Visit(e.Value)}"));
+        return $"[{entries}]";
+    }
+
     private string Visit(DimensionDeclaration dest)
     {
         return $"(dimension {dest.Name})";
@@ -163,7 +174,20 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
 
     private string Visit(IndexExpression dest)
     {
-        return $"{Visit(dest.Target)}[{Visit(dest.Index)}]";
+        var accessPrefix = dest.AccessMode switch
+        {
+            CollectionAccessMode.Interpolate => "~",
+            CollectionAccessMode.InterpolateBelow => "~",
+            CollectionAccessMode.InterpolateAbove => "~",
+            _ => ""
+        };
+        var accessSuffix = dest.AccessMode switch
+        {
+            CollectionAccessMode.InterpolateBelow => "-",
+            CollectionAccessMode.InterpolateAbove => "+",
+            _ => ""
+        };
+        return $"{Visit(dest.Target)}[{accessPrefix}{Visit(dest.Index)}{accessSuffix}]";
     }
 
     private string Visit(VariableDeclaration dest)
@@ -196,6 +220,9 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             UnitResult unitResult => unitResult.Result.ToString(),
             ElementInstanceResult => "Element instance result",
             ListResult listResult => $"[{string.Join(", ", listResult.Elements.Select(e => Visit(e)))}]",
+            DictionaryResult dictResult => dictResult.Count == 0
+                ? "[:]"
+                : $"[{string.Join(", ", dictResult.Entries.Select(e => $"{Visit(e.Key)}: {Visit(e.Value)}"))}]",
             _ => "ERROR!"
         };
     }

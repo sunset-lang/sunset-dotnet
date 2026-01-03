@@ -47,6 +47,7 @@ public class ReferenceChecker(ErrorLog log)
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),
             ListExpression listExpression => Visit(listExpression, visited),
+            DictionaryExpression dictionaryExpression => Visit(dictionaryExpression, visited),
             IndexExpression indexExpression => Visit(indexExpression, visited),
             _ => throw new ArgumentException($"Cycle checker cannot visit the node of type {dest.GetType()}")
         };
@@ -122,6 +123,25 @@ public class ReferenceChecker(ErrorLog log)
             if (elementReferences != null)
             {
                 references.UnionWith(elementReferences);
+            }
+        }
+        return references;
+    }
+
+    private HashSet<IDeclaration> Visit(DictionaryExpression dest, HashSet<IDeclaration> visited)
+    {
+        var references = new HashSet<IDeclaration>();
+        foreach (var entry in dest.Entries)
+        {
+            var keyReferences = Visit(entry.Key, visited);
+            if (keyReferences != null)
+            {
+                references.UnionWith(keyReferences);
+            }
+            var valueReferences = Visit(entry.Value, visited);
+            if (valueReferences != null)
+            {
+                references.UnionWith(valueReferences);
             }
         }
         return references;

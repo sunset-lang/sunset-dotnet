@@ -1,2 +1,10 @@
 - href: getting-started.md
+- href: reference.md
+- href: variables.md
 - href: elements.md
+- href: element-inheritance.md
+- href: conditionals.md
+- href: functions-on-collections.md
+- href: reporting.md
+- href: options.md
+

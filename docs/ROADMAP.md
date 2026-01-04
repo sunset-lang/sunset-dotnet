@@ -121,13 +121,13 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 ## Priority 3: Unit Operations
 
 ### Non-dimensionalising Units
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 Allows removing units from a quantity by dividing by a specified unit, returning a dimensionless numeric value.
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Unit removal | `quantity {/ unit}` | ⬜ |
+| Unit removal | `quantity {/ unit}` | ✅ |
 
 **Syntax:**
 ```sunset
@@ -156,57 +156,44 @@ Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
 ## Priority 4: String Operations
 
 ### String Concatenation
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| String + String | `"hello " + "world"` | ⬜ |
-| String + Quantity | `"Length: " + 100 {mm}` | ⬜ |
+| String + String | `"hello " + "world"` | ✅ |
+| String + Quantity | `"Length: " + 100 {mm}` | ✅ |
+| Quantity + String | `100 {mm} + " long"` | ✅ |
 
 **Behavior:**
 - Concatenating two strings produces a combined string
 - Concatenating a string with a quantity uses the display format with units (e.g., `"100 mm"`)
+- Dimensionless quantities omit the unit in the formatted output
 
-**Implementation Notes:**
-- Extend binary expression handling for `+` operator with string operands
-- Add `StringResult` type if not already present
-- Implement quantity-to-string conversion using existing display formatting
+**Implementation Details:**
+- Type checking in `TypeChecker.cs` handles string+string, string+quantity, and quantity+string cases
+- Evaluation in `Evaluator.cs` performs concatenation with `FormatQuantity()` helper
+- `StringResult` equality implemented for proper value comparison
+- `StringType` added as a valid type that doesn't require unit declarations
 
 ---
 
 ### String Interpolation
-**Status:** ⬜ Not Started
+**Status:** ⬜ Not Started (Deferred)
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
 | Interpolation | `"Depth {expression}"` | ⬜ |
 
-**Syntax:**
-```sunset
-Length = 100 {mm}
-Message = "The length is {Length}"  // Results in "The length is 100 mm"
-
-// Inline expressions
-Summary = "Area: {Width * Height}"
-```
-
-**Behavior:**
-- Expressions within `{...}` inside a string are evaluated and converted to their display format
-- Quantities include their units in the interpolated output
-
-**Implementation Notes:**
-- Modify lexer to handle interpolation tokens within strings
-- Add `InterpolatedStringExpression` to parse interpolated segments
-- Evaluate each segment and concatenate results
+**Note:** String interpolation is deferred due to syntax conflict with the `{unit}` notation used for unit assignments. The `{` character inside strings cannot easily be distinguished from the start of a unit assignment expression without significant lexer changes. Use string concatenation as an alternative.
 
 ---
 
 ### List Join Method
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Join strings | `list.join(separator)` | ⬜ |
+| Join strings | `list.join(separator)` | ✅ |
 
 **Syntax:**
 ```sunset
@@ -217,11 +204,13 @@ Sentence = Words.join(", ")  // Results in "hello, world"
 **Behavior:**
 - Joins a list of strings using the specified separator
 - Returns a single concatenated string
+- Empty lists return an empty string
+- Single-element lists return the element without separator
 
-**Implementation Notes:**
-- Add `JoinMethod` to `src/Sunset.Parser/BuiltIns/ListMethods/`
-- Type check that the list contains strings and separator is a string
-- Implement in evaluator using standard string join logic
+**Implementation Details:**
+- `JoinMethod` in `src/Sunset.Parser/BuiltIns/ListMethods/JoinMethod.cs`
+- `IListMethodWithStringArgument` interface for methods taking string arguments
+- Type checking validates list elements and separator are strings
 
 ---
 
@@ -400,15 +389,15 @@ The following bugs have been fixed:
 | Logical Operators | 3 | 0 | 1 | 2 |
 | Lists - Basic | 4 | 4 | 0 | 0 |
 | Lists - Advanced | 6 | 6 | 0 | 0 |
-| Unit Operations | 1 | 0 | 0 | 1 |
-| String Operations | 4 | 0 | 0 | 4 |
+| Unit Operations | 1 | 1 | 0 | 0 |
+| String Operations | 4 | 3 | 0 | 1 |
 | Functional Programming | 5 | 0 | 0 | 5 |
 | Dictionaries | 7 | 6 | 0 | 1 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **49** | **24** | **1** | **24** |
+| **Total** | **49** | **28** | **1** | **20** |
 
 ---
 

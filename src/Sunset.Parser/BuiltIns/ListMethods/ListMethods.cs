@@ -16,6 +16,7 @@ public static class ListMethods
         ["foreach"] = ForEachMethod.Instance,
         ["where"] = WhereMethod.Instance,
         ["select"] = SelectMethod.Instance,
+        ["join"] = JoinMethod.Instance,
     };
 
     /// <summary>

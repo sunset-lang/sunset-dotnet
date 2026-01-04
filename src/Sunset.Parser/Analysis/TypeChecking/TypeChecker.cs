@@ -46,6 +46,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             NameExpression nameExpression => Visit(nameExpression),
             IfExpression ifExpression => Visit(ifExpression),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression),
+            NonDimensionalizingExpression nonDimensionalizingExpression => Visit(nonDimensionalizingExpression),
             CallExpression callExpression => Visit(callExpression),
             Argument argument => Visit(argument),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration),
@@ -274,6 +275,50 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         var quantityType = unitType.ToQuantityType();
         dest.SetEvaluatedType(quantityType);
         return quantityType;
+    }
+
+    private IResultType? Visit(NonDimensionalizingExpression dest)
+    {
+        var valueType = Visit(dest.Value);
+        var unitType = Visit(dest.UnitExpression);
+
+        // Handle null types (errors already logged)
+        if (valueType == null || unitType == null)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Propagate error state
+        if (valueType is ErrorValueType || unitType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // The value must be a quantity type
+        if (valueType is not QuantityType valueQuantityType)
+        {
+            Log.Error(new TypeResolutionError(dest.Value));
+            return ErrorValueType.Instance;
+        }
+
+        // The unit expression must be a unit type
+        if (unitType is not UnitType divideUnitType)
+        {
+            Log.Error(new TypeResolutionError(dest.UnitExpression));
+            return ErrorValueType.Instance;
+        }
+
+        // Check that dimensions are compatible
+        if (!Unit.EqualDimensions(valueQuantityType.Unit, divideUnitType.Unit))
+        {
+            Log.Error(new DimensionalIncompatibilityError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // The result is always dimensionless
+        var dimensionlessType = QuantityType.Dimensionless;
+        dest.SetEvaluatedType(dimensionlessType);
+        return dimensionlessType;
     }
 
     private IResultType? Visit(CallExpression dest)

@@ -121,13 +121,13 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 ## Priority 3: Unit Operations
 
 ### Non-dimensionalising Units
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 Allows removing units from a quantity by dividing by a specified unit, returning a dimensionless numeric value.
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Unit removal | `quantity {/ unit}` | ⬜ |
+| Unit removal | `quantity {/ unit}` | ✅ |
 
 **Syntax:**
 ```sunset
@@ -145,11 +145,12 @@ Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
 - **Compile-time error** if the units are not dimensionally compatible (e.g., trying to non-dimensionalise `{m}` with `{s}`)
 - Error should not block execution of other unrelated code in the AST
 
-**Implementation Notes:**
-- Add new unit expression syntax `{/ unit}` to lexer
-- Implement dimensional compatibility check in TypeChecker
-- Add `DimensionalIncompatibilityError` to semantic errors
-- Evaluator should convert to target units, then strip units from result
+**Implementation Details:**
+- `NonDimensionalizingExpression` class in `src/Sunset.Parser/Expressions/NonDimensionalizingExpression.cs`
+- Parser detects `{/` pattern in `Parser.Rules.cs` and creates `NonDimensionalizingExpression`
+- `DimensionalIncompatibilityError` in `src/Sunset.Parser/Errors/Semantic/DimensionalIncompatibilityError.cs`
+- TypeChecker validates dimensional compatibility
+- Evaluator converts the value to the target unit and returns a dimensionless result
 
 ---
 
@@ -400,7 +401,7 @@ The following bugs have been fixed:
 | Logical Operators | 3 | 0 | 1 | 2 |
 | Lists - Basic | 4 | 4 | 0 | 0 |
 | Lists - Advanced | 6 | 6 | 0 | 0 |
-| Unit Operations | 1 | 0 | 0 | 1 |
+| Unit Operations | 1 | 1 | 0 | 0 |
 | String Operations | 4 | 0 | 0 | 4 |
 | Functional Programming | 5 | 0 | 0 | 5 |
 | Dictionaries | 7 | 6 | 0 | 1 |
@@ -408,7 +409,7 @@ The following bugs have been fixed:
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **49** | **24** | **1** | **24** |
+| **Total** | **49** | **25** | **1** | **23** |
 
 ---
 

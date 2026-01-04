@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.BuiltIns;
@@ -66,6 +66,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             NameExpression nameExpression => Visit(nameExpression, currentScope),
             IfExpression ifExpression => Visit(ifExpression, currentScope),
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, currentScope),
+            NonDimensionalizingExpression nonDimensionalizingExpression => Visit(nonDimensionalizingExpression, currentScope),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, currentScope),
             CallExpression callExpression => Visit(callExpression, currentScope),
             NumberConstant numberConstant => Visit(numberConstant),
@@ -251,6 +252,31 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         Log.Error(new UnitAssignmentError(dest));
         return ErrorResult;
+    }
+
+    private IResult Visit(NonDimensionalizingExpression dest, IScope currentScope)
+    {
+        // Get the unit type from the expression
+        var unitType = TypeChecker.EvaluateExpressionType<UnitType>(dest.UnitExpression);
+        if (unitType == null) return ErrorResult;
+
+        // Evaluate the value expression
+        var value = Visit(dest.Value, currentScope);
+        if (value is not QuantityResult quantityResult)
+        {
+            return ErrorResult;
+        }
+
+        // Convert the quantity to the target unit and get the numeric value
+        // The conversion uses SI base units internally, then converts to the target unit
+        var quantity = quantityResult.Result;
+        var targetUnit = unitType.Unit;
+        
+        // Get the numeric value when expressed in the target unit
+        // BaseValue is in SI base units, multiply by conversion factor to get value in target units
+        var numericValue = quantity.BaseValue * targetUnit.GetConversionFactorFromBase();
+
+        return new QuantityResult(numericValue, DefinedUnits.Dimensionless);
     }
 
     private IResult Visit(VariableDeclaration dest, IScope currentScope)

@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Expressions;
@@ -46,6 +46,7 @@ public class ReferenceChecker(ErrorLog log)
             IScope scope => Visit(scope, visited),
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),
+            NonDimensionalizingExpression nonDimensionalizingExpression => Visit(nonDimensionalizingExpression, visited),
             ListExpression listExpression => Visit(listExpression, visited),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression, visited),
             IndexExpression indexExpression => Visit(indexExpression, visited),
@@ -102,6 +103,12 @@ public class ReferenceChecker(ErrorLog log)
     private HashSet<IDeclaration>? Visit(UnitAssignmentExpression dest, HashSet<IDeclaration> visited)
     {
         return null;
+    }
+
+    private HashSet<IDeclaration>? Visit(NonDimensionalizingExpression dest, HashSet<IDeclaration> visited)
+    {
+        // Get references from the value expression (the unit expression doesn't create references)
+        return Visit(dest.Value, visited);
     }
 
     private HashSet<IDeclaration>? Visit(UnitDeclaration dest, HashSet<IDeclaration> visited)

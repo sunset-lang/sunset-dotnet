@@ -43,6 +43,9 @@ public class NameResolver(ErrorLog log) : INameResolver
             case VariableDeclaration variableAssignmentExpression:
                 Visit(variableAssignmentExpression, parentScope);
                 break;
+            case PrototypeDeclaration prototypeDeclaration:
+                Visit(prototypeDeclaration, parentScope);
+                break;
             case IScope scope:
                 Visit(scope);
                 break;
@@ -74,9 +77,13 @@ public class NameResolver(ErrorLog log) : INameResolver
             case NumberConstant:
             case StringConstant:
             case ErrorConstant:
-            // Value and index are special iteration context variables resolved at evaluation time
+            // Value, index, and instance are special iteration context variables resolved at evaluation time
             case ValueConstant:
             case IndexConstant:
+            case InstanceConstant:
+                break;
+            case PrototypeOutputDeclaration prototypeOutputDeclaration:
+                Visit(prototypeOutputDeclaration, parentScope);
                 break;
             default:
                 throw new ArgumentException($"Name resolver cannot visit the node of type {dest.GetType()}");
@@ -411,9 +418,70 @@ public class NameResolver(ErrorLog log) : INameResolver
 
     public void Visit(IScope dest)
     {
+        // Resolve prototype references for elements
+        if (dest is ElementDeclaration elementDecl && elementDecl.PrototypeNameTokens != null)
+        {
+            elementDecl.ImplementedPrototypes = [];
+            foreach (var token in elementDecl.PrototypeNameTokens)
+            {
+                var resolved = SearchParentsForName(token.ToString(), elementDecl.ParentScope!);
+                if (resolved is PrototypeDeclaration prototype)
+                {
+                    elementDecl.ImplementedPrototypes.Add(prototype);
+                }
+                else
+                {
+                    Log.Error(new PrototypeNotFoundError(token));
+                }
+            }
+        }
+
         foreach (var children in dest.ChildDeclarations.Values)
         {
             Visit(children, dest);
+        }
+    }
+
+    /// <summary>
+    /// Visits a prototype declaration, resolving base prototype references
+    /// and visiting child declarations.
+    /// </summary>
+    private void Visit(PrototypeDeclaration dest, IScope parentScope)
+    {
+        // Resolve base prototypes
+        if (dest.BasePrototypeTokens != null)
+        {
+            dest.BasePrototypes = [];
+            foreach (var token in dest.BasePrototypeTokens)
+            {
+                var resolved = SearchParentsForName(token.ToString(), parentScope);
+                if (resolved is PrototypeDeclaration baseProto)
+                {
+                    dest.BasePrototypes.Add(baseProto);
+                }
+                else
+                {
+                    Log.Error(new PrototypeNotFoundError(token));
+                }
+            }
+        }
+
+        // Visit child declarations (inputs and outputs)
+        foreach (var child in dest.ChildDeclarations.Values)
+        {
+            Visit(child, dest);
+        }
+    }
+
+    /// <summary>
+    /// Visits a prototype output declaration.
+    /// </summary>
+    private void Visit(PrototypeOutputDeclaration dest, IScope parentScope)
+    {
+        // Resolve unit assignment expression if present
+        if (dest.UnitAssignment != null)
+        {
+            Visit(dest.UnitAssignment, parentScope);
         }
     }
 }

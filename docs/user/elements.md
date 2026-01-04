@@ -226,7 +226,64 @@ The element inheriting from another must explicitly inherit all properties of th
 - Override properties by providing a new definition
 - Any properties not explicitly included will throw an error
 
-> **Note:** Multiple inheritance is not supported. Interface-like behaviour may be considered for future implementation.
+> **Note:** Multiple inheritance is not supported. For interface-like behaviour, see [Prototypes](reference.md#prototypes).
+
+## Implementing Prototypes
+
+Elements can implement one or more prototypes, guaranteeing they provide certain inputs and outputs.
+
+### Basic Implementation
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Circle as Shape:
+    inputs:
+        Radius = 1 {m}
+    outputs:
+        return Area {m^2} = 3.14159 * Radius ^ 2
+end
+```
+
+### Multiple Prototypes
+
+```sunset
+define Square as Shape, Rectangular:
+    inputs:
+        Width = 1 {m}
+    outputs:
+        return Area {m^2} = Width ^ 2
+        Perimeter {m} = 4 * Width
+end
+```
+
+### Inherited Inputs
+
+When a prototype defines inputs with defaults, implementing elements inherit them automatically:
+
+```sunset
+prototype Rectangular:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2}
+end
+
+// Rectangle inherits Width and Length from Rectangular
+define Rectangle as Rectangular:
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+r = Rectangle()           // Uses defaults: Width=1, Length=2, Area=2
+r2 = Rectangle(Width = 3) // Overrides Width: Area = 6
+```
+
+See [Prototypes](reference.md#prototypes) in the language reference for complete documentation.
 
 ## Conditional Execution in Elements
 

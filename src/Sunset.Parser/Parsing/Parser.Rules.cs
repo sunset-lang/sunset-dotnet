@@ -36,7 +36,8 @@ public partial class Parser
             { TokenType.Identifier, (Name, ImplicitMultiplication, Precedence.Primary) },
             { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
             { TokenType.Value, (ValueKeyword, null, Precedence.Primary) },
-            { TokenType.Index, (IndexKeyword, null, Precedence.Primary) }
+            { TokenType.Index, (IndexKeyword, null, Precedence.Primary) },
+            { TokenType.Instance, (InstanceKeyword, null, Precedence.Primary) }
         };
 
     private static (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
@@ -372,6 +373,13 @@ public partial class Parser
         var token = parser.Consume(TokenType.Index);
         if (token == null) throw new Exception("Expected an index token");
         return new IndexConstant(token);
+    }
+
+    private static InstanceConstant InstanceKeyword(Parser parser)
+    {
+        var token = parser.Consume(TokenType.Instance);
+        if (token == null) throw new Exception("Expected an instance token");
+        return new InstanceConstant(token);
     }
 
     private static Precedence GetInfixTokenPrecedence(TokenType type)

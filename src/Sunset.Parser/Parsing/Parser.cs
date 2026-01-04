@@ -69,6 +69,7 @@ public partial class Parser
             IDeclaration? declaration = _current.Type switch
             {
                 TokenType.Define => GetElementDeclaration(parentScope),
+                TokenType.Prototype => GetPrototypeDeclaration(parentScope),
                 TokenType.Dimension => GetDimensionDeclaration(parentScope),
                 TokenType.Unit => GetUnitDeclaration(parentScope),
                 TokenType.Identifier or TokenType.OpenAngleBracket => GetVariableDeclaration(parentScope),
@@ -409,10 +410,25 @@ public partial class Parser
             return null;
         }
 
+        // Parse optional prototype implementations: "as Proto1, Proto2"
+        List<StringToken>? prototypeTokens = null;
+        if (_current.Type == TokenType.As)
+        {
+            Consume(TokenType.As);
+            prototypeTokens = [];
+            do
+            {
+                if (Consume(TokenType.Identifier) is StringToken protoName)
+                    prototypeTokens.Add(protoName);
+            } while (Consume(TokenType.Comma, optional: true) != null);
+        }
+
         Consume(TokenType.Colon);
 
-
-        var element = new ElementDeclaration(nameToken, parentScope);
+        var element = new ElementDeclaration(nameToken, parentScope)
+        {
+            PrototypeNameTokens = prototypeTokens
+        };
 
         foreach (var currentContainerType in ElementDeclaration.VariableContainerTokens)
         {
@@ -448,6 +464,128 @@ public partial class Parser
         return element;
     }
 
+    /// <summary>
+    ///     Gets a prototype declaration starting at the current token (which should be 'prototype').
+    /// </summary>
+    /// <param name="parentScope">The parent scope for this prototype.</param>
+    /// <returns>A PrototypeDeclaration or null if parsing failed.</returns>
+    public PrototypeDeclaration? GetPrototypeDeclaration(IScope parentScope)
+    {
+        // Set up variable containers for prototype
+        var containers = new Dictionary<TokenType, List<IDeclaration>>
+        {
+            { TokenType.Input, [] },
+            { TokenType.Output, [] }
+        };
+
+        var prototypeToken = Consume(TokenType.Prototype);
+        if (prototypeToken == null)
+        {
+            throw new Exception("Expected a prototype token");
+        }
+
+        if (Consume(TokenType.Identifier) is not StringToken nameToken)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            return null;
+        }
+
+        // Parse optional base prototypes: "as Base1, Base2"
+        List<StringToken>? basePrototypeTokens = null;
+        if (_current.Type == TokenType.As)
+        {
+            Consume(TokenType.As);
+            basePrototypeTokens = [];
+            do
+            {
+                if (Consume(TokenType.Identifier) is StringToken baseName)
+                    basePrototypeTokens.Add(baseName);
+            } while (Consume(TokenType.Comma, optional: true) != null);
+        }
+
+        Consume(TokenType.Colon);
+
+        var prototype = new PrototypeDeclaration(nameToken, parentScope)
+        {
+            BasePrototypeTokens = basePrototypeTokens
+        };
+
+        // Parse inputs and outputs
+        foreach (var currentContainerType in PrototypeDeclaration.VariableContainerTokens)
+        {
+            var currentContainerToken = Consume(currentContainerType, true, true);
+            if (currentContainerToken == null) continue;
+
+            containers.TryGetValue(currentContainerType, out var container);
+            if (container == null)
+            {
+                throw new Exception("Undefined prototype variable container token type.");
+            }
+
+            Consume(TokenType.Colon);
+            while (_current.Type is not TokenType.End and not TokenType.EndOfFile)
+            {
+                if (PrototypeDeclaration.VariableContainerTokens.Contains(_current.Type))
+                {
+                    break;
+                }
+
+                if (currentContainerType == TokenType.Output)
+                {
+                    // Prototype outputs cannot have expressions
+                    container.Add(GetPrototypeOutputDeclaration(prototype));
+                }
+                else
+                {
+                    // Prototype inputs can have default expressions
+                    container.Add(GetVariableDeclaration(prototype));
+                }
+            }
+        }
+
+        Consume(TokenType.End);
+
+        prototype.Containers = containers;
+
+        return prototype;
+    }
+
+    /// <summary>
+    ///     Gets a prototype output declaration (no expression allowed).
+    /// </summary>
+    /// <param name="parentScope">The parent scope (prototype).</param>
+    /// <returns>A PrototypeOutputDeclaration.</returns>
+    private PrototypeOutputDeclaration GetPrototypeOutputDeclaration(IScope parentScope)
+    {
+        ConsumeNewlines();
+
+        // Check for the 'return' keyword
+        IToken? returnToken = Consume(TokenType.Return, optional: true);
+
+        if (Consume(TokenType.Identifier) is not StringToken nameToken)
+        {
+            throw new Exception("Expected identifier for prototype output");
+        }
+
+        // Parse optional unit assignment
+        UnitAssignmentExpression? unitAssignment = null;
+        if (_current.Type == TokenType.OpenBrace)
+        {
+            var openBrace = Consume(TokenType.OpenBrace);
+            var unitExpression = GetArithmeticExpression();
+            var closeBrace = Consume(TokenType.CloseBrace);
+
+            if (openBrace != null)
+            {
+                unitAssignment = new UnitAssignmentExpression(openBrace, closeBrace, unitExpression);
+            }
+        }
+
+        // Prototype outputs must NOT have an expression - consume newline/EOF
+        Consume([TokenType.Newline, TokenType.EndOfFile]);
+
+        return new PrototypeOutputDeclaration(nameToken, parentScope, unitAssignment, returnToken);
+    }
 
     /// <summary>
     ///     Gets a new variable declaration, starting at the current

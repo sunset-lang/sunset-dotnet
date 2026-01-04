@@ -81,6 +81,9 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             ElementDeclaration element => Visit(element, currentScope),
             DimensionDeclaration => SuccessResult,  // Dimensions don't need evaluation
             UnitDeclaration => SuccessResult,  // Units don't need evaluation (already registered)
+            PrototypeDeclaration prototype => Visit(prototype, currentScope),
+            PrototypeOutputDeclaration => SuccessResult,  // Prototype outputs don't need evaluation
+            InstanceConstant => _iterationValue ?? ErrorResult,
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
         };
@@ -588,6 +591,21 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
     private IResult Visit(IScope dest, IScope currentScope)
     {
+        foreach (var declaration in dest.ChildDeclarations.Values)
+        {
+            Visit(declaration, currentScope);
+        }
+
+        return SuccessResult;
+    }
+
+    /// <summary>
+    /// Evaluates a prototype declaration. Prototypes don't produce values themselves,
+    /// but their child declarations (inputs with defaults) need to be visited.
+    /// </summary>
+    private IResult Visit(PrototypeDeclaration dest, IScope currentScope)
+    {
+        // Visit child declarations (inputs may have default values)
         foreach (var declaration in dest.ChildDeclarations.Values)
         {
             Visit(declaration, currentScope);

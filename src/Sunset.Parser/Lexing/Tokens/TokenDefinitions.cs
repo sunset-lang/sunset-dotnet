@@ -70,5 +70,10 @@ public static class TokenDefinitions
         { "dimension", TokenType.Dimension },
         { "unit", TokenType.Unit },
         { "return", TokenType.Return },
+        { "prototype", TokenType.Prototype },
+        { "as", TokenType.As },
+        { "list", TokenType.List },
+        { "dict", TokenType.Dict },
+        { "instance", TokenType.Instance },
     };
 }

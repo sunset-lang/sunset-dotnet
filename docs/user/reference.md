@@ -646,6 +646,7 @@ define Square as Shape:
         Width = 1 {m}
     outputs:
         return Area {m^2} = Width ^ 2
+        Perimeter {m} = 4 * Width
 end
 
 define Rectangle as Shape:
@@ -654,6 +655,21 @@ define Rectangle as Shape:
         Length = 2 {m}
     outputs:
         return Area {m^2} = Width * Length
+        Perimeter {m} = 2 * (Width + Length)
+end
+```
+
+**Error Example:**
+
+If an element doesn't implement all required outputs, a compilation error occurs:
+
+```sunset
+define InvalidSquare as Shape:
+    inputs:
+        Width = 1 {m}
+    outputs:
+        return Area {m^2} = Width ^ 2
+        // Error: Missing required output 'Perimeter' from prototype 'Shape'
 end
 ```
 

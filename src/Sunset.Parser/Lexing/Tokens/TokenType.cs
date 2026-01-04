@@ -97,6 +97,11 @@ public enum TokenType
     // Prototypes
     Prototype, // prototype keyword for prototype declarations
     As, // as keyword for implementing prototypes or prototype inheritance
+
+    // Type annotations
     List, // list keyword for type annotations (e.g., {Shape list})
+    Dict, // dict keyword for type annotations (e.g., {string: Shape dict})
+
+    // Element instance access
     Instance, // instance keyword for accessing element instance in list iteration
 }

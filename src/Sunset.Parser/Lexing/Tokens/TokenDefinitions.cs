@@ -73,6 +73,7 @@ public static class TokenDefinitions
         { "prototype", TokenType.Prototype },
         { "as", TokenType.As },
         { "list", TokenType.List },
+        { "dict", TokenType.Dict },
         { "instance", TokenType.Instance },
     };
 }

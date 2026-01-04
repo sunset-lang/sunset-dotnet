@@ -1,6 +1,8 @@
 using Sunset.Parser.Parsing.Declarations;
+using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors.Debugging;
+using Sunset.Parser.Visitors.Evaluation;
 using Environment = Sunset.Parser.Scopes.Environment;
 
 namespace Sunset.Parser.Test.Integration;
@@ -120,7 +122,18 @@ public class PrototypeTests
         env.Analyse();
 
         Console.WriteLine(DebugPrinter.Print(env));
-        Assert.That(env.Log.ErrorMessages.Count, Is.GreaterThan(0));
+        
+        // Should have exactly 2 errors - one for each prototype in the cycle
+        var errors = env.Log.ErrorMessages.ToList();
+        Assert.That(errors.Count, Is.EqualTo(2));
+        
+        // Both should be PrototypeInheritanceCycleError
+        foreach (var error in errors)
+        {
+            Assert.That(error, Is.InstanceOf<Sunset.Parser.Errors.AttachedOutputMessage>());
+            var attached = (Sunset.Parser.Errors.AttachedOutputMessage)error;
+            Assert.That(attached.Error, Is.InstanceOf<Sunset.Parser.Errors.Semantic.PrototypeInheritanceCycleError>());
+        }
     }
 
     [Test]
@@ -249,8 +262,6 @@ public class PrototypeTests
         Assert.That(env.Log.ErrorMessages.Count, Is.GreaterThan(0));
     }
 
-    // TODO: These tests require full evaluation support and will be enabled later
-    /*
     [Test]
     public void Evaluate_ElementWithPrototype_CorrectResult()
     {
@@ -273,6 +284,9 @@ public class PrototypeTests
 
         var env = new Environment(SourceFile.FromString(source));
         env.Analyse();
+
+        Console.WriteLine(DebugPrinter.Print(env));
+        Assert.That(env.Log.ErrorMessages, Is.Empty);
 
         var fileScope = env.ChildScopes["$file"] as FileScope;
         var variable = fileScope!.ChildDeclarations["result"] as VariableDeclaration;
@@ -306,6 +320,9 @@ public class PrototypeTests
         var env = new Environment(SourceFile.FromString(source));
         env.Analyse();
 
+        Console.WriteLine(DebugPrinter.Print(env));
+        Assert.That(env.Log.ErrorMessages, Is.Empty);
+
         var fileScope = env.ChildScopes["$file"] as FileScope;
         var variable = fileScope!.ChildDeclarations["result"] as VariableDeclaration;
         var result = variable!.GetResult(fileScope) as QuantityResult;
@@ -314,5 +331,4 @@ public class PrototypeTests
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Result.BaseValue, Is.EqualTo(2));
     }
-    */
 }

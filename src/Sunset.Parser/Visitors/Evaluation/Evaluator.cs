@@ -84,6 +84,14 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             PrototypeDeclaration prototype => Visit(prototype, currentScope),
             PrototypeOutputDeclaration => SuccessResult,  // Prototype outputs don't need evaluation
             InstanceConstant => _iterationValue ?? ErrorResult,
+            // Pattern binding during name resolution - look up in the current scope for the bound instance
+            PatternBindingVariable patternBindingVariable => 
+                GetPatternBindingResult(patternBindingVariable.Name, currentScope),
+            // Pattern binding reference during evaluation - return the bound instance directly
+            PatternBindingReference patternBindingReference => patternBindingReference.BoundInstance,
+            // Pattern binding scope (for completeness) - should not normally be visited directly
+            PatternBindingScope => SuccessResult,
+            PatternBindingEvaluationScope => SuccessResult,
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
         };
@@ -249,21 +257,47 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             // Evaluate the conditions for the if branches first
             if (branch is IfBranch ifBranch)
             {
-                var result = Visit(ifBranch.Condition, currentScope);
-                if (result is not BooleanResult booleanResult)
+                // Handle pattern matching branches
+                if (ifBranch.Pattern != null)
                 {
-                    // IfConditionError was already logged by TypeChecker
-                    return ErrorResult;
-                }
+                    var scrutineeResult = Visit(ifBranch.Condition, currentScope);
+                    
+                    // Check if the pattern matches
+                    if (MatchesPattern(scrutineeResult, ifBranch.Pattern))
+                    {
+                        // If there's a binding, create a scope with the bound variable
+                        IScope bodyScope = currentScope;
+                        if (ifBranch.Pattern.BindingNameToken != null && scrutineeResult is ElementInstanceResult elementResult)
+                        {
+                            bodyScope = new PatternBindingEvaluationScope(
+                                currentScope,
+                                ifBranch.Pattern.BindingNameToken.ToString(),
+                                elementResult);
+                        }
 
-                // Store the result of the boolean result in the branch for this scope
-                ifBranch.SetResult(currentScope, booleanResult);
-                // If true, the branch is executed and returned
-                if (booleanResult.Result)
+                        dest.SetResult(currentScope, new BranchResult(ifBranch));
+                        return Visit(ifBranch.Body, bodyScope);
+                    }
+                }
+                else
                 {
-                    // Store the resulting branch in the "if" expression, but return the evaluated body of the result
-                    dest.SetResult(currentScope, new BranchResult(ifBranch));
-                    return Visit(ifBranch.Body, currentScope);
+                    // Regular boolean condition
+                    var result = Visit(ifBranch.Condition, currentScope);
+                    if (result is not BooleanResult booleanResult)
+                    {
+                        // IfConditionError was already logged by TypeChecker
+                        return ErrorResult;
+                    }
+
+                    // Store the result of the boolean result in the branch for this scope
+                    ifBranch.SetResult(currentScope, booleanResult);
+                    // If true, the branch is executed and returned
+                    if (booleanResult.Result)
+                    {
+                        // Store the resulting branch in the "if" expression, but return the evaluated body of the result
+                        dest.SetResult(currentScope, new BranchResult(ifBranch));
+                        return Visit(ifBranch.Body, currentScope);
+                    }
                 }
             }
             // TODO: This should have an error if the otherwise branch is not the last branch
@@ -275,6 +309,68 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             }
         }
 
+        return ErrorResult;
+    }
+
+    /// <summary>
+    /// Checks if a result matches the given pattern.
+    /// </summary>
+    private bool MatchesPattern(IResult scrutinee, IsPattern pattern)
+    {
+        if (scrutinee is not ElementInstanceResult elementResult)
+            return false;
+
+        var targetType = pattern.GetResolvedType();
+
+        // If target is a prototype, check if element implements it
+        if (targetType is PrototypeDeclaration prototype)
+        {
+            return ImplementsPrototype(elementResult.Declaration, prototype);
+        }
+
+        // If target is an element, check for exact match
+        if (targetType is ElementDeclaration element)
+        {
+            return elementResult.Declaration == element;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if an element implements a prototype (directly or through inheritance).
+    /// </summary>
+    private bool ImplementsPrototype(ElementDeclaration element, PrototypeDeclaration prototype)
+    {
+        return element.ImplementedPrototypes?.Any(p => PrototypeImplementsPrototype(p, prototype)) ?? false;
+    }
+
+    /// <summary>
+    /// Checks if a prototype implements another prototype (directly or through inheritance).
+    /// </summary>
+    private bool PrototypeImplementsPrototype(PrototypeDeclaration derived, PrototypeDeclaration baseProto)
+    {
+        if (derived == baseProto) return true;
+        return derived.BasePrototypes?.Any(bp => PrototypeImplementsPrototype(bp, baseProto)) ?? false;
+    }
+
+    /// <summary>
+    /// Gets the result for a pattern binding variable by looking up the bound instance in the current scope.
+    /// </summary>
+    private IResult GetPatternBindingResult(string bindingName, IScope currentScope)
+    {
+        // Walk up the scope hierarchy to find the pattern binding evaluation scope
+        IScope? scope = currentScope;
+        while (scope != null)
+        {
+            if (scope is PatternBindingEvaluationScope patternScope && patternScope.BindingName == bindingName)
+            {
+                return patternScope.BoundInstance;
+            }
+            scope = scope.ParentScope;
+        }
+        
+        // If we didn't find the binding scope, this is an error condition
         return ErrorResult;
     }
 
@@ -403,6 +499,11 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         // Create a new element instance
         var elementResult = new ElementInstanceResult(elementDeclaration, currentScope);
+        
+        // Get the element's inputs for mapping positional arguments
+        var inputs = elementDeclaration.Inputs;
+        var positionalIndex = 0;
+        
         foreach (var argument in dest.Arguments)
         {
             // Evaluate the right-hand side expression of the argument
@@ -413,12 +514,19 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 throw new Exception("Could not resolve argument.");
             }
 
-            // Only named arguments have an argument name that can be resolved
+            // Named arguments have an argument name that can be resolved
             if (argument is Argument namedArgument)
             {
                 var argumentDeclaration = namedArgument.ArgumentName.GetResolvedDeclaration();
                 // Set the result of the declaration with the element instance as the scope
                 argumentDeclaration?.SetResult(elementResult, argumentResult);
+            }
+            // Positional arguments map to inputs in order
+            else if (argument is PositionalArgument && inputs != null && positionalIndex < inputs.Count)
+            {
+                var inputDeclaration = inputs[positionalIndex];
+                inputDeclaration.SetResult(elementResult, argumentResult);
+                positionalIndex++;
             }
         }
 
@@ -458,6 +566,9 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         }
 
         // Now override with the new argument values
+        var inputs = elementDeclaration.Inputs;
+        var positionalIndex = 0;
+        
         foreach (var argument in dest.Arguments)
         {
             // Evaluate the right-hand side expression of the argument
@@ -467,12 +578,19 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 throw new Exception("Could not resolve argument.");
             }
 
-            // Only named arguments have an argument name that can be resolved
+            // Named arguments have an argument name that can be resolved
             if (argument is Argument namedArgument)
             {
                 var argumentDeclaration = namedArgument.ArgumentName.GetResolvedDeclaration();
                 // Override the result with the new value
                 argumentDeclaration?.SetResult(newElementResult, argumentResult);
+            }
+            // Positional arguments map to inputs in order
+            else if (argument is PositionalArgument && inputs != null && positionalIndex < inputs.Count)
+            {
+                var inputDeclaration = inputs[positionalIndex];
+                inputDeclaration.SetResult(newElementResult, argumentResult);
+                positionalIndex++;
             }
         }
 

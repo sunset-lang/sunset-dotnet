@@ -146,7 +146,7 @@ public partial class Parser
         var branches = new List<IBranch>();
         while (_position < _tokens.Length)
         {
-            var otherwiseToken = Consume(TokenType.Otherwise);
+            var otherwiseToken = Consume(TokenType.Otherwise, optional: true);
             if (otherwiseToken != null)
             {
                 var branch = new OtherwiseBranch(expression, otherwiseToken);
@@ -162,11 +162,19 @@ public partial class Parser
                 break;
             }
 
-            var ifToken = Consume(TokenType.If);
+            var ifToken = Consume(TokenType.If, optional: true);
             if (ifToken != null)
             {
                 var condition = GetArithmeticExpression();
-                var branch = new IfBranch(expression, condition, ifToken);
+                
+                // Check for pattern matching: "if expr is Type [binding]"
+                IsPattern? pattern = null;
+                if (_current.Type == TokenType.TypeEquality)
+                {
+                    pattern = GetIsPattern();
+                }
+                
+                var branch = new IfBranch(expression, condition, ifToken, pattern);
                 branches.Add(branch);
                 ConsumeNewlines();
                 // If the next line starts with an '=' sign, it is the next branch
@@ -186,6 +194,36 @@ public partial class Parser
         }
 
         return new IfExpression(branches);
+    }
+
+    /// <summary>
+    /// Gets a type pattern for pattern matching: "is Type [binding]".
+    /// Assumes the current token is 'is'.
+    /// </summary>
+    /// <returns>The parsed IsPattern.</returns>
+    private IsPattern GetIsPattern()
+    {
+        var isToken = Consume(TokenType.TypeEquality);
+        if (isToken == null)
+        {
+            throw new Exception("Expected 'is' token");
+        }
+
+        // Parse the type name
+        if (Consume(TokenType.Identifier) is not StringToken typeNameToken)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            throw new Exception("Expected type name after 'is'");
+        }
+
+        // Optionally parse a binding name
+        StringToken? bindingNameToken = null;
+        if (_current.Type == TokenType.Identifier)
+        {
+            bindingNameToken = Consume(TokenType.Identifier) as StringToken;
+        }
+
+        return new IsPattern(isToken, typeNameToken, bindingNameToken);
     }
 
     /// <summary>
@@ -247,7 +285,8 @@ public partial class Parser
                 or TokenType.Comma
                 or TokenType.Colon
                 or TokenType.If
-                or TokenType.Otherwise)
+                or TokenType.Otherwise
+                or TokenType.TypeEquality)  // Break on 'is' for pattern matching
             {
                 break;
             }
@@ -666,8 +705,11 @@ public partial class Parser
         var expression = GetExpression();
         // TODO: Get the metadata information after the expression
 
-        // Always end a variable declaration with a new line or end of file
-        Consume([TokenType.Newline, TokenType.EndOfFile]);
+        // End a variable declaration with a new line or end of file
+        // Multi-line if expressions may have already consumed the trailing newline,
+        // so make this optional if we have an if expression
+        var isIfExpression = expression is IfExpression;
+        Consume([TokenType.Newline, TokenType.EndOfFile], optional: isIfExpression);
 
         return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
     }

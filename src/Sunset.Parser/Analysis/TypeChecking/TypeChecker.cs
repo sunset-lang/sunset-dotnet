@@ -267,6 +267,12 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             DimensionDeclaration dimensionDeclaration =>
                 // When referencing a dimension, return the dimension type
                 new DimensionType(dimensionDeclaration),
+            PrototypeDeclaration prototypeDeclaration =>
+                // When referencing a prototype (e.g., in pattern matching), return the prototype type
+                new PrototypeType(prototypeDeclaration),
+            PatternBindingVariable patternBindingVariable =>
+                // When referencing a pattern binding variable, return the element type it's bound to
+                new ElementType(patternBindingVariable.BoundElementType),
             null =>
                 // Name resolution error was already logged by NameResolver, propagate error state
                 ErrorValueType.Instance,
@@ -279,16 +285,49 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     {
         IResultType? resultType = null;
         var error = false;
+        var hasPatternBranch = false;
+        var hasOtherwiseBranch = false;
+
         foreach (var branch in dest.Branches)
         {
+            if (branch is OtherwiseBranch)
+            {
+                hasOtherwiseBranch = true;
+            }
+
             // Check the condition of if branches
             if (branch is IfBranch ifBranch)
             {
-                var conditionType = Visit(ifBranch.Condition);
-                if (conditionType is not BooleanType)
+                // Check if this is a pattern matching branch
+                if (ifBranch.Pattern != null)
                 {
-                    Log.Error(new IfConditionError(ifBranch.Condition));
-                    error = true;
+                    hasPatternBranch = true;
+
+                    // Validate the scrutinee type
+                    var scrutineeType = Visit(ifBranch.Condition);
+                    if (scrutineeType is not (ElementType or PrototypeType) && scrutineeType is not ErrorValueType)
+                    {
+                        Log.Error(new PatternScrutineeNotElementError(ifBranch.Condition, ifBranch.Pattern.IsToken));
+                        error = true;
+                    }
+
+                    // Validate the pattern type
+                    var patternType = ifBranch.Pattern.GetResolvedType();
+                    if (patternType == null)
+                    {
+                        Log.Error(new PatternTypeNotFoundError(ifBranch.Pattern.TypeNameToken));
+                        error = true;
+                    }
+                }
+                else
+                {
+                    // Regular boolean condition
+                    var conditionType = Visit(ifBranch.Condition);
+                    if (conditionType is not BooleanType)
+                    {
+                        Log.Error(new IfConditionError(ifBranch.Condition));
+                        error = true;
+                    }
                 }
             }
 
@@ -315,6 +354,13 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 Log.Error(new IfTypeMismatchError(branch));
                 error = true;
             }
+        }
+
+        // Check that pattern matching has an otherwise branch
+        if (hasPatternBranch && !hasOtherwiseBranch)
+        {
+            Log.Error(new PatternMatchingRequiresOtherwiseError(dest));
+            error = true;
         }
 
         return error ? null : resultType;

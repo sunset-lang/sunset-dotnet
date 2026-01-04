@@ -350,6 +350,99 @@ The distinction between `value` and `value.instance` exists because:
 
 This makes common operations concise while still allowing complete flexibility.
 
+## Pattern Matching on Prototypes
+
+When working with polymorphic elements, you often need to perform different calculations based on the concrete element type. Pattern matching with the `is` keyword enables type-safe access to element-specific properties.
+
+### The Problem: Property Access Restrictions
+
+When a variable is typed with a prototype (e.g., `{Shape}`), you can only access properties defined in that prototype:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Rectangle as Shape:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+myShape {Shape} = Rectangle(2 {m}, 3 {m})
+
+// This works - Area is defined in Shape
+area = myShape.Area  // 6 m^2
+
+// This is a compile error - Width is not defined in Shape
+// width = myShape.Width
+```
+
+### The Solution: Pattern Matching with `is`
+
+Use pattern matching to check the concrete type and bind the element to a variable with that type:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Rectangle as Shape:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+define Circle as Shape:
+    inputs:
+        Diameter = 2 {m}
+    outputs:
+        return Area {m^2} = 3.14159 * (Diameter / 2) ^ 2
+end
+
+define AreaCalculator:
+    inputs:
+        ShapeToCalculate {Shape} = Rectangle()
+    outputs:
+        // Use pattern matching to access type-specific properties
+        return Area {m^2} = rect.Width * rect.Length if ShapeToCalculate is Rectangle rect
+                         = 3.14159 * (circ.Diameter / 2) ^ 2 if ShapeToCalculate is Circle circ
+                         = error otherwise
+end
+
+RectangleInstance {Rectangle} = Rectangle(2 {m}, 3 {m})
+CircleInstance {Circle} = Circle(4 {m})
+
+RectangleArea {m^2} = AreaCalculator(RectangleInstance)  // 6 m^2
+CircleArea {m^2} = AreaCalculator(CircleInstance)        // ~12.57 m^2
+```
+
+### Pattern Matching Syntax
+
+| Syntax | Description |
+|--------|-------------|
+| `expr is Type` | Check if expression matches type |
+| `expr is Type binding` | Check type and bind to variable |
+
+The binding variable:
+- Is only in scope within its branch body
+- Has the matched type, enabling access to type-specific properties
+- Can use any valid identifier name (convention: use descriptive names like `rect`, `circ`)
+
+### When to Use Pattern Matching
+
+Pattern matching is useful when:
+
+1. **Polymorphic calculations**: Different element types require different formulas
+2. **Type-specific property access**: You need properties not in the shared prototype
+3. **Runtime type dispatch**: The concrete type is only known at runtime
+
 ## Empty Prototypes (Markers)
 
 Prototypes with no inputs or outputs are valid and serve as markers or tags:

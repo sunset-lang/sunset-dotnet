@@ -364,9 +364,9 @@ Result <r> = numerator / denominator
 ### Type Comparison Operators
 
 | Operator | Description | Example |
-|----------|-------------|---------|
+|----------|-------------|-------|
 | `is` | Type equality | `Section is Circle` |
-| `is not` | Type inequality | `Section is not Circle` |
+| `is Type binding` | Type match with binding | `Section is Circle circ` |
 
 ### Operator Precedence
 
@@ -417,6 +417,49 @@ y = 10 if x < 12
 - All branches must evaluate to the same type/units
 - The `otherwise` branch is required
 - Conditions are evaluated sequentially; first true condition wins
+
+### Type Pattern Matching
+
+Use `is` to check element types and optionally bind to a typed variable:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Rectangle as Shape:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+define Circle as Shape:
+    inputs:
+        Radius = 1 {m}
+    outputs:
+        return Area {m^2} = 3.14159 * Radius ^ 2
+end
+
+myShape {Shape} = Rectangle(2 {m}, 3 {m})
+
+// Pattern matching with binding
+area {m^2} = rect.Width * rect.Length if myShape is Rectangle rect
+           = 3.14159 * circ.Radius ^ 2 if myShape is Circle circ
+           = error otherwise
+```
+
+| Syntax | Description |
+|--------|-------------|
+| `expr is Type` | Check if expression matches type |
+| `expr is Type binding` | Check type and bind to variable with that type |
+
+**Rules:**
+- An `otherwise` branch is always required when using pattern matching
+- Binding variables are only in scope within their branch body
+- The binding has the matched type, enabling access to type-specific properties
 
 ---
 

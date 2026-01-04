@@ -115,6 +115,17 @@ public class NameResolver(ErrorLog log) : INameResolver
                     }
                 }
 
+                // Handle pattern binding variables (e.g., rect.Width where rect is a pattern binding)
+                if (leftNameExpression.GetResolvedDeclaration() is PatternBindingVariable patternBindingVariable)
+                {
+                    // Use the bound element type as the scope for the right name expression
+                    if (dest.Right is NameExpression rightNameExpression)
+                    {
+                        Visit(rightNameExpression, patternBindingVariable.BoundElementType);
+                        return;
+                    }
+                }
+
                 // TODO: Handle other cases like libraries, modules and files.
 
                 // TODO: Handle this error properly
@@ -238,10 +249,62 @@ public class NameResolver(ErrorLog log) : INameResolver
     {
         foreach (var branch in dest.Branches)
         {
-            Visit(branch.Body, parentScope);
             if (branch is IfBranch ifBranch)
             {
+                // Resolve the condition (scrutinee for pattern matching)
                 Visit(ifBranch.Condition, parentScope);
+
+                // Handle pattern matching branches
+                if (ifBranch.Pattern != null)
+                {
+                    // Resolve the type name in the pattern
+                    var typeDecl = SearchParentsForName(
+                        ifBranch.Pattern.TypeNameToken.ToString(),
+                        parentScope);
+
+                    if (typeDecl is PrototypeDeclaration or ElementDeclaration)
+                    {
+                        ifBranch.Pattern.SetResolvedType(typeDecl);
+
+                        // If there's a binding, create a scope for the body
+                        if (ifBranch.Pattern.BindingNameToken != null && typeDecl is ElementDeclaration elementDecl)
+                        {
+                            var bindingScope = new PatternBindingScope(
+                                parentScope,
+                                ifBranch.Pattern.BindingNameToken.ToString(),
+                                elementDecl);
+                            Visit(ifBranch.Body, bindingScope);
+                        }
+                        else if (ifBranch.Pattern.BindingNameToken != null && typeDecl is PrototypeDeclaration)
+                        {
+                            // For prototype patterns, we can't create a binding scope directly
+                            // because we don't know the concrete element type at compile time.
+                            // The binding will be resolved at runtime.
+                            // For now, just resolve the body in the parent scope
+                            // TODO: Consider creating a PrototypeBindingScope that allows property access
+                            Visit(ifBranch.Body, parentScope);
+                        }
+                        else
+                        {
+                            Visit(ifBranch.Body, parentScope);
+                        }
+                    }
+                    else
+                    {
+                        Log.Error(new Errors.Semantic.PatternTypeNotFoundError(ifBranch.Pattern.TypeNameToken));
+                        Visit(ifBranch.Body, parentScope);
+                    }
+                }
+                else
+                {
+                    // Regular boolean condition branch
+                    Visit(ifBranch.Body, parentScope);
+                }
+            }
+            else
+            {
+                // OtherwiseBranch
+                Visit(branch.Body, parentScope);
             }
         }
     }

@@ -1,6 +1,27 @@
 # Getting Started
 
-This page describes the **Sunset Language**, a simplified programming language used for engineering calculations.
+This page describes the **Sunset Language**, a domain-specific programming language designed for engineering calculations with automatic unit handling and report generation.
+
+## Overview
+
+The Sunset calculation framework handles:
+
+- **Unit checking and conversions** - Automatic dimensional analysis and unit compatibility checking
+- **Calculations involving quantities** - Mathematical operations that preserve and propagate units
+- **Reporting** - Generate formatted calculation reports with LaTeX equations
+- **Reusable elements** - Define and compose calculation templates
+
+## Documentation
+
+- [Getting Started](getting-started.md) - Introduction and basic concepts (this page)
+- [Language Reference](reference.md) - Complete language specification
+- [Variables](variables.md) - Variable types and declarations
+- [Elements](elements.md) - Reusable calculation templates
+- [Element Inheritance](element-inheritance.md) - Extending elements
+- [Conditionals](conditionals.md) - Conditional expressions
+- [Functions on Collections](functions-on-collections.md) - List and dictionary operations
+- [Reporting](reporting.md) - Report generation
+- [Options](options.md) - Option types (planned)
 
 ## Comments
 
@@ -321,7 +342,7 @@ A variable can take on any of the following types:
 - Conditionals
 - Strings
 - Lists
-- Dictionaries *(Not Yet Implemented)*
+- Dictionaries
 
 See [Variables](variables.md) for detailed information on each type.
 
@@ -393,12 +414,17 @@ The variables within an element can be accessed with the `.` operator.
 - [x] Reporting (Markdown output)
 - [x] Mathematical functions (sqrt, sin, cos, tan, etc.)
 - [x] Lists and collection functions (foreach, min, max, where, select, etc.)
+- [x] Non-dimensionalising units (`{/ unit}` syntax)
+- [x] String concatenation
+- [x] Default return values for elements
+- [x] Partial application (element re-instantiation)
+- [x] Dictionaries (basic operations and interpolation)
 
 ### Planned Features
 
-- [ ] Non-dimensionalising units (`{/ unit}` syntax)
-- [ ] String concatenation and interpolation
-- [ ] Default return values for elements
-- [ ] Partial application (element re-instantiation)
-- [ ] Dictionaries
+- [ ] String interpolation
+- [ ] Logical operators (and, or)
+- [ ] Dictionary iteration
 - [ ] Options type
+- [ ] Element inheritance (partially implemented)
+

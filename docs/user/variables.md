@@ -6,8 +6,8 @@ A variable can take on any of the following types:
 - Expressions
 - Elements
 - Conditionals
-- Lists *(Not Yet Implemented)*
-- Dictionaries *(Not Yet Implemented)*
+- Lists
+- Dictionaries
 
 ## Anonymous Variables
 
@@ -121,41 +121,48 @@ y = 12 if x > 10
 
 ## Lists
 
-> **Status: Not Yet Implemented**
->
-> List functionality is planned but not currently available.
-
 Lists contain zero or more variables of the same type. They are defined using square brackets `[` and `]`, with items separated by commas:
 
 ```sunset
 reinforcementDiameters = [12 {mm}, 16 {mm}, 20 {mm}, 24 {mm}, 28 {mm}, 32 {mm}]
+emptyList = []
 ```
 
-Planned operations:
-- `list[index]` - Access by index
-- `list.first()` - Get first element
-- `list.last()` - Get last element
+Available operations:
 
-See [Functions on Collections](functions-on-collections.md) for more information on planned collection operations.
+| Syntax | Description |
+|--------|-------------|
+| `list[index]` | Access element by zero-based index |
+| `list.first()` | Get the first element |
+| `list.last()` | Get the last element |
+| `list.min()` | Get minimum value |
+| `list.max()` | Get maximum value |
+| `list.average()` | Get average value |
+| `list.foreach(expr)` | Iterate with `value` and `index` keywords |
+| `list.where(cond)` | Filter elements matching condition |
+| `list.select(expr)` | Transform each element |
+
+See [Functions on Collections](functions-on-collections.md) for more details.
 
 ## Dictionaries
 
-> **Status: Not Yet Implemented**
->
-> Dictionary functionality is planned but not currently available.
-
-Dictionaries are lists of key-value pairs. They are defined with square brackets, with each item as a `key: value` pair separated by commas:
+Dictionaries are key-value pairs. They are defined with square brackets, with each item as a `key: value` pair separated by commas:
 
 ```sunset
 windSpeed = ["A2": 45 {m/s}, "B1": 52 {m/s}]
+temperatures = [0: 20, 100: 100, 200: 180]
+emptyDict = [:]
 ```
 
 All keys must be of the same type and all values must be of the same type, but keys and values do not have to match types.
 
-Planned operations:
-- `dict[key]` - Access by key
-- `dict[~key]` - Linear interpolation between keys
-- `dict[~key-]` - Find value just below key
-- `dict[~key+]` - Find value just above key
+Available operations:
 
-See [Functions on Collections](functions-on-collections.md) for more information on planned dictionary operations.
+| Syntax | Description |
+|--------|-------------|
+| `dict[key]` | Access value by exact key |
+| `dict[~key]` | Linear interpolation between keys (numeric keys only) |
+| `dict[~key-]` | Find value for largest key ≤ lookup key |
+| `dict[~key+]` | Find value for smallest key ≥ lookup key |
+
+See [Functions on Collections](functions-on-collections.md) for more details.

@@ -158,8 +158,6 @@ flexuralStrength = 0.6 * (compressiveStrength {MPa}) {MPa}
 
 ### Non-dimensionalising Units
 
-> **Status: Not Yet Implemented**
-
 To remove units from a quantity and obtain a dimensionless numeric value, use the `{/ unit}` syntax:
 
 ```sunset
@@ -200,8 +198,6 @@ multiline string
 
 ### String Concatenation
 
-> **Status: Not Yet Implemented**
-
 Strings can be concatenated using the `+` operator:
 
 ```sunset
@@ -230,8 +226,6 @@ summary = "Area: {Width * Height}"
 ```
 
 ### Joining Lists of Strings
-
-> **Status: Not Yet Implemented**
 
 ```sunset
 words = ["hello", "world"]
@@ -520,8 +514,6 @@ The `parent` keyword indicates that the property is inherited unchanged from the
 
 ### Default Return Value
 
-> **Status: Not Yet Implemented**
-
 Elements can be used as inline functions by returning a default value when instantiated without accessing a specific property.
 
 #### Implicit Return
@@ -562,8 +554,6 @@ Example = Operation(12, 5)  // Returns 17 (Add is marked with return)
 | Empty elements | Instantiating an element with no variables without property access is an error |
 
 ### Partial Application (Element Re-instantiation)
-
-> **Status: Not Yet Implemented**
 
 Elements are immutable, but can be re-instantiated from an existing instance to create a new, independent copy with modified properties:
 

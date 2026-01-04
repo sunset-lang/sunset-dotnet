@@ -120,8 +120,6 @@ Note that for elements used as variables, they do not need to define a symbol as
 
 ## Using Elements as Functions
 
-> **Status: Not Yet Implemented**
-
 Elements can be used as inline functions by returning a default value when instantiated without accessing a specific property.
 
 ### Default Return Value
@@ -166,8 +164,6 @@ Example = Operation(12, 5)  // Returns 17 (Add is marked with return)
 - If an element with no variables is instantiated without property access, it is an error
 
 ### Partial Application (Element Re-instantiation)
-
-> **Status: Not Yet Implemented**
 
 Elements are immutable, but can be re-instantiated from an existing instance. This creates a new, completely independent copy with the same input properties, but allows specific properties to be changed.
 

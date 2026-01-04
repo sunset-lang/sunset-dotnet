@@ -24,13 +24,13 @@ Conditions are expressions that evaluate to `true` or `false`. They can be used 
 
 ### Logical Operators
 
-> **Note:** Logical operators are defined in the lexer but may have limited implementation.
+> **Note:** Logical operators `and` and `or` are not yet implemented. The `not` keyword only works with `is not`.
 
-| Operator | Description |
-|----------|-------------|
-| `and` | Logical AND |
-| `or` | Logical OR |
-| `not` | Logical NOT |
+| Operator | Description | Status |
+|----------|-------------|--------|
+| `and` | Logical AND | Not yet implemented |
+| `or` | Logical OR | Not yet implemented |
+| `not` | Logical NOT | Only works with `is not` |
 
 ## Single-Line If Expressions
 

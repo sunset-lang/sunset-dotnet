@@ -75,6 +75,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             ValueConstant => _iterationValue ?? ErrorResult,
             IndexConstant => new QuantityResult(_iterationIndex, DefinedUnits.Dimensionless),
             ListExpression listExpression => Visit(listExpression, currentScope),
+            DictionaryExpression dictionaryExpression => Visit(dictionaryExpression, currentScope),
             IndexExpression indexExpression => Visit(indexExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
             DimensionDeclaration => SuccessResult,  // Dimensions don't need evaluation
@@ -466,6 +467,27 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         return listResult;
     }
 
+    private IResult Visit(DictionaryExpression dest, IScope currentScope)
+    {
+        var entries = new List<DictionaryEntryResult>();
+        foreach (var entry in dest.Entries)
+        {
+            var keyResult = Visit(entry.Key, currentScope);
+            var valueResult = Visit(entry.Value, currentScope);
+
+            if (keyResult is ErrorResult || valueResult is ErrorResult)
+            {
+                return ErrorResult;
+            }
+
+            entries.Add(new DictionaryEntryResult(keyResult, valueResult));
+        }
+
+        var dictResult = new DictionaryResult(entries);
+        dest.SetResult(currentScope, dictResult);
+        return dictResult;
+    }
+
     private IResult Visit(IndexExpression dest, IScope currentScope)
     {
         var targetResult = Visit(dest.Target, currentScope);
@@ -476,12 +498,24 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
-        if (targetResult is not ListResult listResult)
+        // Handle dictionary access
+        if (targetResult is DictionaryResult dictResult)
         {
-            // Error already logged by TypeChecker
-            return ErrorResult;
+            return VisitDictionaryAccess(dest, dictResult, indexResult, currentScope);
         }
 
+        // Handle list access
+        if (targetResult is ListResult listResult)
+        {
+            return VisitListAccess(dest, listResult, indexResult, currentScope);
+        }
+
+        // Error already logged by TypeChecker
+        return ErrorResult;
+    }
+
+    private IResult VisitListAccess(IndexExpression dest, ListResult listResult, IResult indexResult, IScope currentScope)
+    {
         if (indexResult is not QuantityResult quantityResult)
         {
             // Error already logged by TypeChecker
@@ -493,11 +527,55 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         // Check bounds
         if (index < 0 || index >= listResult.Count)
         {
-            Log.Error(new Errors.Semantic.IndexOutOfBoundsError(dest, index, listResult.Count));
+            Log.Error(new IndexOutOfBoundsError(dest, index, listResult.Count));
             return ErrorResult;
         }
 
         var result = listResult[index];
+        dest.SetResult(currentScope, result);
+        return result;
+    }
+
+    private IResult VisitDictionaryAccess(IndexExpression dest, DictionaryResult dictResult, IResult indexResult, IScope currentScope)
+    {
+        IResult? result;
+
+        if (dest.AccessMode != CollectionAccessMode.Direct)
+        {
+            // Interpolation modes
+            if (indexResult is not QuantityResult quantityResult)
+            {
+                // Error already logged by TypeChecker
+                return ErrorResult;
+            }
+
+            var lookupKey = quantityResult.Result.BaseValue;
+            result = dictResult.Interpolate(lookupKey, dest.AccessMode);
+
+            if (result == null)
+            {
+                Log.Error(new DictionaryInterpolationOutOfRangeError(dest, lookupKey));
+                return ErrorResult;
+            }
+        }
+        else
+        {
+            // Direct key lookup
+            result = dictResult.TryGetValue(indexResult);
+
+            if (result == null)
+            {
+                var keyDescription = indexResult switch
+                {
+                    QuantityResult qr => qr.Result.BaseValue.ToString(),
+                    StringResult sr => $"\"{sr.Result}\"",
+                    _ => indexResult.ToString() ?? "unknown"
+                };
+                Log.Error(new DictionaryKeyNotFoundError(dest, keyDescription));
+                return ErrorResult;
+            }
+        }
+
         dest.SetResult(currentScope, result);
         return result;
     }

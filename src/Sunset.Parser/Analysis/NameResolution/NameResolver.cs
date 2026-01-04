@@ -61,6 +61,9 @@ public class NameResolver(ErrorLog log) : INameResolver
             case ListExpression listExpression:
                 Visit(listExpression, parentScope);
                 break;
+            case DictionaryExpression dictionaryExpression:
+                Visit(dictionaryExpression, parentScope);
+                break;
             case IndexExpression indexExpression:
                 Visit(indexExpression, parentScope);
                 break;
@@ -173,6 +176,15 @@ public class NameResolver(ErrorLog log) : INameResolver
         foreach (var element in dest.Elements)
         {
             Visit(element, parentScope);
+        }
+    }
+
+    private void Visit(DictionaryExpression dest, IScope parentScope)
+    {
+        foreach (var entry in dest.Entries)
+        {
+            Visit(entry.Key, parentScope);
+            Visit(entry.Value, parentScope);
         }
     }
 

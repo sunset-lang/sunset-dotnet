@@ -1,13 +1,17 @@
-using Sunset.Parser.Errors;
 using Sunset.Parser.Lexing.Tokens;
-using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Expressions;
 
 /// <summary>
 /// Represents an index access expression, e.g., list[0] or dict["key"].
+/// Supports different access modes for dictionaries: direct, interpolation, and floor/ceiling lookup.
 /// </summary>
-public class IndexExpression(IExpression target, IToken openBracket, IExpression index, IToken? closeBracket)
+public class IndexExpression(
+    IExpression target,
+    IToken openBracket,
+    IExpression index,
+    IToken? closeBracket,
+    CollectionAccessMode accessMode = CollectionAccessMode.Direct)
     : ExpressionBase
 {
     /// <summary>
@@ -29,4 +33,11 @@ public class IndexExpression(IExpression target, IToken openBracket, IExpression
     /// The closing bracket token ']'.
     /// </summary>
     public IToken? CloseBracket { get; } = closeBracket;
+
+    /// <summary>
+    /// The access mode for this index expression.
+    /// Direct is used for list[index] and dict[key].
+    /// Interpolate, InterpolateBelow, and InterpolateAbove are used for dictionary interpolation.
+    /// </summary>
+    public CollectionAccessMode AccessMode { get; } = accessMode;
 }

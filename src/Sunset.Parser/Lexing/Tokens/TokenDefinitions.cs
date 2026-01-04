@@ -23,6 +23,7 @@ public static class TokenDefinitions
         { ':', TokenType.Colon },
         { '.', TokenType.Dot },
         { '\\', TokenType.ForwardSlash },
+        { '~', TokenType.Tilde },
         { '\n', TokenType.Newline },
         { '\0', TokenType.EndOfFile }
     };

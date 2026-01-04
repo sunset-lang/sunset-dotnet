@@ -633,19 +633,15 @@ This generates a report with:
 
 ## Collections
 
+Collections include lists and dictionaries for storing multiple values.
+
 ### Lists
 
 Lists contain zero or more items of the same type:
 
 ```sunset
 reinforcementDiameters = [12 {mm}, 16 {mm}, 20 {mm}, 24 {mm}]
-```
-
-#### List Access
-
-```sunset
-firstDiameter = reinforcementDiameters[0]           // 12 mm
-lastDiameter = reinforcementDiameters.last()        // 24 mm
+emptyList = []
 ```
 
 #### List Methods
@@ -681,21 +677,48 @@ doubled = numbers.select(value * 2)  // [2, 4, 6, 8, 10]
 result = numbers.where(value > 2).select(value * 2).max()  // 10
 ```
 
+```sunset
+items = [12 {mm}, 16 {mm}, 20 {mm}]
+first = items[0]           // 12 {mm}
+doubled = items.foreach(value * 2)  // [24 {mm}, 32 {mm}, 40 {mm}]
+maxItem = items.max()      // 20 {mm}
+```
+
 ### Dictionaries
 
-> **Status: Not Yet Implemented**
-
-Dictionaries are key-value pairs:
+Dictionaries are key-value pairs with support for interpolation-based access:
 
 ```sunset
 windSpeed = ["A2": 45 {m/s}, "B1": 52 {m/s}]
+temperatures = [0: 20, 100: 100, 200: 180]
+emptyDict = [:]
 ```
 
-Planned operations:
-- `dict[key]` - Access by key
-- `dict[~key]` - Linear interpolation between keys
-- `dict[~key-]` - Find value just below key
-- `dict[~key+]` - Find value just above key
+Operations:
+
+| Syntax | Description |
+|--------|-------------|
+| `dict[key]` | Access by exact key |
+| `dict[~key]` | Linear interpolation between keys (numeric keys only) |
+| `dict[~key-]` | Find value for largest key ≤ lookup key |
+| `dict[~key+]` | Find value for smallest key ≥ lookup key |
+
+```sunset
+// Exact key access
+temps = [0: 20, 100: 100, 200: 180]
+t100 = temps[100]  // 100
+
+// Linear interpolation
+stressStrain = [0: 0, 100: 100]
+interpolated = stressStrain[~50]  // 50
+
+// Floor/ceiling lookup
+table = [0: 10, 100: 100, 200: 180]
+belowValue = table[~150-]  // 100 (value at key 100)
+aboveValue = table[~150+]  // 180 (value at key 200)
+```
+
+See [Functions on Collections](functions-on-collections.md) for more details.
 
 ---
 
@@ -725,18 +748,24 @@ The following mathematical functions are available:
 | Function | Description | Notes |
 |----------|-------------|-------|
 | `sqrt(x)` | Square root | Returns same dimension as input^0.5 |
-| `sin(x)` | Sine | Input should be an angle |
-| `cos(x)` | Cosine | Input should be an angle |
-| `tan(x)` | Tangent | Input should be an angle |
+| `sin(x)` | Sine | Accepts angle units |
+| `cos(x)` | Cosine | Accepts angle units |
+| `tan(x)` | Tangent | Accepts angle units |
 | `asin(x)` | Inverse sine | Returns dimensionless |
 | `acos(x)` | Inverse cosine | Returns dimensionless |
 | `atan(x)` | Inverse tangent | Returns dimensionless |
 
 ```sunset
-// Example usage
-hypotenuse = sqrt(a^2 + b^2)
-angle = atan(opposite / adjacent)
-height = distance * sin(angle)
+// Square root
+hypotenuse = sqrt(3^2 + 4^2)  // 5
+
+// Trigonometry with degrees
+angle = 45 {deg}
+sinValue = sin(angle)  // ~0.707
+
+// Inverse trig functions
+ratio = 0.5
+angle = asin(ratio)  // Returns dimensionless (radians)
 ```
 
 ---

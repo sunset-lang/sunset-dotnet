@@ -95,21 +95,26 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 ---
 
 ### Dictionaries
-**Status:** ⬜ Not Started
+**Status:** 🔶 Partially Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Dictionary literal | `["key1": value1, "key2": value2]` | ⬜ |
-| Key access | `dict[key]` | ⬜ |
-| Linear interpolation | `dict[~key]` | ⬜ |
-| Find below key | `dict[~key-]` | ⬜ |
-| Find above key | `dict[~key+]` | ⬜ |
+| Dictionary literal | `["key1": value1, "key2": value2]` | ✅ |
+| Empty dictionary | `[:]` | ✅ |
+| Key access | `dict[key]` | ✅ |
+| Linear interpolation | `dict[~key]` | ✅ |
+| Find below key | `dict[~key-]` | ✅ |
+| Find above key | `dict[~key+]` | ✅ |
 | Iteration | `dict.foreach(expression)` | ⬜ |
 
-**Implementation Notes:**
-- Add `DictionaryResult` type
-- Implement dictionary literal parsing (differentiate from list by `:` separator)
-- Add interpolation operators to lexer
+**Implementation Details:**
+- `DictionaryExpression` class in `src/Sunset.Parser/Expressions/DictionaryExpression.cs`
+- `DictionaryEntry` class in `src/Sunset.Parser/Expressions/DictionaryEntry.cs`
+- `DictionaryType` for type checking in `src/Sunset.Parser/Results/Types/IResultType.cs`
+- `DictionaryResult` for evaluation in `src/Sunset.Parser/Results/DictionaryResult.cs`
+- `CollectionAccessMode` enum for interpolation modes in `src/Sunset.Parser/Expressions/CollectionAccessMode.cs`
+- Error handling in `src/Sunset.Parser/Errors/Semantic/DictionaryErrors.cs`
+- Interpolation logic supports linear interpolation and floor/ceiling lookups
 
 ---
 
@@ -398,12 +403,12 @@ The following bugs have been fixed:
 | Unit Operations | 1 | 0 | 0 | 1 |
 | String Operations | 4 | 0 | 0 | 4 |
 | Functional Programming | 5 | 0 | 0 | 5 |
-| Dictionaries | 6 | 0 | 0 | 6 |
+| Dictionaries | 7 | 6 | 0 | 1 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **48** | **18** | **1** | **29** |
+| **Total** | **49** | **24** | **1** | **24** |
 
 ---
 

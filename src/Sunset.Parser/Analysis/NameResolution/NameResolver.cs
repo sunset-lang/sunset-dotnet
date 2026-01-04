@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
@@ -57,6 +57,9 @@ public class NameResolver(ErrorLog log) : INameResolver
                 break;
             case UnitAssignmentExpression unitAssignmentExpression:
                 Visit(unitAssignmentExpression, parentScope);
+                break;
+            case NonDimensionalizingExpression nonDimensionalizingExpression:
+                Visit(nonDimensionalizingExpression, parentScope);
                 break;
             case ListExpression listExpression:
                 Visit(listExpression, parentScope);
@@ -147,6 +150,14 @@ public class NameResolver(ErrorLog log) : INameResolver
     private void Visit(UnitAssignmentExpression dest, IScope parentScope)
     {
         // Resolve names in the unit expression (e.g., kg, m, s in {kg m / s^2})
+        Visit(dest.UnitExpression, parentScope);
+    }
+
+    private void Visit(NonDimensionalizingExpression dest, IScope parentScope)
+    {
+        // Resolve names in the value expression
+        Visit(dest.Value, parentScope);
+        // Resolve names in the unit expression
         Visit(dest.UnitExpression, parentScope);
     }
 

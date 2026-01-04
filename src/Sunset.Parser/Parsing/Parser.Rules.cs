@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Expressions;
+using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
 using Sunset.Parser.Parsing.Constants;
@@ -75,15 +75,27 @@ public partial class Parser
         return new BinaryExpression(operatorToken, left, operand);
     }
 
-    private static UnitAssignmentExpression UnitAssignment(Parser parser, IExpression left)
+    private static IExpression UnitAssignment(Parser parser, IExpression left)
     {
         parser._inUnitExpression = true;
         var openToken = parser.Consume(TokenType.OpenBrace);
-        if (openToken == null) throw new Exception("Expected an opening parenthesis");
+        if (openToken == null) throw new Exception("Expected an opening brace");
+
+        // Check for non-dimensionalizing syntax: {/ unit}
+        if (parser._current.Type == TokenType.Divide)
+        {
+            var divideToken = parser.Consume(TokenType.Divide);
+            if (divideToken == null) throw new Exception("Expected a divide token");
+            var unitExpression = parser.GetArithmeticExpression();
+            var closeToken = parser.Consume(TokenType.CloseBrace);
+            parser._inUnitExpression = false;
+            return new NonDimensionalizingExpression(openToken, divideToken, closeToken, left, unitExpression);
+        }
+
         var expression = parser.GetArithmeticExpression();
-        var closeToken = parser.Consume(TokenType.CloseBrace);
+        var closeBraceToken = parser.Consume(TokenType.CloseBrace);
         parser._inUnitExpression = false;
-        return new UnitAssignmentExpression(openToken, closeToken, left, expression);
+        return new UnitAssignmentExpression(openToken, closeBraceToken, left, expression);
     }
 
     private static IExpression ListLiteral(Parser parser)

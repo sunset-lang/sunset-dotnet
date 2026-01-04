@@ -34,6 +34,17 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
     public VariableDeclaration? ExplicitDefaultReturn { get; private set; }
 
     /// <summary>
+    ///     Unresolved prototype name tokens from parsing (e.g., from "define X as Proto1, Proto2:").
+    /// </summary>
+    public List<StringToken>? PrototypeNameTokens { get; init; }
+
+    /// <summary>
+    ///     Resolved prototype declarations this element implements.
+    ///     Set during name resolution.
+    /// </summary>
+    public List<PrototypeDeclaration>? ImplementedPrototypes { get; set; }
+
+    /// <summary>
     ///     Gets the default return variable for this element.
     ///     If an explicit return is set, returns that variable.
     ///     Otherwise, returns the last variable defined in the element (implicit return).
@@ -93,9 +104,49 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
 
     public Dictionary<string, IDeclaration> ChildDeclarations { get; private set; } = [];
 
+    /// <summary>
+    ///     Attempts to get a declaration by name, checking own declarations first,
+    ///     then inherited declarations from implemented prototypes.
+    /// </summary>
     public IDeclaration? TryGetDeclaration(string name)
     {
-        return ChildDeclarations.GetValueOrDefault(name);
+        // Check own declarations first
+        if (ChildDeclarations.TryGetValue(name, out var declaration))
+            return declaration;
+
+        // Then check inherited inputs from implemented prototypes
+        if (ImplementedPrototypes != null)
+        {
+            foreach (var prototype in ImplementedPrototypes)
+            {
+                var inherited = TryGetFromPrototypeInputs(prototype, name);
+                if (inherited != null) return inherited;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Recursively searches a prototype and its base prototypes for an input with the given name.
+    /// </summary>
+    private static IDeclaration? TryGetFromPrototypeInputs(PrototypeDeclaration prototype, string name)
+    {
+        // Check this prototype's inputs
+        var input = prototype.Inputs?.FirstOrDefault(i => i.Name == name);
+        if (input != null) return input;
+
+        // Check base prototypes
+        if (prototype.BasePrototypes != null)
+        {
+            foreach (var baseProto in prototype.BasePrototypes)
+            {
+                var inherited = TryGetFromPrototypeInputs(baseProto, name);
+                if (inherited != null) return inherited;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

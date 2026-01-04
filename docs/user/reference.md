@@ -12,6 +12,7 @@ This is the complete reference guide for the Sunset programming language, a doma
 - [Operators](#operators)
 - [Conditionals](#conditionals)
 - [Elements](#elements)
+- [Prototypes](#prototypes)
 - [Reporting](#reporting)
 - [Collections](#collections)
 - [Options](#options) *(Not Yet Implemented)*
@@ -582,6 +583,228 @@ RectangleInstance3 = RectangleInstance2(Width = 10)                // Area = 40
 | Property override | Only input properties can be overridden; outputs are re-evaluated |
 | Chaining | Re-instantiations can be chained |
 | Type inference | Type annotation is optional for simple single instantiation expressions |
+
+---
+
+## Prototypes
+
+Prototypes define contracts that elements can implement, similar to interfaces in other languages. They enable polymorphism by allowing different elements to be treated uniformly based on shared behaviour.
+
+### Defining Prototypes
+
+A prototype declaration specifies required inputs (with optional defaults) and required outputs (without expressions):
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+```
+
+| Component | Description |
+|-----------|-------------|
+| `prototype` | Keyword to start prototype declaration |
+| Name | The prototype's identifier |
+| `inputs:` | Optional section for input specifications |
+| `outputs:` | Section for required output specifications |
+| `return` | Marks the default return value |
+| `end` | Ends the prototype declaration |
+
+### Prototype Inputs
+
+Prototype inputs can have default values that implementing elements inherit:
+
+```sunset
+prototype Rectangular:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2}
+end
+```
+
+### Prototype Outputs
+
+Prototype outputs specify required properties but cannot have expressions—the implementing element must provide the calculation:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+        Perimeter {m}
+end
+```
+
+### Implementing Prototypes
+
+Elements implement prototypes using the `as` keyword:
+
+```sunset
+define Square as Shape:
+    inputs:
+        Width = 1 {m}
+    outputs:
+        return Area {m^2} = Width ^ 2
+end
+
+define Rectangle as Shape:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2} = Width * Length
+end
+```
+
+**Requirements:**
+- All prototype outputs must be defined in the element
+- Output types must match the prototype specification
+- If the prototype has a `return` output, the element must mark the same output with `return`
+
+### Multiple Prototype Implementation
+
+Elements can implement multiple prototypes:
+
+```sunset
+define Square as Shape, Rectangular:
+    inputs:
+        Width = 1 {m}
+    outputs:
+        return Area {m^2} = Width ^ 2
+        Perimeter {m} = 4 * Width
+end
+```
+
+### Prototype Inheritance
+
+Prototypes can extend other prototypes:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+prototype Polygon as Shape:
+    outputs:
+        Sides
+end
+```
+
+**Rules:**
+- Child prototypes inherit all inputs and outputs from parent prototypes
+- Child prototypes can add new inputs and outputs
+- Child prototypes **cannot** override parent outputs (this is an error)
+
+### Input Inheritance
+
+When an element implements a prototype with default inputs, those inputs are automatically available:
+
+```sunset
+prototype Rectangular:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2}
+end
+
+define Rectangle as Rectangular:
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+r = Rectangle()  // Uses inherited defaults: Width = 1, Length = 2, Area = 2 m^2
+```
+
+Elements can override inherited inputs:
+
+```sunset
+define Square as Rectangular:
+    inputs:
+        Width = 1 {m}
+        Length = Width
+    outputs:
+        return Area {m^2} = Width * Length
+end
+```
+
+### Type Annotations
+
+Type annotations use curly braces to specify expected types:
+
+| Syntax | Description |
+|--------|-------------|
+| `{m}` | Quantity with unit (metres) |
+| `{Shape}` | Instance of element implementing Shape prototype |
+| `{Shape list}` | List of instances implementing Shape prototype |
+
+```sunset
+myShape {Shape} = Square(2)
+shapes {Shape list} = [Square(2), Rectangle(2, 3)]
+```
+
+### Lists of Prototype Instances
+
+Collect elements implementing the same prototype into a list:
+
+```sunset
+Shapes {Shape list} = [Square(2), Rectangle(2, 3)]
+```
+
+### Iterating Over Prototype Lists
+
+When iterating over a list of prototype instances:
+
+- `value` resolves to the **default return value** (if the prototype has one)
+- `value.instance` provides access to the **full element instance**
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Square as Shape:
+    inputs:
+        Width = 1 {m}
+    outputs:
+        return Area {m^2} = Width ^ 2
+end
+
+define Rectangle as Shape:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+Shapes {Shape list} = [Square(2), Rectangle(2, 3)]
+
+// Using default return value (Area)
+TotalArea {m^2} = Shapes.sum(value)  // 4 + 6 = 10 m^2
+
+// Accessing element instance properties explicitly
+TotalAreaExplicit {m^2} = Shapes.sum(value.instance.Area)  // Same result
+```
+
+### Empty Prototypes (Marker Prototypes)
+
+Prototypes with no inputs or outputs are valid and serve as markers:
+
+```sunset
+prototype Printable:
+end
+
+define Report as Printable:
+    inputs:
+        Title = "Untitled"
+    outputs:
+        Content = "Report: " + Title
+end
+```
 
 ---
 

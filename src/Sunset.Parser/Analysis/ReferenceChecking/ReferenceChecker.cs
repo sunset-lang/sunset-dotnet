@@ -43,6 +43,9 @@ public class ReferenceChecker(ErrorLog log)
             UnitConstant => null,
             ValueConstant => null,
             IndexConstant => null,
+            InstanceConstant => null,
+            PrototypeOutputDeclaration prototypeOutput => Visit(prototypeOutput, visited),
+            PrototypeDeclaration prototypeDeclaration => Visit(prototypeDeclaration, visited),
             IScope scope => Visit(scope, visited),
             IConstant => null,
             UnitAssignmentExpression unitAssignmentExpression => Visit(unitAssignmentExpression, visited),
@@ -277,5 +280,76 @@ public class ReferenceChecker(ErrorLog log)
 
         references.Add(dest);
         return references;
+    }
+
+    /// <summary>
+    /// Visits a prototype declaration, checking for inheritance cycles.
+    /// </summary>
+    private HashSet<IDeclaration>? Visit(PrototypeDeclaration dest, HashSet<IDeclaration> visited)
+    {
+        // Check for prototype inheritance cycles
+        if (dest.BasePrototypes != null)
+        {
+            foreach (var baseProto in dest.BasePrototypes)
+            {
+                if (HasPrototypeInheritanceCycle(dest, baseProto, [dest]))
+                {
+                    Log.Error(new PrototypeInheritanceCycleError(dest));
+                }
+            }
+        }
+
+        // Visit child declarations (inputs and outputs)
+        var references = new HashSet<IDeclaration>();
+        foreach (var child in dest.ChildDeclarations.Values)
+        {
+            var childReferences = Visit(child, visited);
+            if (childReferences != null)
+            {
+                references.UnionWith(childReferences);
+            }
+            references.Add(child);
+        }
+
+        dest.SetReferences(references);
+        references.Add(dest);
+        return references;
+    }
+
+    /// <summary>
+    /// Checks if a prototype has an inheritance cycle by traversing base prototypes.
+    /// </summary>
+    private bool HasPrototypeInheritanceCycle(
+        PrototypeDeclaration original,
+        PrototypeDeclaration current,
+        HashSet<PrototypeDeclaration> visited)
+    {
+        if (visited.Contains(current))
+        {
+            return current == original;
+        }
+
+        visited.Add(current);
+
+        if (current.BasePrototypes == null) return false;
+
+        foreach (var baseProto in current.BasePrototypes)
+        {
+            if (HasPrototypeInheritanceCycle(original, baseProto, visited))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Visits a prototype output declaration (no references to track).
+    /// </summary>
+    private HashSet<IDeclaration>? Visit(PrototypeOutputDeclaration dest, HashSet<IDeclaration> visited)
+    {
+        // Prototype outputs don't have expressions, so no references
+        return null;
     }
 }

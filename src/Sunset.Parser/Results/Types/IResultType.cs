@@ -28,8 +28,40 @@ public interface IResultType
                 AreCompatible(leftDict.KeyType, rightDict.KeyType) &&
                 AreCompatible(leftDict.ValueType, rightDict.ValueType),
             DictionaryType => false,
+            
+            // Prototype compatibility
+            PrototypeType leftProto when right is PrototypeType rightProto =>
+                leftProto.Declaration == rightProto.Declaration ||
+                PrototypeImplementsPrototype(leftProto.Declaration, rightProto.Declaration) ||
+                PrototypeImplementsPrototype(rightProto.Declaration, leftProto.Declaration),
+
+            // Element implements prototype check
+            ElementType leftElement when right is PrototypeType rightProto =>
+                ElementImplementsPrototype(leftElement.ElementDeclaration, rightProto.Declaration),
+            PrototypeType leftProto when right is ElementType rightElement =>
+                ElementImplementsPrototype(rightElement.ElementDeclaration, leftProto.Declaration),
+
+            PrototypeType => false,
+            
             _ => false
         };
+    }
+
+    /// <summary>
+    /// Checks if a prototype implements (inherits from) another prototype.
+    /// </summary>
+    private static bool PrototypeImplementsPrototype(PrototypeDeclaration derived, PrototypeDeclaration baseProto)
+    {
+        if (derived == baseProto) return true;
+        return derived.BasePrototypes?.Any(bp => PrototypeImplementsPrototype(bp, baseProto)) ?? false;
+    }
+
+    /// <summary>
+    /// Checks if an element implements a prototype.
+    /// </summary>
+    private static bool ElementImplementsPrototype(ElementDeclaration element, PrototypeDeclaration prototype)
+    {
+        return element.ImplementedPrototypes?.Any(p => PrototypeImplementsPrototype(p, prototype)) ?? false;
     }
 }
 
@@ -157,5 +189,21 @@ public class DimensionType(DimensionDeclaration declaration) : IResultType
     public override string ToString()
     {
         return $"Dimension({Declaration.Name})";
+    }
+}
+
+/// <summary>
+/// Represents a prototype type (contract for element declarations).
+/// </summary>
+public class PrototypeType(PrototypeDeclaration declaration) : IResultType
+{
+    /// <summary>
+    /// The prototype declaration this type represents.
+    /// </summary>
+    public PrototypeDeclaration Declaration { get; } = declaration;
+
+    public override string ToString()
+    {
+        return $"Prototype({Declaration.Name})";
     }
 }

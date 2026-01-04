@@ -56,12 +56,15 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             ErrorConstant => ErrorValueType.Instance,
             ValueConstant => _iterationValueType ?? ErrorValueType.Instance,
             IndexConstant => QuantityType.Dimensionless,
+            InstanceConstant => _iterationValueType ?? ErrorValueType.Instance,
             DimensionDeclaration dimensionDeclaration => Visit(dimensionDeclaration),
             UnitDeclaration unitDeclaration => Visit(unitDeclaration),
             ListExpression listExpression => Visit(listExpression),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
             ElementDeclaration elementDeclaration => VisitElementDeclaration(elementDeclaration),
+            PrototypeDeclaration prototypeDeclaration => Visit(prototypeDeclaration),
+            PrototypeOutputDeclaration prototypeOutputDeclaration => Visit(prototypeOutputDeclaration),
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
         };
@@ -91,6 +94,13 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         if (leftResult is ErrorValueType || rightResult is ErrorValueType)
         {
             return ErrorValueType.Instance;
+        }
+
+        // Resolve ElementType to its default return value type for non-dot operations
+        if (dest.Operator != TokenType.Dot)
+        {
+            leftResult = ResolveElementDefaultReturnType(leftResult);
+            rightResult = ResolveElementDefaultReturnType(rightResult);
         }
 
         switch (leftResult)
@@ -172,6 +182,22 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 Log.Error(new InvalidStringOperationError(dest));
                 return ErrorValueType.Instance;
             }
+            // Property access on element instance: element.PropertyName
+            case ElementType elementType when dest.Operator == TokenType.Dot:
+            {
+                // The right side should be a NameExpression that was resolved to a VariableDeclaration
+                // within the element's scope
+                if (dest.Right is NameExpression nameExpr)
+                {
+                    var resolved = nameExpr.GetResolvedDeclaration();
+                    if (resolved is VariableDeclaration varDecl)
+                    {
+                        return Visit(varDecl);
+                    }
+                }
+                // Property access failed
+                return ErrorValueType.Instance;
+            }
             default:
                 throw new NotImplementedException($"Binary expression type checking not implemented for left: {leftResult.GetType()}, right: {rightResult.GetType()}");
         }
@@ -232,7 +258,9 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             VariableDeclaration variableDeclaration =>
                 // Compare with the declared unit of the variable, not the evaluated unit of the variable.
                 Visit(variableDeclaration),
-            ElementDeclaration elementDeclaration => Visit(elementDeclaration),
+            // Must call VisitElementDeclaration directly because Visit(IScope) would be selected
+            // by overload resolution (IScope is more specific than IVisitable) and returns null
+            ElementDeclaration elementDeclaration => VisitElementDeclaration(elementDeclaration),
             UnitDeclaration unitDeclaration =>
                 // When referencing a unit in an expression, return its type
                 Visit(unitDeclaration),
@@ -870,6 +898,10 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 case ListType:
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
+                // Element types don't require unit declarations (they represent element instances)
+                case ElementType:
+                    dest.SetAssignedType(evaluatedType);
+                    return evaluatedType;
             }
 
             // If the expression contains only constants (no variable references), the units are fully known
@@ -943,6 +975,15 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             }
         }
 
+        // Check prototype conformance
+        if (dest.ImplementedPrototypes != null)
+        {
+            foreach (var prototype in dest.ImplementedPrototypes)
+            {
+                CheckPrototypeConformance(dest, prototype);
+            }
+        }
+
         // Check all the declarations in the element
         foreach (var declaration in dest.ChildDeclarations.Values)
         {
@@ -951,5 +992,157 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
         // Return the element type
         return new ElementType(dest);
+    }
+
+    /// <summary>
+    /// Checks that an element conforms to a prototype's requirements.
+    /// </summary>
+    private void CheckPrototypeConformance(ElementDeclaration element, PrototypeDeclaration prototype)
+    {
+        // Check all required outputs from the prototype and its base prototypes
+        foreach (var protoOutput in prototype.AllOutputs.OfType<PrototypeOutputDeclaration>())
+        {
+            var elementOutput = element.ChildDeclarations.Values
+                .OfType<VariableDeclaration>()
+                .FirstOrDefault(v => v.Name == protoOutput.Name);
+
+            if (elementOutput == null)
+            {
+                Log.Error(new MissingPrototypeOutputError(element, prototype, protoOutput.Name));
+                continue;
+            }
+
+            // Check return keyword matches
+            if (protoOutput.IsDefaultReturn && !elementOutput.IsDefaultReturn)
+            {
+                Log.Error(new PrototypeReturnMismatchError(element, prototype));
+            }
+        }
+
+        // Check that if prototype has a return, element has matching return
+        if (prototype.ExplicitDefaultReturn != null)
+        {
+            var expectedReturnName = prototype.ExplicitDefaultReturn.Name;
+            var elementReturn = element.ExplicitDefaultReturn;
+
+            if (elementReturn == null || elementReturn.Name != expectedReturnName)
+            {
+                Log.Error(new PrototypeReturnMismatchError(element, prototype));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Type checks a prototype declaration, including:
+    /// - Checking for output override errors in child prototypes
+    /// - Visiting all child declarations
+    /// </summary>
+    private IResultType? Visit(PrototypeDeclaration dest)
+    {
+        // Check for output override errors (child prototype defining same output as parent)
+        if (dest.BasePrototypes != null && dest.Outputs != null)
+        {
+            foreach (var output in dest.Outputs)
+            {
+                foreach (var baseProto in dest.BasePrototypes)
+                {
+                    var baseOutput = GetOutputFromPrototypeChain(baseProto, output.Name);
+                    if (baseOutput != null)
+                    {
+                        Log.Error(new PrototypeOutputOverrideError(dest, output.Name, baseProto));
+                    }
+                }
+            }
+        }
+
+        // Validate that only one output is marked with 'return'
+        var returnOutputs = (dest.Outputs ?? [])
+            .OfType<PrototypeOutputDeclaration>()
+            .Where(o => o.IsDefaultReturn)
+            .ToList();
+
+        if (returnOutputs.Count > 1)
+        {
+            foreach (var duplicate in returnOutputs.Skip(1))
+            {
+                Log.Error(new MultiplePrototypeReturnError(duplicate));
+            }
+        }
+
+        // Check all the declarations in the prototype
+        foreach (var declaration in dest.ChildDeclarations.Values)
+        {
+            Visit(declaration);
+        }
+
+        // Return the prototype type
+        return new PrototypeType(dest);
+    }
+
+    /// <summary>
+    /// Gets an output declaration from a prototype or its base prototypes by name.
+    /// </summary>
+    private PrototypeOutputDeclaration? GetOutputFromPrototypeChain(PrototypeDeclaration proto, string name)
+    {
+        // Check own outputs
+        var output = proto.Outputs?.OfType<PrototypeOutputDeclaration>().FirstOrDefault(o => o.Name == name);
+        if (output != null) return output;
+
+        // Check base prototypes
+        if (proto.BasePrototypes != null)
+        {
+            foreach (var baseProto in proto.BasePrototypes)
+            {
+                output = GetOutputFromPrototypeChain(baseProto, name);
+                if (output != null) return output;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Type checks a prototype output declaration.
+    /// </summary>
+    private IResultType? Visit(PrototypeOutputDeclaration dest)
+    {
+        // Get the type from the unit assignment if present
+        if (dest.UnitAssignment != null)
+        {
+            return Visit(dest.UnitAssignment);
+        }
+
+        // No unit specified - dimensionless
+        return QuantityType.Dimensionless;
+    }
+
+    /// <summary>
+    /// If the type is an ElementType, resolves it to the type of the element's default return value.
+    /// Recursively resolves if the default return is also an element instance.
+    /// Otherwise returns the type unchanged.
+    /// </summary>
+    private IResultType ResolveElementDefaultReturnType(IResultType type)
+    {
+        // Keep resolving until we don't have an ElementType
+        while (type is ElementType elementType)
+        {
+            var defaultReturn = elementType.ElementDeclaration.DefaultReturnVariable;
+            if (defaultReturn == null)
+            {
+                // Element has no variables to return
+                return ErrorValueType.Instance;
+            }
+
+            // Get the type of the default return variable
+            var returnType = Visit(defaultReturn);
+            if (returnType == null)
+            {
+                return ErrorValueType.Instance;
+            }
+            
+            type = returnType;
+        }
+
+        return type;
     }
 }

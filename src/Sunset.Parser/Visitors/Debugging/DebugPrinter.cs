@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
@@ -50,6 +50,8 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             UnitConstant unit => Visit(unit),
             VariableDeclaration variable => Visit(variable),
             ElementDeclaration element => Visit(element),
+            PrototypeDeclaration prototype => Visit(prototype),
+            PrototypeOutputDeclaration prototypeOutput => Visit(prototypeOutput),
             DimensionDeclaration dimension => Visit(dimension),
             UnitDeclaration unit => Visit(unit),
             FileScope fileScope => Visit(fileScope),
@@ -57,6 +59,7 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
             ListExpression listExpression => Visit(listExpression),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
+            InstanceConstant => "instance",
             _ => throw new NotImplementedException()
         };
     }
@@ -264,6 +267,45 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
         }
 
         return builder.ToString();
+    }
+
+    public string Visit(PrototypeDeclaration dest)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"prototype {dest.FullPath}:");
+        
+        if (dest.BasePrototypes != null && dest.BasePrototypes.Count > 0)
+        {
+            var baseNames = string.Join(", ", dest.BasePrototypes.Select(p => p.Name));
+            builder.AppendLine($"    extends: {baseNames}");
+        }
+
+        if (dest.Inputs != null && dest.Inputs.Count > 0)
+        {
+            builder.AppendLine("    inputs:");
+            foreach (var input in dest.Inputs)
+            {
+                builder.AppendLine($"        {Visit(input)}");
+            }
+        }
+
+        if (dest.Outputs != null && dest.Outputs.Count > 0)
+        {
+            builder.AppendLine("    outputs:");
+            foreach (var output in dest.Outputs)
+            {
+                builder.AppendLine($"        {Visit(output)}");
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    public string Visit(PrototypeOutputDeclaration dest)
+    {
+        var returnMarker = dest.IsDefaultReturn ? "return " : "";
+        var unit = dest.UnitAssignment?.Unit?.ToString() ?? "dimensionless";
+        return $"{returnMarker}{dest.Name} {{{unit}}}";
     }
 
     public string Visit(Environment environment)

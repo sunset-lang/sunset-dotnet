@@ -93,4 +93,10 @@ public enum TokenType
 
     // Functional programming
     Return, // return keyword for default return value
+
+    // Prototypes
+    Prototype, // prototype keyword for prototype declarations
+    As, // as keyword for implementing prototypes or prototype inheritance
+    List, // list keyword for type annotations (e.g., {Shape list})
+    Instance, // instance keyword for accessing element instance in list iteration
 }

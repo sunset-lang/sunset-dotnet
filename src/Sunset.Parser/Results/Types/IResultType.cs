@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Quantities.Units;
 
@@ -21,6 +21,7 @@ public interface IResultType
             UnitType leftUnit when right is UnitType rightUnit => Unit.EqualDimensions(leftUnit.Unit, rightUnit.Unit),
             QuantityType => false,
             BooleanType when right is BooleanType => true,
+            StringType when right is StringType => true,
             ListType leftList when right is ListType rightList => AreCompatible(leftList.ElementType, rightList.ElementType),
             ListType => false,
             DictionaryType leftDict when right is DictionaryType rightDict =>

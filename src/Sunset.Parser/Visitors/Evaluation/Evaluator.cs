@@ -148,8 +148,50 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
+        // String concatenation: string + string
+        if (leftResult is StringResult leftString && rightResult is StringResult rightString)
+        {
+            if (dest.Operator == TokenType.Plus)
+            {
+                return new StringResult(leftString.Result + rightString.Result);
+            }
+            return ErrorResult;
+        }
+
+        // String concatenation: string + quantity
+        if (leftResult is StringResult leftStr && rightResult is QuantityResult rightQty)
+        {
+            if (dest.Operator == TokenType.Plus)
+            {
+                return new StringResult(leftStr.Result + FormatQuantity(rightQty));
+            }
+            return ErrorResult;
+        }
+
+        // String concatenation: quantity + string
+        if (leftResult is QuantityResult leftQty && rightResult is StringResult rightStr)
+        {
+            if (dest.Operator == TokenType.Plus)
+            {
+                return new StringResult(FormatQuantity(leftQty) + rightStr.Result);
+            }
+            return ErrorResult;
+        }
+
         Log.Error(new OperationError(dest));
         return ErrorResult;
+    }
+
+    /// <summary>
+    /// Formats a quantity result for string concatenation with its display value and units.
+    /// </summary>
+    private static string FormatQuantity(QuantityResult qty)
+    {
+        var quantity = qty.Result;
+        // Use the converted value (in display units) and the unit symbol
+        var value = quantity.ConvertedValue;
+        var unit = quantity.Unit.IsDimensionless ? "" : " " + quantity.Unit;
+        return value + unit;
     }
 
     private IResult Visit(UnaryExpression dest, IScope currentScope)
@@ -410,8 +452,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
-        // Check for empty list (except for where which can handle empty lists)
-        if (list.Count == 0 && method is not WhereMethod)
+        // Check for empty list (except for where and join which can handle empty lists)
+        if (list.Count == 0 && method is not WhereMethod and not JoinMethod)
         {
             Log.Error(new EmptyListMethodError(call, method.Name));
             return ErrorResult;
@@ -440,6 +482,20 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             }
 
             var result = methodWithExpr.Evaluate(list, expression, scope, EvaluateWithContext);
+            call.SetResult(scope, result);
+            return result;
+        }
+
+        // For methods with string arguments (join)
+        if (method is IListMethodWithStringArgument methodWithStringArg && call.Arguments.Count > 0)
+        {
+            var argResult = Visit(call.Arguments[0].Expression, scope);
+            if (argResult is not StringResult stringResult)
+            {
+                return ErrorResult;
+            }
+
+            var result = methodWithStringArg.Evaluate(list, stringResult.Result);
             call.SetResult(scope, result);
             return result;
         }

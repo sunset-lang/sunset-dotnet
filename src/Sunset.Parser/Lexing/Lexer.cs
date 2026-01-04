@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Lexing.Tokens;
@@ -483,7 +483,10 @@ public class Lexer
             Advance();
         }
 
-        return new StringToken(_source[(start + 1) .. _position], TokenType.String, start, _position, _line,
+        // Advance past the closing quote
+        Advance();
+        
+        return new StringToken(_source[(start + 1) .. (_position - 1)], TokenType.String, start, _position, _line,
             _column, _file);
     }
 

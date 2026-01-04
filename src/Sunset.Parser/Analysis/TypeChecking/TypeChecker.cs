@@ -141,6 +141,36 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 var resultUnit = BinaryUnitOperation(dest, leftQuantityType.Unit, rightUnitType.Unit);
                 return resultUnit == null ? null : new QuantityType(resultUnit);
             }
+            // String concatenation: string + string
+            case StringType when rightResult is StringType:
+            {
+                if (dest.Operator == TokenType.Plus)
+                {
+                    return StringType.Instance;
+                }
+                Log.Error(new InvalidStringOperationError(dest));
+                return ErrorValueType.Instance;
+            }
+            // String concatenation: string + quantity
+            case StringType when rightResult is QuantityType:
+            {
+                if (dest.Operator == TokenType.Plus)
+                {
+                    return StringType.Instance;
+                }
+                Log.Error(new InvalidStringOperationError(dest));
+                return ErrorValueType.Instance;
+            }
+            // String concatenation: quantity + string
+            case QuantityType when rightResult is StringType:
+            {
+                if (dest.Operator == TokenType.Plus)
+                {
+                    return StringType.Instance;
+                }
+                Log.Error(new InvalidStringOperationError(dest));
+                return ErrorValueType.Instance;
+            }
             default:
                 throw new NotImplementedException($"Binary expression type checking not implemented for left: {leftResult.GetType()}, right: {rightResult.GetType()}");
         }
@@ -478,6 +508,35 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             return resultType;
         }
 
+        // For methods with string arguments (join)
+        if (method is IListMethodWithStringArgument methodWithStringArg)
+        {
+            if (dest.Arguments.Count == 0)
+            {
+                Log.Error(new ListMethodMissingArgumentError(dest, method.Name));
+                return ErrorValueType.Instance;
+            }
+
+            // Type check the argument
+            var argType = Visit(dest.Arguments[0].Expression);
+            if (argType == null || argType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+
+            // For 'join', check that the separator argument is a string
+            if (method is JoinMethod && argType is not StringType)
+            {
+                Log.Error(new ListMethodWrongArgumentTypeError(dest, method.Name, "string"));
+                return ErrorValueType.Instance;
+            }
+
+            // Determine result type
+            var resultType = methodWithStringArg.GetResultType(listType, argType);
+            dest.SetEvaluatedType(resultType);
+            return resultType;
+        }
+
         // Determine the result type using the method's own logic
         var simpleResultType = method.GetResultType(listType);
         dest.SetEvaluatedType(simpleResultType);
@@ -508,10 +567,9 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         return propertyType;
     }
 
-    private IResultType? Visit(StringConstant dest)
+    private static IResultType Visit(StringConstant dest)
     {
-        Log.Error(new StringInExpressionError(dest.Token));
-        return null;
+        return StringType.Instance;
     }
 
     private static IResultType Visit(UnitConstant dest)
@@ -797,6 +855,18 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                     return evaluatedType;
                 // Note that it is OK to not assign a unit to a variable with a dimensionless or angle result.
                 case QuantityType quantityType when quantityType.Unit.IsDimensionless || Unit.EqualDimensions(quantityType.Unit, DefinedUnits.Radian):
+                    dest.SetAssignedType(evaluatedType);
+                    return evaluatedType;
+                // Strings don't require unit declarations
+                case StringType:
+                    dest.SetAssignedType(evaluatedType);
+                    return evaluatedType;
+                // Boolean results don't require unit declarations
+                case BooleanType:
+                    dest.SetAssignedType(evaluatedType);
+                    return evaluatedType;
+                // Lists don't require unit declarations (their element types are validated separately)
+                case ListType:
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
             }

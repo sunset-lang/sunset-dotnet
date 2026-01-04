@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Scopes;
 using Sunset.Parser.Visitors;
@@ -26,6 +26,44 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
     ///     The group of outputs for the element.
     /// </summary>
     public List<IDeclaration>? Outputs { get; private set; }
+
+    /// <summary>
+    ///     The default return variable for this element, if one is explicitly marked with 'return'.
+    ///     If null, the implicit return is the last variable defined in the element.
+    /// </summary>
+    public VariableDeclaration? ExplicitDefaultReturn { get; private set; }
+
+    /// <summary>
+    ///     Gets the default return variable for this element.
+    ///     If an explicit return is set, returns that variable.
+    ///     Otherwise, returns the last variable defined in the element (implicit return).
+    /// </summary>
+    public VariableDeclaration? DefaultReturnVariable
+    {
+        get
+        {
+            if (ExplicitDefaultReturn != null)
+                return ExplicitDefaultReturn;
+
+            // Implicit return: the last variable defined in the element
+            // Check outputs first (calculations), then inputs
+            if (Outputs != null && Outputs.Count > 0)
+            {
+                var lastOutput = Outputs[^1];
+                if (lastOutput is VariableDeclaration varDecl)
+                    return varDecl;
+            }
+
+            if (Inputs != null && Inputs.Count > 0)
+            {
+                var lastInput = Inputs[^1];
+                if (lastInput is VariableDeclaration varDecl)
+                    return varDecl;
+            }
+
+            return null;
+        }
+    }
 
     /// <summary>
     ///     All declaration containers within the element
@@ -77,5 +115,11 @@ public class ElementDeclaration(StringToken nameToken, IScope parentScope) : ISc
         {
             ChildDeclarations = allContainers;
         }
+
+        // Find the explicit return variable if one is marked
+        ExplicitDefaultReturn = containers?.Values
+            .SelectMany(container => container)
+            .OfType<VariableDeclaration>()
+            .FirstOrDefault(v => v.IsDefaultReturn);
     }
 }

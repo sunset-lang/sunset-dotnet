@@ -61,6 +61,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             ListExpression listExpression => Visit(listExpression),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
+            ElementDeclaration elementDeclaration => VisitElementDeclaration(elementDeclaration),
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
         };
@@ -923,5 +924,32 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
         // There is no valid unit applied to a scope, only to the child declaration.
         return null;
+    }
+
+    private IResultType? VisitElementDeclaration(ElementDeclaration dest)
+    {
+        // Validate that only one variable is marked with 'return'
+        var returnVariables = dest.ChildDeclarations.Values
+            .OfType<VariableDeclaration>()
+            .Where(v => v.IsDefaultReturn)
+            .ToList();
+
+        if (returnVariables.Count > 1)
+        {
+            // Log an error for each duplicate (skip the first one)
+            foreach (var duplicate in returnVariables.Skip(1))
+            {
+                Log.Error(new MultipleReturnError(duplicate));
+            }
+        }
+
+        // Check all the declarations in the element
+        foreach (var declaration in dest.ChildDeclarations.Values)
+        {
+            Visit(declaration);
+        }
+
+        // Return the element type
+        return new ElementType(dest);
     }
 }

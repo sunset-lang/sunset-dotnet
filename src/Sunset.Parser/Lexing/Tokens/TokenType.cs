@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Lexing.Tokens;
+namespace Sunset.Parser.Lexing.Tokens;
 
 public enum TokenType
 {
@@ -90,4 +90,7 @@ public enum TokenType
 
     // Dictionary access
     Tilde, // ~ for dictionary interpolation
+
+    // Functional programming
+    Return, // return keyword for default return value
 }

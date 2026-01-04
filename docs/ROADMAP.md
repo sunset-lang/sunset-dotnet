@@ -218,14 +218,14 @@ Sentence = Words.join(", ")  // Results in "hello, world"
 ## Priority 5: Functional Programming
 
 ### Default Return Value
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 Allows elements to be used as inline functions by returning a default value when instantiated without property access.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Implicit return | Last defined value is default | ⬜ |
-| `return` keyword | Explicit default value marker | ⬜ |
+| Implicit return | Last defined value is default | ✅ |
+| `return` keyword | Explicit default value marker | ✅ |
 
 **Syntax:**
 ```sunset
@@ -261,25 +261,25 @@ Example = Operation(12, 5)  // Returns 17 (Add is marked with return)
 - **Error** if `return` is used more than once in an element definition
 - **Error** if an element with no variables is instantiated without property access
 
-**Implementation Notes:**
-- Add `return` keyword to lexer (`TokenType.Return`)
-- Modify `ElementDeclaration` to track the default return variable
-- Add validation for single `return` usage per element
-- Add validation for empty element instantiation
-- Modify element instantiation evaluation to return default value when no property is accessed
+**Implementation Details:**
+- `return` keyword added to lexer (`TokenType.Return`) in `TokenDefinitions.cs`
+- `ElementDeclaration` tracks `ExplicitDefaultReturn` and `DefaultReturnVariable` properties
+- `TypeChecker` validates single `return` usage per element (`MultipleReturnError`)
+- `Evaluator.ResolveDefaultReturnValue()` extracts default value when element instance is used in expressions
+- Default return value is resolved when element instance is used in binary expressions (e.g., `MyElement(x = 5) * 2`)
 
 ---
 
 ### Partial Application (Element Re-instantiation)
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 Allows creating new element instances based on existing instances, preserving unchanged input values.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Re-instantiation | `existingInstance(property = value)` | ⬜ |
-| Property inheritance | Unchanged properties copied from source | ⬜ |
-| Type inference | Type inferred from source instance | ⬜ |
+| Re-instantiation | `existingInstance(property = value)` | ✅ |
+| Property inheritance | Unchanged properties copied from source | ✅ |
+| Type inference | Type inferred from source instance | ✅ |
 
 **Syntax:**
 ```sunset
@@ -302,11 +302,12 @@ RectangleInstance3 = RectangleInstance2(Width = 10)                // Area = 40,
 - Re-instantiations can be chained
 - Type annotation is optional when the expression is a simple single instantiation (type is inferred from the source instance)
 
-**Implementation Notes:**
-- Modify `CallExpression` handling to detect when callee is an element instance vs. element definition
-- Implement instance cloning with property override logic
-- Add type inference for re-instantiation expressions
-- **TODO:** Verify whether type inference for simple instantiation expressions is already implemented
+**Implementation Details:**
+- `NameResolver.Visit(CallExpression)` detects when callee is an element instance vs. element definition
+- `NamePassData.SourceInstance` stores the source variable for re-instantiation
+- `Evaluator.EvaluateReinstantiation()` clones instances with property overrides
+- Instance cloning is immutable - creates independent copies with new values for overridden properties
+- Calculations in the new instance are re-evaluated with the new input values
 
 ---
 
@@ -392,13 +393,13 @@ The following bugs have been fixed:
 | Lists - Advanced | 6 | 6 | 0 | 0 |
 | Unit Operations | 1 | 1 | 0 | 0 |
 | String Operations | 4 | 3 | 0 | 1 |
-| Functional Programming | 5 | 0 | 0 | 5 |
+| Functional Programming | 5 | 5 | 0 | 0 |
 | Dictionaries | 7 | 6 | 0 | 1 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **49** | **28** | **1** | **20** |
+| **Total** | **49** | **33** | **1** | **15** |
 
 ---
 

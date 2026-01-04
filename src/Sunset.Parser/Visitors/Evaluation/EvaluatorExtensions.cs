@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Results;
+using Sunset.Parser.Results;
 using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Visitors.Evaluation;
@@ -20,5 +20,10 @@ public static class EvaluatorExtensions
     public static void SetResult(this IVisitable dest, IScope scope, IResult? result)
     {
         dest.GetPassData<EvaluatorPassData>(PassDataKey).Results[scope] = result;
+    }
+
+    public static void ClearResult(this IVisitable dest, IScope scope)
+    {
+        dest.GetPassData<EvaluatorPassData>(PassDataKey).Results.Remove(scope);
     }
 }

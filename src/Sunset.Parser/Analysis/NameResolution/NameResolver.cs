@@ -255,8 +255,23 @@ public class NameResolver(ErrorLog log) : INameResolver
 
         // Resolve the target of the call expression.
         Visit(dest.Target, parentScope);
+
         // If the target is an element, the argument names should be resolved within the scope of the element
-        var parentElement = dest.Target.GetResolvedDeclaration() as ElementDeclaration;
+        ElementDeclaration? parentElement = dest.Target.GetResolvedDeclaration() as ElementDeclaration;
+
+        // Handle re-instantiation: if the target is a variable holding an element instance
+        // This is similar to how property access works (line 95-99)
+        if (parentElement == null && dest.Target.GetResolvedDeclaration() is VariableDeclaration variableDeclaration)
+        {
+            // Check if the variable's expression resolves to an element declaration
+            // (i.e., the variable holds an element instance created via a call expression)
+            if (variableDeclaration.Expression.GetResolvedDeclaration() is ElementDeclaration elementDeclaration)
+            {
+                parentElement = elementDeclaration;
+                // Mark this as a re-instantiation by storing a reference to the source variable
+                dest.SetSourceInstance(variableDeclaration);
+            }
+        }
 
         // Only resolve the arguments if the parent element is a valid resolved element
         if (parentElement == null) return;
@@ -369,9 +384,16 @@ public class NameResolver(ErrorLog log) : INameResolver
         // If the variable is declaring a new instance through a CallExpression, set the resolved declaration to the element declaration
         // This acts something like a proxy for the element type
         if (dest.Expression is not CallExpression callExpression) return;
+        
+        // Check if this is a direct element instantiation
         if (callExpression.Target.GetResolvedDeclaration() is ElementDeclaration element)
         {
             dest.SetResolvedDeclaration(element);
+        }
+        // Check if this is a re-instantiation (partial application) - the call expression will have the element set
+        else if (callExpression.GetResolvedDeclaration() is ElementDeclaration reElement)
+        {
+            dest.SetResolvedDeclaration(reElement);
         }
     }
 

@@ -101,7 +101,11 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             }
         }
 
+        // For non-dot operators, extract default return value from element instances
+        leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
+
         var rightResult = Visit(dest.Right, currentScope);
+        rightResult = ResolveDefaultReturnValue(rightResult, currentScope);
         if (leftResult is ErrorResult || rightResult is ErrorResult)
         {
             return ErrorResult;
@@ -330,6 +334,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);
 
+        // Note: We don't resolve default return values here because the value might be used
+        // in a property access (e.g., SquareInstance.Area). Default return values are resolved
+        // at the point where the value is used in a context that requires a scalar.
+
         if (value is QuantityResult quantityResult)
         {
             // If there is a unit assignment, evaluate it and set the result to the evaluated value.
@@ -383,6 +391,13 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         ArgumentNullException.ThrowIfNull(currentScope);
 
+        // Check if this is a re-instantiation (partial application)
+        var sourceInstance = dest.GetSourceInstance();
+        if (sourceInstance != null)
+        {
+            return EvaluateReinstantiation(dest, sourceInstance, elementDeclaration, currentScope);
+        }
+
         // Create a new element instance
         var elementResult = new ElementInstanceResult(elementDeclaration, currentScope);
         foreach (var argument in dest.Arguments)
@@ -405,6 +420,71 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         }
 
         return elementResult;
+    }
+
+    /// <summary>
+    /// Evaluates a re-instantiation (partial application) of an element instance.
+    /// Creates a new instance with values copied from the source instance, then overridden by provided arguments.
+    /// </summary>
+    private IResult EvaluateReinstantiation(
+        CallExpression dest,
+        VariableDeclaration sourceInstance,
+        ElementDeclaration elementDeclaration,
+        IScope currentScope)
+    {
+        // Get the source element instance
+        var sourceResult = Visit(sourceInstance, currentScope);
+        if (sourceResult is not ElementInstanceResult sourceElementResult)
+        {
+            return ErrorResult;
+        }
+
+        // Create a new element instance (enforces immutability - it's a completely independent copy)
+        var newElementResult = new ElementInstanceResult(elementDeclaration, currentScope);
+
+        // Copy all values from the source instance to the new instance
+        foreach (var declaration in elementDeclaration.ChildDeclarations.Values)
+        {
+            // Get the value from the source instance
+            var sourceValue = declaration.GetResult(sourceElementResult);
+            if (sourceValue != null)
+            {
+                // Copy the value to the new instance
+                declaration.SetResult(newElementResult, sourceValue);
+            }
+        }
+
+        // Now override with the new argument values
+        foreach (var argument in dest.Arguments)
+        {
+            // Evaluate the right-hand side expression of the argument
+            var argumentResult = Visit(argument.Expression, currentScope);
+            if (argumentResult == null)
+            {
+                throw new Exception("Could not resolve argument.");
+            }
+
+            // Only named arguments have an argument name that can be resolved
+            if (argument is Argument namedArgument)
+            {
+                var argumentDeclaration = namedArgument.ArgumentName.GetResolvedDeclaration();
+                // Override the result with the new value
+                argumentDeclaration?.SetResult(newElementResult, argumentResult);
+            }
+        }
+
+        // Re-evaluate calculations that depend on the overridden inputs
+        // This is necessary because the calculations use the new input values
+        if (elementDeclaration.Outputs != null)
+        {
+            foreach (var output in elementDeclaration.Outputs)
+            {
+                // Clear any cached result so it will be re-evaluated
+                output.ClearResult(newElementResult);
+            }
+        }
+
+        return newElementResult;
     }
 
     /// <summary>
@@ -514,6 +594,31 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         }
 
         return SuccessResult;
+    }
+
+    /// <summary>
+    /// Resolves the default return value from an element instance.
+    /// If the result is an ElementInstanceResult, evaluates and returns the default return variable's value.
+    /// Otherwise, returns the original result unchanged.
+    /// </summary>
+    private IResult ResolveDefaultReturnValue(IResult result, IScope currentScope)
+    {
+        if (result is not ElementInstanceResult elementInstance)
+        {
+            return result;
+        }
+
+        var defaultReturnVariable = elementInstance.Declaration.DefaultReturnVariable;
+        if (defaultReturnVariable == null)
+        {
+            // Element has no variables, return error
+            Log.Error(new EmptyElementInstantiationError(elementInstance.Declaration.PassData.Values.FirstOrDefault() as IToken ?? 
+                throw new InvalidOperationException("Cannot determine token for empty element error")));
+            return ErrorResult;
+        }
+
+        // Evaluate the default return variable within the element instance's scope
+        return Visit(defaultReturnVariable, elementInstance);
     }
 
     private static QuantityResult Visit(NumberConstant dest)

@@ -7,6 +7,7 @@ This is the complete reference guide for the Sunset programming language, a doma
 - [Comments](#comments)
 - [Values and Numbers](#values-and-numbers)
 - [Units](#units)
+- [Strings](#strings)
 - [Variables](#variables)
 - [Operators](#operators)
 - [Conditionals](#conditionals)
@@ -153,6 +154,88 @@ Reassign units (useful for empirical formulae):
 compressiveStrength = 32 {MPa}
 // Strip units, apply formula, reassign units:
 flexuralStrength = 0.6 * (compressiveStrength {MPa}) {MPa}
+```
+
+### Non-dimensionalising Units
+
+> **Status: Not Yet Implemented**
+
+To remove units from a quantity and obtain a dimensionless numeric value, use the `{/ unit}` syntax:
+
+```sunset
+Length = 100 {mm}
+NumericValue = Length {/ m}  // Results in 0.1 (dimensionless)
+
+// Can be used inline
+Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
+```
+
+| Syntax | Description |
+|--------|-------------|
+| `quantity {/ unit}` | Divides quantity by unit, returning dimensionless value |
+
+**Rules:**
+- Units must be dimensionally compatible (e.g., cannot non-dimensionalise `{m}` with `{s}`)
+- Incompatible dimensions result in a compile-time error
+- The error does not block execution of other unrelated code
+
+---
+
+## Strings
+
+### Basic Strings
+
+```sunset
+message = "This is a string"
+```
+
+### Multiline Strings
+
+```sunset
+description = """
+This is a
+multiline string
+"""
+```
+
+### String Concatenation
+
+> **Status: Not Yet Implemented**
+
+Strings can be concatenated using the `+` operator:
+
+```sunset
+greeting = "Hello, " + "world!"  // Results in "Hello, world!"
+```
+
+Quantities are automatically converted to their display format when concatenated:
+
+```sunset
+Length = 100 {mm}
+label = "Length: " + Length  // Results in "Length: 100 mm"
+```
+
+### String Interpolation
+
+> **Status: Not Yet Implemented**
+
+Expressions can be embedded within strings using curly braces `{expression}`:
+
+```sunset
+Length = 100 {mm}
+message = "The length is {Length}"  // Results in "The length is 100 mm"
+
+// Complex expressions are supported
+summary = "Area: {Width * Height}"
+```
+
+### Joining Lists of Strings
+
+> **Status: Not Yet Implemented**
+
+```sunset
+words = ["hello", "world"]
+sentence = words.join(", ")  // Results in "hello, world"
 ```
 
 ---
@@ -435,6 +518,81 @@ end
 
 The `parent` keyword indicates that the property is inherited unchanged from the parent element.
 
+### Default Return Value
+
+> **Status: Not Yet Implemented**
+
+Elements can be used as inline functions by returning a default value when instantiated without accessing a specific property.
+
+#### Implicit Return
+
+The last variable defined in the element is the default return value:
+
+```sunset
+define Multiply:
+    inputs:
+        Value1 = 12
+        Value2 = 5
+    outputs:
+        Result = Value1 * Value2
+
+Example = Multiply(12, 5)  // Returns 60 (Result is the last defined variable)
+```
+
+#### Explicit Return with `return` Keyword
+
+Use `return` to explicitly mark which variable should be returned by default:
+
+```sunset
+define Operation:
+    inputs:
+        Value1 = 12
+        Value2 = 5
+    outputs:
+        return Add = Value1 + Value2
+        Multiply = Value1 * Value2
+
+Example = Operation(12, 5)  // Returns 17 (Add is marked with return)
+```
+
+| Rule | Description |
+|------|-------------|
+| Placement | `return` can be used on variables in `inputs` or `outputs` |
+| Single use | `return` can only be used **once** per element |
+| Empty elements | Instantiating an element with no variables without property access is an error |
+
+### Partial Application (Element Re-instantiation)
+
+> **Status: Not Yet Implemented**
+
+Elements are immutable, but can be re-instantiated from an existing instance to create a new, independent copy with modified properties:
+
+```sunset
+define Rectangle:
+    inputs:
+        Length = 1 {m}
+        Width = 2 {m}
+    outputs:
+        Area = Length * Width
+end
+
+// Create initial instance
+RectangleInstance1 : Rectangle = Rectangle(Length = 2, Width = 4)  // Area = 8
+
+// Re-instantiate from existing instance, changing only Length
+RectangleInstance2 : Rectangle = RectangleInstance1(Length = 4)    // Area = 16 (Width = 4 inherited)
+
+// Type annotation is optional when type can be inferred
+RectangleInstance3 = RectangleInstance2(Width = 10)                // Area = 40
+```
+
+| Feature | Description |
+|---------|-------------|
+| Immutability | Re-instantiation creates a completely independent copy |
+| Property override | Only input properties can be overridden; outputs are re-evaluated |
+| Chaining | Re-instantiations can be chained |
+| Type inference | Type annotation is optional for simple single instantiation expressions |
+
 ---
 
 ## Reporting
@@ -486,14 +644,38 @@ reinforcementDiameters = [12 {mm}, 16 {mm}, 20 {mm}, 24 {mm}]
 emptyList = []
 ```
 
-Operations:
-- `list[index]` - Access by zero-based index
-- `list.first()` - Get first element
-- `list.last()` - Get last element
-- `list.foreach(expression)` - Iterate with `value` and `index` keywords
-- `list.min()`, `list.max()`, `list.average()` - Reducers
-- `list.where(condition)` - Filtering
-- `list.select(expression)` - Mapping
+#### List Methods
+
+| Method | Description | Example |
+|--------|-------------|---------|
+| `list[index]` | Access by index (0-based) | `list[0]` |
+| `list.first()` | Get first element | `list.first()` |
+| `list.last()` | Get last element | `list.last()` |
+| `list.min()` | Get minimum value | `list.min()` |
+| `list.max()` | Get maximum value | `list.max()` |
+| `list.average()` | Get average value | `list.average()` |
+| `list.foreach(expr)` | Iterate with `value` and `index` | `list.foreach(value * 2)` |
+| `list.where(cond)` | Filter elements | `list.where(value > 5)` |
+| `list.select(expr)` | Transform elements | `list.select(value * 2)` |
+
+#### Iteration Keywords
+
+In `foreach`, `where`, and `select` expressions:
+- `value` - The current element value
+- `index` - The current element index (0-based)
+
+```sunset
+numbers = [1, 2, 3, 4, 5]
+
+// Get all numbers greater than 2
+filtered = numbers.where(value > 2)  // [3, 4, 5]
+
+// Double all numbers
+doubled = numbers.select(value * 2)  // [2, 4, 6, 8, 10]
+
+// Chain methods
+result = numbers.where(value > 2).select(value * 2).max()  // 10
+```
 
 ```sunset
 items = [12 {mm}, 16 {mm}, 20 {mm}]
@@ -563,15 +745,15 @@ BoltTypes = Options(
 
 The following mathematical functions are available:
 
-| Function | Description |
-|----------|-------------|
-| `sqrt(x)` | Square root |
-| `sin(x)` | Sine (accepts angle units) |
-| `cos(x)` | Cosine (accepts angle units) |
-| `tan(x)` | Tangent (accepts angle units) |
-| `asin(x)` | Inverse sine (returns dimensionless) |
-| `acos(x)` | Inverse cosine (returns dimensionless) |
-| `atan(x)` | Inverse tangent (returns dimensionless) |
+| Function | Description | Notes |
+|----------|-------------|-------|
+| `sqrt(x)` | Square root | Returns same dimension as input^0.5 |
+| `sin(x)` | Sine | Accepts angle units |
+| `cos(x)` | Cosine | Accepts angle units |
+| `tan(x)` | Tangent | Accepts angle units |
+| `asin(x)` | Inverse sine | Returns dimensionless |
+| `acos(x)` | Inverse cosine | Returns dimensionless |
+| `atan(x)` | Inverse tangent | Returns dimensionless |
 
 ```sunset
 // Square root

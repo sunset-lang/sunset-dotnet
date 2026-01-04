@@ -455,24 +455,26 @@ public class SemanticErrorsTests
     #region String/Unit in Expression Errors
 
     [Test]
-    public void StringInExpressionError_StringInMath_ReportsError()
+    public void InvalidStringOperationError_StringMultiplication_ReportsError()
     {
+        // Note: 5 + "hello" is now valid (string concatenation with quantities)
+        // Test multiplication with strings, which should still be an error
         var source = """
-                     x = 5 + "hello"
+                     x = 5 * "hello"
                      """;
         var environment = ExecuteSource(source);
 
         // Should have at least one error
         Assert.That(environment.Log.Errors.Count(), Is.GreaterThan(0));
 
-        // Type validation
-        var error = environment.Log.Errors.OfType<StringInExpressionError>().FirstOrDefault();
-        Assert.That(error, Is.Not.Null, "Expected StringInExpressionError to be logged");
+        // Type validation - now expects InvalidStringOperationError instead of StringInExpressionError
+        var error = environment.Log.Errors.OfType<InvalidStringOperationError>().FirstOrDefault();
+        Assert.That(error, Is.Not.Null, "Expected InvalidStringOperationError to be logged");
 
         Assert.Multiple(() =>
         {
             // Message content validation
-            Assert.That(error!.Message, Does.Contain("String"));
+            Assert.That(error!.Message, Does.Contain("Invalid operation"));
 
             // Source location validation
             Assert.That(error.StartToken, Is.Not.Null);

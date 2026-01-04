@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.BuiltIns;
+using Sunset.Parser.BuiltIns;
 using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
@@ -65,5 +65,29 @@ public static class NameResolverExtensions
     public static bool IsListMethodCall(this IVisitable dest)
     {
         return dest.GetPassData<NamePassData>(PassDataKey).ListMethod != null;
+    }
+
+    /// <summary>
+    /// Gets the source instance for re-instantiation, if any.
+    /// </summary>
+    public static VariableDeclaration? GetSourceInstance(this IVisitable dest)
+    {
+        return dest.GetPassData<NamePassData>(PassDataKey).SourceInstance;
+    }
+
+    /// <summary>
+    /// Sets the source instance for re-instantiation.
+    /// </summary>
+    public static void SetSourceInstance(this IVisitable dest, VariableDeclaration sourceInstance)
+    {
+        dest.GetPassData<NamePassData>(PassDataKey).SourceInstance = sourceInstance;
+    }
+
+    /// <summary>
+    /// Checks if this call expression is a re-instantiation (partial application).
+    /// </summary>
+    public static bool IsReinstantiation(this IVisitable dest)
+    {
+        return dest.GetPassData<NamePassData>(PassDataKey).SourceInstance != null;
     }
 }

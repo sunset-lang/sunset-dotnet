@@ -1,4 +1,4 @@
-﻿namespace Sunset.Parser.Lexing.Tokens;
+namespace Sunset.Parser.Lexing.Tokens;
 
 public static class TokenDefinitions
 {
@@ -69,5 +69,6 @@ public static class TokenDefinitions
         { "index", TokenType.Index },
         { "dimension", TokenType.Dimension },
         { "unit", TokenType.Unit },
+        { "return", TokenType.Return },
     };
 }

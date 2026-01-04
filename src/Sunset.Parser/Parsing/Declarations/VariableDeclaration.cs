@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
@@ -40,11 +40,13 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
         SymbolName? symbolExpression = null,
         StringToken? descriptionToken = null,
         StringToken? referenceToken = null,
-        StringToken? labelToken = null)
+        StringToken? labelToken = null,
+        IToken? returnToken = null)
     {
         _symbolExpression = symbolExpression;
         NameToken = nameToken;
         UnitAssignment = unitAssignment;
+        ReturnToken = returnToken;
 
         ParentScope = parentScope;
         Name = nameToken.Value.ToString();
@@ -80,6 +82,16 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
     /// The expression that defines the unit being assigned directly to the variable.
     /// </summary>
     public UnitAssignmentExpression? UnitAssignment { get; }
+
+    /// <summary>
+    /// The token for the 'return' keyword if this variable is the default return value for its containing element.
+    /// </summary>
+    public IToken? ReturnToken { get; }
+
+    /// <summary>
+    /// Indicates whether this variable is marked as the default return value for its containing element.
+    /// </summary>
+    public bool IsDefaultReturn => ReturnToken != null;
 
     public StringToken NameToken { get; }
 

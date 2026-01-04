@@ -101,7 +101,11 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             }
         }
 
+        // For non-dot operators, extract default return value from element instances
+        leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
+
         var rightResult = Visit(dest.Right, currentScope);
+        rightResult = ResolveDefaultReturnValue(rightResult, currentScope);
         if (leftResult is ErrorResult || rightResult is ErrorResult)
         {
             return ErrorResult;
@@ -148,8 +152,50 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
+        // String concatenation: string + string
+        if (leftResult is StringResult leftString && rightResult is StringResult rightString)
+        {
+            if (dest.Operator == TokenType.Plus)
+            {
+                return new StringResult(leftString.Result + rightString.Result);
+            }
+            return ErrorResult;
+        }
+
+        // String concatenation: string + quantity
+        if (leftResult is StringResult leftStr && rightResult is QuantityResult rightQty)
+        {
+            if (dest.Operator == TokenType.Plus)
+            {
+                return new StringResult(leftStr.Result + FormatQuantity(rightQty));
+            }
+            return ErrorResult;
+        }
+
+        // String concatenation: quantity + string
+        if (leftResult is QuantityResult leftQty && rightResult is StringResult rightStr)
+        {
+            if (dest.Operator == TokenType.Plus)
+            {
+                return new StringResult(FormatQuantity(leftQty) + rightStr.Result);
+            }
+            return ErrorResult;
+        }
+
         Log.Error(new OperationError(dest));
         return ErrorResult;
+    }
+
+    /// <summary>
+    /// Formats a quantity result for string concatenation with its display value and units.
+    /// </summary>
+    private static string FormatQuantity(QuantityResult qty)
+    {
+        var quantity = qty.Result;
+        // Use the converted value (in display units) and the unit symbol
+        var value = quantity.ConvertedValue;
+        var unit = quantity.Unit.IsDimensionless ? "" : " " + quantity.Unit;
+        return value + unit;
     }
 
     private IResult Visit(UnaryExpression dest, IScope currentScope)
@@ -288,6 +334,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);
 
+        // Note: We don't resolve default return values here because the value might be used
+        // in a property access (e.g., SquareInstance.Area). Default return values are resolved
+        // at the point where the value is used in a context that requires a scalar.
+
         if (value is QuantityResult quantityResult)
         {
             // If there is a unit assignment, evaluate it and set the result to the evaluated value.
@@ -341,6 +391,13 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
 
         ArgumentNullException.ThrowIfNull(currentScope);
 
+        // Check if this is a re-instantiation (partial application)
+        var sourceInstance = dest.GetSourceInstance();
+        if (sourceInstance != null)
+        {
+            return EvaluateReinstantiation(dest, sourceInstance, elementDeclaration, currentScope);
+        }
+
         // Create a new element instance
         var elementResult = new ElementInstanceResult(elementDeclaration, currentScope);
         foreach (var argument in dest.Arguments)
@@ -363,6 +420,71 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         }
 
         return elementResult;
+    }
+
+    /// <summary>
+    /// Evaluates a re-instantiation (partial application) of an element instance.
+    /// Creates a new instance with values copied from the source instance, then overridden by provided arguments.
+    /// </summary>
+    private IResult EvaluateReinstantiation(
+        CallExpression dest,
+        VariableDeclaration sourceInstance,
+        ElementDeclaration elementDeclaration,
+        IScope currentScope)
+    {
+        // Get the source element instance
+        var sourceResult = Visit(sourceInstance, currentScope);
+        if (sourceResult is not ElementInstanceResult sourceElementResult)
+        {
+            return ErrorResult;
+        }
+
+        // Create a new element instance (enforces immutability - it's a completely independent copy)
+        var newElementResult = new ElementInstanceResult(elementDeclaration, currentScope);
+
+        // Copy all values from the source instance to the new instance
+        foreach (var declaration in elementDeclaration.ChildDeclarations.Values)
+        {
+            // Get the value from the source instance
+            var sourceValue = declaration.GetResult(sourceElementResult);
+            if (sourceValue != null)
+            {
+                // Copy the value to the new instance
+                declaration.SetResult(newElementResult, sourceValue);
+            }
+        }
+
+        // Now override with the new argument values
+        foreach (var argument in dest.Arguments)
+        {
+            // Evaluate the right-hand side expression of the argument
+            var argumentResult = Visit(argument.Expression, currentScope);
+            if (argumentResult == null)
+            {
+                throw new Exception("Could not resolve argument.");
+            }
+
+            // Only named arguments have an argument name that can be resolved
+            if (argument is Argument namedArgument)
+            {
+                var argumentDeclaration = namedArgument.ArgumentName.GetResolvedDeclaration();
+                // Override the result with the new value
+                argumentDeclaration?.SetResult(newElementResult, argumentResult);
+            }
+        }
+
+        // Re-evaluate calculations that depend on the overridden inputs
+        // This is necessary because the calculations use the new input values
+        if (elementDeclaration.Outputs != null)
+        {
+            foreach (var output in elementDeclaration.Outputs)
+            {
+                // Clear any cached result so it will be re-evaluated
+                output.ClearResult(newElementResult);
+            }
+        }
+
+        return newElementResult;
     }
 
     /// <summary>
@@ -410,8 +532,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
-        // Check for empty list (except for where which can handle empty lists)
-        if (list.Count == 0 && method is not WhereMethod)
+        // Check for empty list (except for where and join which can handle empty lists)
+        if (list.Count == 0 && method is not WhereMethod and not JoinMethod)
         {
             Log.Error(new EmptyListMethodError(call, method.Name));
             return ErrorResult;
@@ -444,6 +566,20 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return result;
         }
 
+        // For methods with string arguments (join)
+        if (method is IListMethodWithStringArgument methodWithStringArg && call.Arguments.Count > 0)
+        {
+            var argResult = Visit(call.Arguments[0].Expression, scope);
+            if (argResult is not StringResult stringResult)
+            {
+                return ErrorResult;
+            }
+
+            var result = methodWithStringArg.Evaluate(list, stringResult.Result);
+            call.SetResult(scope, result);
+            return result;
+        }
+
         // Delegate evaluation to the method implementation
         var simpleResult = method.Evaluate(list);
         call.SetResult(scope, simpleResult);
@@ -458,6 +594,31 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         }
 
         return SuccessResult;
+    }
+
+    /// <summary>
+    /// Resolves the default return value from an element instance.
+    /// If the result is an ElementInstanceResult, evaluates and returns the default return variable's value.
+    /// Otherwise, returns the original result unchanged.
+    /// </summary>
+    private IResult ResolveDefaultReturnValue(IResult result, IScope currentScope)
+    {
+        if (result is not ElementInstanceResult elementInstance)
+        {
+            return result;
+        }
+
+        var defaultReturnVariable = elementInstance.Declaration.DefaultReturnVariable;
+        if (defaultReturnVariable == null)
+        {
+            // Element has no variables, return error
+            Log.Error(new EmptyElementInstantiationError(elementInstance.Declaration.PassData.Values.FirstOrDefault() as IToken ?? 
+                throw new InvalidOperationException("Cannot determine token for empty element error")));
+            return ErrorResult;
+        }
+
+        // Evaluate the default return variable within the element instance's scope
+        return Visit(defaultReturnVariable, elementInstance);
     }
 
     private static QuantityResult Visit(NumberConstant dest)

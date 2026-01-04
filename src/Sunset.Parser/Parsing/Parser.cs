@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Errors.Syntax;
 using Sunset.Parser.Expressions;
@@ -459,6 +459,9 @@ public partial class Parser
     {
         ConsumeNewlines();
 
+        // Check for the 'return' keyword (marks this variable as the default return value)
+        IToken? returnToken = Consume(TokenType.Return, optional: true);
+
         StringToken nameToken;
         SymbolName? symbolExpression = null;
 
@@ -519,7 +522,7 @@ public partial class Parser
                 _current.LineStart,
                 _current.ColumnStart,
                 _current.SourceFile);
-            return new VariableDeclaration(nameToken, new Constants.ErrorConstant(errorToken), parentScope, unitAssignment, symbolExpression);
+            return new VariableDeclaration(nameToken, new Constants.ErrorConstant(errorToken), parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
         }
 
         var expression = GetExpression();
@@ -528,7 +531,7 @@ public partial class Parser
         // Always end a variable declaration with a new line or end of file
         Consume([TokenType.Newline, TokenType.EndOfFile]);
 
-        return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression);
+        return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
     }
 
     /// <summary>

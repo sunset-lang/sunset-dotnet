@@ -113,7 +113,209 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 
 ---
 
-## Priority 3: Type System Extensions
+## Priority 3: Unit Operations
+
+### Non-dimensionalising Units
+**Status:** ⬜ Not Started
+
+Allows removing units from a quantity by dividing by a specified unit, returning a dimensionless numeric value.
+
+| Feature | Syntax | Status |
+|---------|--------|--------|
+| Unit removal | `quantity {/ unit}` | ⬜ |
+
+**Syntax:**
+```sunset
+// Remove units from a quantity
+Length = 100 {mm}
+NumericValue = Length {/ m}  // Results in 0.1 (dimensionless)
+
+// Can be used inline
+Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
+```
+
+**Behavior:**
+- The slash (`/`) signals division by the specified unit to make the value unitless
+- Returns a dimensionless numeric value
+- **Compile-time error** if the units are not dimensionally compatible (e.g., trying to non-dimensionalise `{m}` with `{s}`)
+- Error should not block execution of other unrelated code in the AST
+
+**Implementation Notes:**
+- Add new unit expression syntax `{/ unit}` to lexer
+- Implement dimensional compatibility check in TypeChecker
+- Add `DimensionalIncompatibilityError` to semantic errors
+- Evaluator should convert to target units, then strip units from result
+
+---
+
+## Priority 4: String Operations
+
+### String Concatenation
+**Status:** ⬜ Not Started
+
+| Feature | Syntax | Status |
+|---------|--------|--------|
+| String + String | `"hello " + "world"` | ⬜ |
+| String + Quantity | `"Length: " + 100 {mm}` | ⬜ |
+
+**Behavior:**
+- Concatenating two strings produces a combined string
+- Concatenating a string with a quantity uses the display format with units (e.g., `"100 mm"`)
+
+**Implementation Notes:**
+- Extend binary expression handling for `+` operator with string operands
+- Add `StringResult` type if not already present
+- Implement quantity-to-string conversion using existing display formatting
+
+---
+
+### String Interpolation
+**Status:** ⬜ Not Started
+
+| Feature | Syntax | Status |
+|---------|--------|--------|
+| Interpolation | `"Depth {expression}"` | ⬜ |
+
+**Syntax:**
+```sunset
+Length = 100 {mm}
+Message = "The length is {Length}"  // Results in "The length is 100 mm"
+
+// Inline expressions
+Summary = "Area: {Width * Height}"
+```
+
+**Behavior:**
+- Expressions within `{...}` inside a string are evaluated and converted to their display format
+- Quantities include their units in the interpolated output
+
+**Implementation Notes:**
+- Modify lexer to handle interpolation tokens within strings
+- Add `InterpolatedStringExpression` to parse interpolated segments
+- Evaluate each segment and concatenate results
+
+---
+
+### List Join Method
+**Status:** ⬜ Not Started
+
+| Feature | Syntax | Status |
+|---------|--------|--------|
+| Join strings | `list.join(separator)` | ⬜ |
+
+**Syntax:**
+```sunset
+Words = ["hello", "world"]
+Sentence = Words.join(", ")  // Results in "hello, world"
+```
+
+**Behavior:**
+- Joins a list of strings using the specified separator
+- Returns a single concatenated string
+
+**Implementation Notes:**
+- Add `JoinMethod` to `src/Sunset.Parser/BuiltIns/ListMethods/`
+- Type check that the list contains strings and separator is a string
+- Implement in evaluator using standard string join logic
+
+---
+
+## Priority 5: Functional Programming
+
+### Default Return Value
+**Status:** ⬜ Not Started
+
+Allows elements to be used as inline functions by returning a default value when instantiated without property access.
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Implicit return | Last defined value is default | ⬜ |
+| `return` keyword | Explicit default value marker | ⬜ |
+
+**Syntax:**
+```sunset
+// Implicit return: last defined value (Result) is returned by default
+define Multiply:
+    inputs:
+        Value1 = 12
+        Value2 = 5
+    calculations:
+        Result = Value1 * Value2
+
+Example = Multiply(12, 5)  // Returns 60 (Result is the default return)
+```
+
+```sunset
+// Explicit return: use `return` keyword to mark the default value
+define Operation:
+    inputs:
+        Value1 = 12
+        Value2 = 5
+    calculations:
+        return Add = Value1 + Value2
+        Multiply = Value1 * Value2
+
+Example = Operation(12, 5)  // Returns 17 (Add is marked with return)
+```
+
+**Behavior:**
+- When an element is instantiated in an expression without accessing a property, it returns its default value
+- **Implicit return**: The last variable defined in the element (in `calculations` or `inputs`) is the default
+- **Explicit return**: The `return` keyword marks which variable is the default return value
+- `return` can be used on variables in either `inputs` or `calculations`
+- **Error** if `return` is used more than once in an element definition
+- **Error** if an element with no variables is instantiated without property access
+
+**Implementation Notes:**
+- Add `return` keyword to lexer (`TokenType.Return`)
+- Modify `ElementDeclaration` to track the default return variable
+- Add validation for single `return` usage per element
+- Add validation for empty element instantiation
+- Modify element instantiation evaluation to return default value when no property is accessed
+
+---
+
+### Partial Application (Element Re-instantiation)
+**Status:** ⬜ Not Started
+
+Allows creating new element instances based on existing instances, preserving unchanged input values.
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Re-instantiation | `existingInstance(property = value)` | ⬜ |
+| Property inheritance | Unchanged properties copied from source | ⬜ |
+| Type inference | Type inferred from source instance | ⬜ |
+
+**Syntax:**
+```sunset
+define Rectangle:
+    inputs:
+        Length = 1 {m}
+        Width = 2 {m}
+    calculations:
+        Area = Length * Width
+end
+
+RectangleInstance1 : Rectangle = Rectangle(Length = 2, Width = 4)  // Area = 8
+RectangleInstance2 : Rectangle = RectangleInstance1(Length = 4)    // Area = 16 (Width = 4 inherited)
+RectangleInstance3 = RectangleInstance2(Width = 10)                // Area = 40, type inferred
+```
+
+**Behavior:**
+- Re-instantiating from an existing instance creates a **completely independent copy** (enforces immutability)
+- Only input properties can be overridden; calculations are re-evaluated
+- Re-instantiations can be chained
+- Type annotation is optional when the expression is a simple single instantiation (type is inferred from the source instance)
+
+**Implementation Notes:**
+- Modify `CallExpression` handling to detect when callee is an element instance vs. element definition
+- Implement instance cloning with property override logic
+- Add type inference for re-instantiation expressions
+- **TODO:** Verify whether type inference for simple instantiation expressions is already implemented
+
+---
+
+## Priority 6: Type System Extensions
 
 ### Options Type
 **Status:** ⬜ Not Started
@@ -131,7 +333,7 @@ All core mathematical functions have been implemented in the `src/Sunset.Parser/
 
 ---
 
-## Priority 4: Element System
+## Priority 7: Element System
 
 ### Element Inheritance
 **Status:** 🔶 Partially Implemented
@@ -193,12 +395,15 @@ The following bugs have been fixed:
 | Logical Operators | 3 | 0 | 1 | 2 |
 | Lists - Basic | 4 | 4 | 0 | 0 |
 | Lists - Advanced | 6 | 6 | 0 | 0 |
+| Unit Operations | 1 | 0 | 0 | 1 |
+| String Operations | 4 | 0 | 0 | 4 |
+| Functional Programming | 5 | 0 | 0 | 5 |
 | Dictionaries | 6 | 0 | 0 | 6 |
 | Options | 3 | 0 | 0 | 3 |
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **38** | **18** | **1** | **19** |
+| **Total** | **48** | **18** | **1** | **29** |
 
 ---
 

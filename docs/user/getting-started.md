@@ -167,7 +167,7 @@ To perform calculations, simply use the following operators to form expressions 
 - `/` for division
 - `^` for exponents
 
-> **Note:** Mathematical functions like `sqrt(x)`, `sin(x)`, `cos(x)`, `tan(x)`, `asin(x)`, `acos(x)`, `atan(x)` are planned but not yet implemented.
+> **Note:** Mathematical functions like `sqrt(x)`, `sin(x)`, `cos(x)`, `tan(x)`, `asin(x)`, `acos(x)`, `atan(x)` are available for use in calculations.
 
 ```sunset
 // Variable definitions with values
@@ -207,6 +207,22 @@ compressiveStrength_MPa = compressiveStrength {MPa}  // Results in 32 with no un
 // Reassigning units in a single expression:
 flexuralStrength <f'_{ct.f}> = 0.6 * (compressiveStrength {MPa}) {MPa}
 ```
+
+### Non-dimensionalising Units
+
+> **Status: Not Yet Implemented**
+
+To remove units from a quantity and obtain a dimensionless numeric value, use the `{/ unit}` syntax. This divides the quantity by the specified unit, effectively stripping the units.
+
+```sunset
+Length = 100 {mm}
+NumericValue = Length {/ m}  // Results in 0.1 (dimensionless)
+
+// Can be used inline
+Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
+```
+
+The units must be dimensionally compatible—attempting to non-dimensionalise `{m}` with `{s}` will result in a compile-time error.
 
 ## Reporting
 
@@ -248,6 +264,53 @@ This will result in a report with:
 - LaTeX-formatted equations showing the calculations
 - A "Where" section listing all variables with descriptions
 
+## Strings
+
+Strings are sequences of characters enclosed in double quotes.
+
+```sunset
+message = "Hello, world!"
+```
+
+### String Concatenation
+
+> **Status: Not Yet Implemented**
+
+Strings can be concatenated using the `+` operator:
+
+```sunset
+greeting = "Hello, " + "world!"  // Results in "Hello, world!"
+
+// Quantities can be concatenated with strings using their display format
+Length = 100 {mm}
+label = "Length: " + Length  // Results in "Length: 100 mm"
+```
+
+### String Interpolation
+
+> **Status: Not Yet Implemented**
+
+Expressions can be embedded within strings using curly braces `{expression}`:
+
+```sunset
+Length = 100 {mm}
+message = "The length is {Length}"  // Results in "The length is 100 mm"
+
+// Inline expressions are also supported
+summary = "Area: {Width * Height}"
+```
+
+### Joining Lists of Strings
+
+> **Status: Not Yet Implemented**
+
+A list of strings can be joined into a single string using the `.join()` method:
+
+```sunset
+words = ["hello", "world"]
+sentence = words.join(", ")  // Results in "hello, world"
+```
+
 ## Types of Variables
 
 A variable can take on any of the following types:
@@ -256,7 +319,8 @@ A variable can take on any of the following types:
 - Expressions
 - Elements
 - Conditionals
-- Lists *(Not Yet Implemented)*
+- Strings
+- Lists
 - Dictionaries *(Not Yet Implemented)*
 
 See [Variables](variables.md) for detailed information on each type.
@@ -327,11 +391,14 @@ The variables within an element can be accessed with the `.` operator.
 - [x] Units and dimensional analysis
 - [x] Metadata (symbol, description, reference)
 - [x] Reporting (Markdown output)
+- [x] Mathematical functions (sqrt, sin, cos, tan, etc.)
+- [x] Lists and collection functions (foreach, min, max, where, select, etc.)
 
 ### Planned Features
 
-- [ ] Mathematical functions (sqrt, sin, cos, tan, etc.)
-- [ ] Arrays/Lists
-- [ ] Collection functions (foreach, min, max, etc.)
+- [ ] Non-dimensionalising units (`{/ unit}` syntax)
+- [ ] String concatenation and interpolation
+- [ ] Default return values for elements
+- [ ] Partial application (element re-instantiation)
 - [ ] Dictionaries
 - [ ] Options type

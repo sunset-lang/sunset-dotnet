@@ -118,6 +118,84 @@ end
 
 Note that for elements used as variables, they do not need to define a symbol as there is no straightforward way of printing them in reports.
 
+## Using Elements as Functions
+
+> **Status: Not Yet Implemented**
+
+Elements can be used as inline functions by returning a default value when instantiated without accessing a specific property.
+
+### Default Return Value
+
+When an element is instantiated in an expression without accessing a property, it returns its **default value**. The default value is determined by:
+
+1. **Implicit return**: The last variable defined in the element (in `outputs` or `inputs`) is the default
+2. **Explicit return**: Use the `return` keyword to mark which variable is the default return value
+
+#### Implicit Return
+
+```sunset
+define Multiply:
+    inputs:
+        Value1 = 12
+        Value2 = 5
+    outputs:
+        Result = Value1 * Value2
+
+Example = Multiply(12, 5)  // Returns 60 (Result is the last defined variable)
+```
+
+#### Explicit Return with `return` Keyword
+
+Use `return` to explicitly mark which variable should be returned by default:
+
+```sunset
+define Operation:
+    inputs:
+        Value1 = 12
+        Value2 = 5
+    outputs:
+        return Add = Value1 + Value2
+        Multiply = Value1 * Value2
+
+Example = Operation(12, 5)  // Returns 17 (Add is marked with return)
+```
+
+**Rules:**
+- `return` can be used on variables in either `inputs` or `outputs`
+- `return` can only be used **once** per element definition—using it multiple times is an error
+- If an element with no variables is instantiated without property access, it is an error
+
+### Partial Application (Element Re-instantiation)
+
+> **Status: Not Yet Implemented**
+
+Elements are immutable, but can be re-instantiated from an existing instance. This creates a new, completely independent copy with the same input properties, but allows specific properties to be changed.
+
+```sunset
+define Rectangle:
+    inputs:
+        Length = 1 {m}
+        Width = 2 {m}
+    outputs:
+        Area = Length * Width
+end
+
+// Create an initial instance
+RectangleInstance1 : Rectangle = Rectangle(Length = 2, Width = 4)  // Area = 8
+
+// Re-instantiate from existing instance, changing only Length
+RectangleInstance2 : Rectangle = RectangleInstance1(Length = 4)    // Area = 16 (Width = 4 inherited)
+
+// Type annotation is optional when type can be inferred
+RectangleInstance3 = RectangleInstance2(Width = 10)                // Area = 40
+```
+
+**Behaviour:**
+- Re-instantiating from an existing instance creates a **completely independent copy** (enforces immutability)
+- Only input properties can be overridden; outputs are re-evaluated based on the new inputs
+- Re-instantiations can be chained
+- Type annotation is optional when the expression is a simple single instantiation (type is inferred from the source instance)
+
 ## Element Inheritance
 
 > **Note:** Element inheritance is partially implemented. Basic syntax is supported but some advanced features may not be available.

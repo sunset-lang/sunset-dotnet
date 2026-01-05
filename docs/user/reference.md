@@ -223,14 +223,14 @@ label = "Length: " + Length  // Results in "Length: 100 mm"
 
 > **Status: Not Yet Implemented**
 
-Expressions can be embedded within strings using curly braces `{expression}`:
+Expressions can be embedded within strings using `::expression::`:
 
 ```sunset
 Length = 100 {mm}
-message = "The length is {Length}"  // Results in "The length is 100 mm"
+message = "The length is ::Length::"  // Results in "The length is 100 mm"
 
 // Complex expressions are supported
-summary = "Area: {Width * Height}"
+summary = "Area: ::Width * Height::"
 ```
 
 ### Joining Lists of Strings

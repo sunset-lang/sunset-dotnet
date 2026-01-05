@@ -2,7 +2,7 @@
 // Provides geometric operations like intersection.
 //
 // Prerequisites (not yet implemented):
-// - String interpolation: "text {expression}"
+// - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
 import stdlib

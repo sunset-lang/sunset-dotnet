@@ -183,24 +183,24 @@ Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Interpolation | `"The value is {expression}"` | ⬜ |
+| Interpolation | `"The value is ::expression::"` | ⬜ |
 
 **Syntax:**
 ```sunset
 x = 100 {mm}
-message = "The length is {x}"  // Results in "The length is 100 mm"
+message = "The length is ::x::"  // Results in "The length is 100 mm"
 
 // Complex expressions supported
-summary = "Area: {Width * Height}"
+summary = "Area: ::Width * Height::"
 ```
 
 **Behavior:**
-- Expressions within `{...}` inside strings are evaluated and converted to text
+- Expressions within `::...::` inside strings are evaluated and converted to text
 - Quantities are formatted with their display units
-- Nested braces or escaping TBD
+- Escaping TBD
 
 **Implementation Notes:**
-- Lexer must detect `{` inside string tokens and switch to expression parsing mode
+- Lexer must detect `::` inside string tokens and switch to expression parsing mode
 - New expression type `InterpolatedStringExpression` with segments (text + expressions)
 - Type checker validates embedded expressions
 - Evaluator concatenates segments with formatted expression results

@@ -24,40 +24,26 @@ define RGBA:
         return Svg {text} = "rgb({R},{G},{B})"
 end
 
-// Predefined colours for convenience
-define Black:
+/// Predefined basic colours for convenience.
+define BasicColours:
     outputs:
-        return Colour {RGBA} = RGBA(0, 0, 0)
+        Black {RGBA} = RGBA(0, 0, 0)
+        White {RGBA} = RGBA(255, 255, 255)
+        Red {RGBA} = RGBA(255, 0, 0)
+        Green {RGBA} = RGBA(0, 255, 0)
+        Blue {RGBA} = RGBA(0, 0, 255)
+        Grey {RGBA} = RGBA(128, 128, 128)
+        LightGrey {RGBA} = RGBA(200, 200, 200)
 end
 
-define White:
-    outputs:
-        return Colour {RGBA} = RGBA(255, 255, 255)
-end
+// =============================================================================
+// OUTPUT FORMAT OPTIONS
+// =============================================================================
 
-define Red:
-    outputs:
-        return Colour {RGBA} = RGBA(255, 0, 0)
-end
-
-define Green:
-    outputs:
-        return Colour {RGBA} = RGBA(0, 255, 0)
-end
-
-define Blue:
-    outputs:
-        return Colour {RGBA} = RGBA(0, 0, 255)
-end
-
-define Grey:
-    outputs:
-        return Colour {RGBA} = RGBA(128, 128, 128)
-end
-
-define LightGrey:
-    outputs:
-        return Colour {RGBA} = RGBA(200, 200, 200)
+/// Available output formats for diagram rendering.
+option DiagramFormat {text}:
+    "SVG"
+    "Typst"
 end
 
 // =============================================================================
@@ -131,6 +117,35 @@ prototype Linear:
         Point2 {Point}
 end
 
+/// Prototype for user-defined diagram definitions.
+/// Provides a standard structure for creating diagrams with built-in diagram context.
+prototype DiagramDefinition:
+    inputs:
+        /// Width of the viewport in pixels
+        ViewportWidth = 400
+        /// Height of the viewport in pixels
+        ViewportHeight = 300
+        /// Scale factor: pixels per metre
+        Scale = 100
+        /// Output format for rendering
+        Format {DiagramFormat} = "SVG"
+    outputs:
+        /// The diagram context available to all elements
+        ?_diagram {Diagram} = Diagram(
+            ViewportWidth = ViewportWidth,
+            ViewportHeight = ViewportHeight,
+            Scale = Scale,
+            Format = Format
+        )
+        /// The final diagram output
+        return Draw {Diagram}
+end
+
+/// Marker prototype for infinite plane-like geometry (horizontal, vertical, rotated lines).
+/// Used to differentiate infinite planes from finite line segments in intersection operations.
+prototype Plane as Linear:
+end
+
 // =============================================================================
 // DIAGRAM CONTAINER
 // =============================================================================
@@ -145,6 +160,8 @@ define Diagram:
         ViewportHeight = 300
         /// Scale factor: pixels per metre
         Scale = 100
+        /// Output format for rendering
+        Format {DiagramFormat} = "SVG"
         /// Construction/reference geometry (drawn in debug mode)
         References {DiagramElement list} = []
         /// Main elements to draw
@@ -159,5 +176,6 @@ define Diagram:
             ViewportHeight = ViewportHeight,
             References = References,
             Elements = Elements
-        ).Draw
+        ).Draw if Format == "SVG"
+            = error otherwise
 end

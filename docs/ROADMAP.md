@@ -499,20 +499,24 @@ src/Sunset.Parser/StandardLibrary/
 | Type | Description |
 |------|-------------|
 | `RGBA` | Color definition (R, G, B, A components) |
+| `BasicColours` | Predefined colours (Black, White, Red, Green, Blue, Grey, LightGrey) |
+| `DiagramFormat` | Output format option ("SVG", "Typst") |
 | `DrawStyle` | Base styling prototype (stroke, fill, width) |
 | `DiagramElement` | Base prototype for drawable elements |
-| `Diagram` | Container for elements with viewport and scale |
+| `DiagramDefinition` | Prototype for user diagrams (provides `_diagram` context) |
+| `Diagram` | Container for elements with viewport, scale, and format |
 | `Linear` | Prototype for line-like geometry (for intersections) |
+| `Plane` | Prototype for infinite plane-like geometry (extends Linear) |
 
 **Geometry Primitives:**
 
 | Element | Description |
 |---------|-------------|
 | `Point` | 2D point with x, y coordinates |
-| `Line` | Finite line segment between two points |
-| `PlaneHorizontal` | Infinite horizontal line at y offset |
-| `PlaneVertical` | Infinite vertical line at x offset |
-| `PlaneRotated` | Infinite line through point at angle |
+| `Line` | Finite line segment between two points (implements `Linear`) |
+| `PlaneHorizontal` | Infinite horizontal line at y offset (implements `Plane`) |
+| `PlaneVertical` | Infinite vertical line at x offset (implements `Plane`) |
+| `PlaneRotated` | Infinite line through point at angle (implements `Plane`) |
 
 **Shapes:**
 
@@ -528,7 +532,7 @@ src/Sunset.Parser/StandardLibrary/
 
 | Function | Description |
 |----------|-------------|
-| `Intersect(L1, L2)` | Compute intersection of two Linear elements |
+| `Intersect(L1, L2)` | Compute intersection of two Linear elements (validates segment bounds for Line) |
 
 **Renderers:**
 
@@ -540,18 +544,21 @@ src/Sunset.Parser/StandardLibrary/
 - Coordinate system: Engineering convention (Y-up), flipped in SVG output
 - Scale: Dimensionless pixels-per-metre factor
 - Parallel line intersection: Returns `error`
-- Diagram reference: Passed as `_diagram` input to elements
+- Line segment intersection outside bounds: Returns `error`
+- Diagram reference: Passed as `_diagram` input to elements (or inherited via `DiagramDefinition` prototype)
+- Output format: Controlled via `Diagram.Format` with pattern matching in Draw functions
 
-**Example Usage:**
+**Example Usage (using DiagramDefinition prototype):**
 ```sunset
 import diagrams
 
-define PadFooting_Elevation:
+define PadFooting_Elevation as DiagramDefinition:
     inputs:
         Width = 1.2 {m}
         Depth = 2.4 {m}
+        // ViewportWidth, ViewportHeight, Scale, Format inherited from DiagramDefinition
     outputs:
-        _diagram {Diagram} = Diagram(Scale = 100)
+        // _diagram is automatically provided by DiagramDefinition prototype
         
         Left {PlaneVertical} = PlaneVertical(x = 0 {m}, _diagram = _diagram)
         Right {PlaneVertical} = PlaneVertical(x = Width, _diagram = _diagram)
@@ -559,10 +566,10 @@ define PadFooting_Elevation:
         Top {PlaneHorizontal} = PlaneHorizontal(y = Depth, _diagram = _diagram)
         
         Corners {Point list} = [
-            Intersect(Left, Bottom).Result,
-            Intersect(Left, Top).Result,
-            Intersect(Right, Top).Result,
-            Intersect(Right, Bottom).Result
+            Intersect(Left, Bottom, _diagram = _diagram).Result,
+            Intersect(Left, Top, _diagram = _diagram).Result,
+            Intersect(Right, Top, _diagram = _diagram).Result,
+            Intersect(Right, Bottom, _diagram = _diagram).Result
         ]
         
         return Draw {Diagram} = _diagram(

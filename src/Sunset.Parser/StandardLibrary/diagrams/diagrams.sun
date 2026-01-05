@@ -11,16 +11,36 @@
 // Usage:
 //   import diagrams
 //
-// Example:
-//   define MyDiagram:
+// Example (using DiagramDefinition prototype):
+//   define MyDiagram as DiagramDefinition:
+//       inputs:
+//           Width = 2 {m}
+//           Height = 1.5 {m}
+//           // ViewportWidth, ViewportHeight, Scale, Format inherited from prototype
+//       outputs:
+//           // _diagram is automatically available from DiagramDefinition prototype
+//           
+//           Shape {Rectangle} = Rectangle(
+//               centre = Point(x = 1 {m}, y = 0.75 {m}, _diagram = _diagram),
+//               width = Width,
+//               height = Height,
+//               _diagram = _diagram
+//           )
+//           
+//           return Draw {Diagram} = _diagram(Elements = [Shape])
+//   end
+//
+// Example (manual Diagram creation):
+//   define MyManualDiagram:
 //       inputs:
 //           Width = 2 {m}
 //           Height = 1.5 {m}
 //       outputs:
-//           _diagram {Diagram} = Diagram(
+//           ?_diagram {Diagram} = Diagram(
 //               ViewportWidth = 400,
 //               ViewportHeight = 300,
-//               Scale = 100
+//               Scale = 100,
+//               Format = "SVG"
 //           )
 //           
 //           Shape {Rectangle} = Rectangle(
@@ -30,20 +50,24 @@
 //               _diagram = _diagram
 //           )
 //           
-//           return Output {Diagram} = _diagram(Elements = [Shape])
+//           return Draw {Diagram} = _diagram(Elements = [Shape])
 //   end
 //
 // Available Types:
 //   - RGBA: Colour definition
+//   - BasicColours: Predefined colours (Black, White, Red, Green, Blue, Grey, LightGrey)
+//   - DiagramFormat: Output format option ("SVG", "Typst")
 //   - DrawStyle, PointStyle, LineStyle, ReferenceStyle, PathStyle: Styling
 //   - DiagramElement: Base prototype for drawable elements
 //   - Linear: Prototype for line-like geometry
+//   - Plane: Prototype for infinite plane-like geometry (extends Linear)
+//   - DiagramDefinition: Prototype for user-defined diagrams (provides _diagram)
 //   - Diagram: Container for diagram elements
 //
 // Geometry:
 //   - Point: 2D point
 //   - Line: Finite line segment
-//   - PlaneHorizontal, PlaneVertical, PlaneRotated: Infinite lines
+//   - PlaneHorizontal, PlaneVertical, PlaneRotated: Infinite planes (implement Plane)
 //
 // Shapes:
 //   - Rectangle: Rectangle by centre and dimensions
@@ -53,7 +77,7 @@
 //   - FilledPath: Closed polygon with fill
 //
 // Operations:
-//   - Intersect: Line-line intersection
+//   - Intersect: Line-line/plane intersection (validates segment bounds for Line)
 //
 // Rendering:
 //   - DrawSVG: Generate SVG document

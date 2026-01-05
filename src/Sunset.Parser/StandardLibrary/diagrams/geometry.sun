@@ -38,7 +38,8 @@ define Point as DiagramElement:
             fill="{Style.FillColour.Svg}"
             stroke="{Style.StrokeColour.Svg}"
             stroke-width="{Style.StrokeWidth}"
-        />"""
+        />""" if _diagram.Format == "SVG"
+            = error otherwise
 end
 
 // =============================================================================
@@ -73,7 +74,8 @@ define Line as DiagramElement, Linear:
             x2="{x2}" y2="{y2}"
             stroke="{Style.StrokeColour.Svg}"
             stroke-width="{Style.StrokeWidth}"
-        />"""
+        />""" if _diagram.Format == "SVG"
+            = error otherwise
 end
 
 // =============================================================================
@@ -82,7 +84,7 @@ end
 
 /// An infinite horizontal line at a given y-coordinate.
 /// Used as construction/reference geometry.
-define PlaneHorizontal as DiagramElement, Linear:
+define PlaneHorizontal as DiagramElement, Plane:
     inputs:
         /// Y-coordinate of the horizontal line
         y = 0 {m}
@@ -105,12 +107,13 @@ define PlaneHorizontal as DiagramElement, Linear:
             stroke="{Style.StrokeColour.Svg}"
             stroke-width="{Style.StrokeWidth}"
             stroke-dasharray="{Style.DashArray}"
-        />"""
+        />""" if _diagram.Format == "SVG"
+            = error otherwise
 end
 
 /// An infinite vertical line at a given x-coordinate.
 /// Used as construction/reference geometry.
-define PlaneVertical as DiagramElement, Linear:
+define PlaneVertical as DiagramElement, Plane:
     inputs:
         /// X-coordinate of the vertical line
         x = 0 {m}
@@ -133,12 +136,13 @@ define PlaneVertical as DiagramElement, Linear:
             stroke="{Style.StrokeColour.Svg}"
             stroke-width="{Style.StrokeWidth}"
             stroke-dasharray="{Style.DashArray}"
-        />"""
+        />""" if _diagram.Format == "SVG"
+            = error otherwise
 end
 
 /// An infinite line through a point at a given angle.
 /// Used as construction/reference geometry.
-define PlaneRotated as DiagramElement, Linear:
+define PlaneRotated as DiagramElement, Plane:
     inputs:
         /// Origin point that the line passes through
         origin {Point} = Point()
@@ -175,5 +179,6 @@ define PlaneRotated as DiagramElement, Linear:
             stroke="{Style.StrokeColour.Svg}"
             stroke-width="{Style.StrokeWidth}"
             stroke-dasharray="{Style.DashArray}"
-        />"""
+        />""" if _diagram.Format == "SVG"
+            = error otherwise
 end

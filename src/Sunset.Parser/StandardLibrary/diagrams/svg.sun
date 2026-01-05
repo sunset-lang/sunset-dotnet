@@ -13,11 +13,12 @@ import diagrams.core
 // =============================================================================
 
 /// Generates a complete SVG document from diagram elements.
+/// ViewportWidth and ViewportHeight are injected from the parent Diagram.
 define DrawSVG:
     inputs:
-        /// Width of the SVG viewport in pixels
+        /// Width of the SVG viewport in pixels (injected from Diagram)
         ViewportWidth = 400
-        /// Height of the SVG viewport in pixels
+        /// Height of the SVG viewport in pixels (injected from Diagram)
         ViewportHeight = 300
         /// Construction/reference geometry (optional, for debugging)
         References {DiagramElement list} = []

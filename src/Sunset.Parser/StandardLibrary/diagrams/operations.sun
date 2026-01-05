@@ -18,7 +18,13 @@ import diagrams.geometry
 /// Uses the parametric line intersection formula:
 /// Given line 1: P1 + t(P2 - P1) and line 2: P3 + s(P4 - P3)
 /// 
-/// Returns error if lines are parallel (denominator = 0).
+/// Returns error if:
+/// - Lines are parallel (denominator = 0)
+/// - For finite Line segments: intersection point is outside the segment bounds
+/// 
+/// Note: Plane elements (PlaneHorizontal, PlaneVertical, PlaneRotated) always
+/// intersect if not parallel. Line elements require the intersection to be
+/// within the segment bounds.
 define Intersect:
     inputs:
         /// First linear element
@@ -48,14 +54,39 @@ define Intersect:
         ?tNumerator = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)
         ?t = tNumerator / denom
         
+        // Calculate parameter s for line 2
+        // s = -((x1 - x2)(y1 - y3) - (y1 - y2)(x1 - x3)) / denom
+        ?sNumerator = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3))
+        ?s = sNumerator / denom
+        
         // Calculate intersection coordinates
         // x = x1 + t(x2 - x1), y = y1 + t(y2 - y1)
         ?ix = x1 + t * (x2 - x1)
         ?iy = y1 + t * (y2 - y1)
         
+        // Check if intersection is valid based on element types:
+        // - For Plane elements: always valid (infinite extent)
+        // - For Line elements: t or s must be in [0, 1] for the intersection to be on the segment
+        ?L1IsPlane = true if L1 is Plane
+            = false otherwise
+        ?L2IsPlane = true if L2 is Plane
+            = false otherwise
+        ?tInBounds = (t >= 0) and (t <= 1)
+        ?sInBounds = (s >= 0) and (s <= 1)
+        
+        // L1 is valid if it's a Plane or t is in bounds
+        ?L1Valid = true if L1IsPlane == true
+            = tInBounds otherwise
+        // L2 is valid if it's a Plane or s is in bounds
+        ?L2Valid = true if L2IsPlane == true
+            = sInBounds otherwise
+        
         /// The intersection point.
-        /// Returns error if lines are parallel (division by zero in t calculation).
-        return Result {Point} = Point(x = ix {m}, y = iy {m}, _diagram = _diagram)
+        /// Returns error if:
+        /// - Lines are parallel (division by zero in t calculation)
+        /// - For Line segments: intersection is outside the segment bounds
+        return Result {Point} = Point(x = ix {m}, y = iy {m}, _diagram = _diagram) if L1Valid and L2Valid
+            = error otherwise
 end
 
 // =============================================================================

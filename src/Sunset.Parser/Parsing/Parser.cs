@@ -72,6 +72,7 @@ public partial class Parser
                 TokenType.Prototype => GetPrototypeDeclaration(parentScope),
                 TokenType.Dimension => GetDimensionDeclaration(parentScope),
                 TokenType.Unit => GetUnitDeclaration(parentScope),
+                TokenType.Option => GetOptionDeclaration(parentScope),
                 TokenType.Identifier or TokenType.OpenAngleBracket => GetVariableDeclaration(parentScope),
                 _ => null
             };
@@ -422,6 +423,90 @@ public partial class Parser
         Consume([TokenType.Newline, TokenType.EndOfFile]);
 
         return new UnitDeclaration(symbolToken, unitExpression, parentScope);
+    }
+
+    /// <summary>
+    ///     Parses an option declaration.
+    ///     Example: option Size {m}: 10 {m} 20 {m} 30 {m} end
+    ///     Example: option Methods {text}: "SVG" "Typst" end
+    ///     Example: option Scale {number}: 1 2 5 end
+    /// </summary>
+    /// <param name="parentScope">The parent scope for this declaration.</param>
+    /// <returns>The parsed OptionDeclaration.</returns>
+    public OptionDeclaration? GetOptionDeclaration(IScope parentScope)
+    {
+        var optionToken = Consume(TokenType.Option);
+        if (optionToken == null)
+        {
+            throw new Exception("Expected an option token");
+        }
+
+        // Get the option name
+        if (Consume(TokenType.Identifier) is not StringToken nameToken)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            return null;
+        }
+
+        // Parse optional type annotation: {m}, {text}, {number}, or inferred from first value
+        IExpression? typeAnnotation = null;
+        if (_current.Type == TokenType.OpenBrace)
+        {
+            typeAnnotation = ParseOptionTypeAnnotation();
+        }
+
+        // Consume colon after name/type annotation
+        Consume(TokenType.Colon);
+
+        // Parse option values until 'end'
+        var values = new List<IExpression>();
+        ConsumeNewlines();
+
+        while (_current.Type is not TokenType.End and not TokenType.EndOfFile)
+        {
+            var value = GetArithmeticExpression();
+            values.Add(value);
+            ConsumeNewlines();
+        }
+
+        // Consume 'end' keyword
+        Consume(TokenType.End);
+
+        return new OptionDeclaration(nameToken, typeAnnotation, values, parentScope);
+    }
+
+    /// <summary>
+    ///     Parses the type annotation inside braces for an option declaration.
+    ///     Can be a unit expression (e.g., {m}), or a built-in type keyword ({text}, {number}).
+    /// </summary>
+    /// <returns>The parsed type annotation expression.</returns>
+    private IExpression? ParseOptionTypeAnnotation()
+    {
+        Consume(TokenType.OpenBrace);
+
+        IExpression? annotation;
+
+        // Check for built-in type keywords
+        if (_current.Type == TokenType.TextType)
+        {
+            var textToken = Consume(TokenType.TextType);
+            annotation = new NameExpression((StringToken)textToken!);
+        }
+        else if (_current.Type == TokenType.NumberType)
+        {
+            var numberToken = Consume(TokenType.NumberType);
+            annotation = new NameExpression((StringToken)numberToken!);
+        }
+        else
+        {
+            // Parse as unit expression (e.g., m, kg*m/s^2)
+            _inUnitExpression = true;
+            annotation = GetArithmeticExpression();
+            _inUnitExpression = false;
+        }
+
+        Consume(TokenType.CloseBrace);
+        return annotation;
     }
 
     public ElementDeclaration? GetElementDeclaration(IScope parentScope)

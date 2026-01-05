@@ -21,10 +21,16 @@ public interface IResultType
         {
             QuantityType leftQuantity when right is QuantityType rightQuantity => Unit.EqualDimensions(
                 leftQuantity.Unit, rightQuantity.Unit),
+            // QuantityType is compatible with OptionType if dimensions match underlying type
+            QuantityType leftQuantity when right is OptionType rightOption => 
+                AreCompatible(leftQuantity, rightOption.UnderlyingType),
             UnitType leftUnit when right is UnitType rightUnit => Unit.EqualDimensions(leftUnit.Unit, rightUnit.Unit),
             QuantityType => false,
             BooleanType when right is BooleanType => true,
             StringType when right is StringType => true,
+            // StringType is compatible with OptionType if underlying type is StringType
+            StringType when right is OptionType rightOption => 
+                AreCompatible(StringType.Instance, rightOption.UnderlyingType),
             ListType leftList when right is ListType rightList => AreCompatible(leftList.ElementType, rightList.ElementType),
             ListType => false,
             DictionaryType leftDict when right is DictionaryType rightDict =>
@@ -45,6 +51,14 @@ public interface IResultType
                 ElementImplementsPrototype(rightElement.ElementDeclaration, leftProto.Declaration),
 
             PrototypeType => false,
+
+            // Option type compatibility
+            // Two OptionTypes are compatible if they reference the same declaration
+            OptionType leftOption when right is OptionType rightOption =>
+                leftOption.Declaration == rightOption.Declaration,
+            // OptionType is compatible with its underlying type (for value checking)
+            OptionType leftOption => AreCompatible(leftOption.UnderlyingType, right),
+            _ when right is OptionType rightOption => AreCompatible(left, rightOption.UnderlyingType),
             
             _ => false
         };
@@ -208,5 +222,26 @@ public class PrototypeType(PrototypeDeclaration declaration) : IResultType
     public override string ToString()
     {
         return $"Prototype({Declaration.Name})";
+    }
+}
+
+/// <summary>
+/// Represents an option type with a fixed set of allowed values.
+/// </summary>
+public class OptionType(OptionDeclaration declaration, IResultType underlyingType) : IResultType
+{
+    /// <summary>
+    /// The option declaration this type represents.
+    /// </summary>
+    public OptionDeclaration Declaration { get; } = declaration;
+
+    /// <summary>
+    /// The underlying type of option values (e.g., QuantityType, StringType).
+    /// </summary>
+    public IResultType UnderlyingType { get; } = underlyingType;
+
+    public override string ToString()
+    {
+        return $"Option({Declaration.Name})";
     }
 }

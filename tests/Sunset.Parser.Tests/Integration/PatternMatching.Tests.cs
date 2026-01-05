@@ -518,21 +518,22 @@ public class PatternMatchingTests
             myShape {Shape} = Triangle(2 {m}, 4 {m})
 
             // Should match Shape since Triangle implements Polygon which implements Shape
-            result = 1 if myShape is Shape
-                   = 0 otherwise
+            result = myShape.Area if myShape is Shape
+                   = 0 {m^2} otherwise
             """;
 
         var env = new Environment(SourceFile.FromString(source));
         env.Analyse();
 
         Console.WriteLine(DebugPrinter.Print(env));
-        Assert.That(GetSignificantErrors(env), Is.Empty);
+        var errors = GetSignificantErrors(env).ToList();
+        Assert.That(errors, Is.Empty);
 
         var fileScope = env.ChildScopes["$file"] as FileScope;
         var variable = fileScope!.ChildDeclarations["result"] as VariableDeclaration;
         var result = variable!.GetResult(fileScope) as QuantityResult;
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result!.Result.BaseValue, Is.EqualTo(1)); // Matches Shape
+        Assert.That(result!.Result.BaseValue, Is.EqualTo(4)); // Matches Shape
     }
 }

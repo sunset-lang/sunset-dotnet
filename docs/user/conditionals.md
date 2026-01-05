@@ -252,26 +252,39 @@ end
 
 ## Conditions on Options
 
-> **Status: Not Yet Implemented**
->
-> The following describes planned functionality.
-
-When an [`Option`](options.md) is provided as the variable in a comparison `if` statement, the `otherwise` branch may be omitted if all options are covered:
+When an [`Option`](options.md)-typed variable is used in a conditional, you can use both value equality (`==`) and variant checking (`is`):
 
 ```sunset
-options BoltTypes = ["4.6/S", "8.8/S", "8.8/TB", "8.8/TF"]
+option BoltGrade {text}:
+    "4.6/S"
+    "8.8/S"
+    "8.8/TB"
+    "8.8/TF"
+end
 
-boltCapacity =
-  if BoltTypes:
-    is "4.6/S":
-      100 {kN}
-    is "8.8/S":
-      150 {kN}
-    is "8.8/TB":
-      180 {kN}
-    is "8.8/TF":
-      200 {kN}
-  end
+grade {BoltGrade} = "8.8/S"
+
+boltCapacity = 100 {kN} if grade == "4.6/S"
+             = 150 {kN} if grade is "8.8/S"
+             = 180 {kN} if grade is "8.8/TB"
+             = 200 {kN} if grade is "8.8/TF"
 ```
 
-This ensures all option values are explicitly handled, preventing errors when new options are added.
+### Exhaustive Matching
+
+When all option values are explicitly covered in a conditional, the `otherwise` branch can be omitted:
+
+```sunset
+option Size {m}:
+    10 {m}
+    20 {m}
+end
+
+x {Size} = 10 {m}
+
+// No otherwise needed - all Size options are covered
+result = 1 if x is 10 {m}
+       = 2 if x is 20 {m}
+```
+
+This ensures all option values are explicitly handled. If a new option value is added later, the compiler will produce an error on any conditionals that don't handle it.

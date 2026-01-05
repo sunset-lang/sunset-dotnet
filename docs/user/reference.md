@@ -996,20 +996,35 @@ See [Functions on Collections](functions-on-collections.md) for more details.
 
 ## Options
 
-> **Status: Not Yet Implemented**
->
-> Options are planned for future implementation.
-
-Options define a fixed set of choices:
+Options define a fixed set of valid values for a type:
 
 ```sunset
-BoltTypes = Options(
-    4.6/S: "Grade 4.6, snug tight",
-    8.8/S: "Grade 8.8, snug tight",
-    8.8/TB: "Grade 8.8, tensioned bearing",
-    8.8/TF: "Grade 8.8, tensioned friction"
-)
+option Size {m}:
+    10 {m}
+    20 {m}
+    30 {m}
+end
+
+option DrawingMethods {text}:
+    "SVG"
+    "Typst"
+end
+
+option Scale {number}:
+    1
+    2
+    5
+end
 ```
+
+Options can be used as type annotations:
+
+```sunset
+x {Size} = 10 {m}
+method {DrawingMethods} = "SVG"
+```
+
+See [Options](options.md) for more details.
 
 ---
 

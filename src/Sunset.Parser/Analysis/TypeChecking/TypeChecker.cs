@@ -65,6 +65,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             ElementDeclaration elementDeclaration => VisitElementDeclaration(elementDeclaration),
             PrototypeDeclaration prototypeDeclaration => Visit(prototypeDeclaration),
             PrototypeOutputDeclaration prototypeOutputDeclaration => Visit(prototypeOutputDeclaration),
+            OptionDeclaration optionDeclaration => Visit(optionDeclaration),
             IScope scope => Visit(scope),
             _ => throw new ArgumentException($"Type checker cannot evaluate the node of type {dest.GetType()}")
         };
@@ -101,6 +102,16 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         {
             leftResult = ResolveElementDefaultReturnType(leftResult);
             rightResult = ResolveElementDefaultReturnType(rightResult);
+        }
+
+        // Unwrap OptionType to its underlying type for arithmetic operations
+        if (leftResult is OptionType leftOption)
+        {
+            leftResult = leftOption.UnderlyingType;
+        }
+        if (rightResult is OptionType rightOption)
+        {
+            rightResult = rightOption.UnderlyingType;
         }
 
         switch (leftResult)
@@ -270,6 +281,9 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             PrototypeDeclaration prototypeDeclaration =>
                 // When referencing a prototype (e.g., in pattern matching), return the prototype type
                 new PrototypeType(prototypeDeclaration),
+            OptionDeclaration optionDeclaration =>
+                // When referencing an option type, return the option type
+                Visit(optionDeclaration),
             PatternBindingVariable patternBindingVariable =>
                 // When referencing a pattern binding variable, return the element type it's bound to
                 new ElementType(patternBindingVariable.BoundElementType),
@@ -369,6 +383,13 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     private IResultType? Visit(UnitAssignmentExpression dest)
     {
         var resultType = Visit(dest.UnitExpression);
+
+        // Handle option type annotations (e.g., {Size})
+        if (resultType is OptionType optionType)
+        {
+            dest.SetEvaluatedType(optionType);
+            return optionType;
+        }
 
         // Only set the result type if it is a unit type.
         if (resultType is not UnitType unitType)
@@ -948,6 +969,10 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 case ElementType:
                     dest.SetAssignedType(evaluatedType);
                     return evaluatedType;
+                // Option types don't require unit declarations (the option itself defines the valid values)
+                case OptionType:
+                    dest.SetAssignedType(evaluatedType);
+                    return evaluatedType;
             }
 
             // If the expression contains only constants (no variable references), the units are fully known
@@ -1160,6 +1185,83 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
         // No unit specified - dimensionless
         return QuantityType.Dimensionless;
+    }
+
+    /// <summary>
+    /// Type checks an option declaration, validating that all values match the declared or inferred type.
+    /// </summary>
+    private IResultType? Visit(OptionDeclaration dest)
+    {
+        // Check for empty option
+        if (dest.Values.Count == 0)
+        {
+            Log.Error(new EmptyOptionError(dest));
+            return ErrorValueType.Instance;
+        }
+
+        // Determine underlying type from annotation or first value
+        IResultType? underlyingType = null;
+
+        if (dest.TypeAnnotation != null)
+        {
+            // Check for built-in type keywords (text, number)
+            if (dest.TypeAnnotation is NameExpression nameExpr)
+            {
+                var name = nameExpr.Name;
+                if (name == "text")
+                {
+                    underlyingType = StringType.Instance;
+                }
+                else if (name == "number")
+                {
+                    underlyingType = QuantityType.Dimensionless;
+                }
+            }
+
+            // If not a built-in type keyword, evaluate as a unit expression
+            if (underlyingType == null)
+            {
+                var annotationType = Visit(dest.TypeAnnotation);
+                // Convert UnitType to QuantityType for consistency
+                if (annotationType is UnitType unitType)
+                {
+                    underlyingType = unitType.ToQuantityType();
+                }
+                else
+                {
+                    underlyingType = annotationType;
+                }
+            }
+        }
+        else
+        {
+            // Infer from first value
+            underlyingType = Visit(dest.Values[0]);
+        }
+
+        if (underlyingType == null || underlyingType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Validate all values match the underlying type
+        foreach (var value in dest.Values)
+        {
+            var valueType = Visit(value);
+            if (valueType == null)
+            {
+                continue;
+            }
+
+            if (!IResultType.AreCompatible(underlyingType, valueType))
+            {
+                Log.Error(new OptionValueTypeMismatchError(underlyingType, valueType, dest));
+            }
+        }
+
+        var optionType = new OptionType(dest, underlyingType);
+        dest.SetEvaluatedType(optionType);
+        return optionType;
     }
 
     /// <summary>

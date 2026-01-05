@@ -39,6 +39,7 @@ public class ReferenceChecker(ErrorLog log)
             PositionalArgument positionalArgument => Visit(positionalArgument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             DimensionDeclaration => null, // Dimension declarations have no cyclic references
+            OptionDeclaration optionDeclaration => Visit(optionDeclaration, visited),
             UnitDeclaration unitDeclaration => Visit(unitDeclaration, visited),
             UnitConstant => null,
             ValueConstant => null,
@@ -257,6 +258,35 @@ public class ReferenceChecker(ErrorLog log)
         dest.SetReferences(references ??= []);
 
         // Return a copy of the references that have been set, noting that SetReferences sets a copy and not the original reference
+        return references;
+    }
+
+    private HashSet<IDeclaration>? Visit(OptionDeclaration dest, HashSet<IDeclaration> visited)
+    {
+        // Option declarations don't typically have cyclic references 
+        // since they only contain constant values
+        var references = new HashSet<IDeclaration>();
+
+        // Check the type annotation if present
+        if (dest.TypeAnnotation != null)
+        {
+            var annotationRefs = Visit(dest.TypeAnnotation, visited);
+            if (annotationRefs != null)
+            {
+                references.UnionWith(annotationRefs);
+            }
+        }
+
+        // Check each value expression
+        foreach (var value in dest.Values)
+        {
+            var valueRefs = Visit(value, visited);
+            if (valueRefs != null)
+            {
+                references.UnionWith(valueRefs);
+            }
+        }
+
         return references;
     }
 

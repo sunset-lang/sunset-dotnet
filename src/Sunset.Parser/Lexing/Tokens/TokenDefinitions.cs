@@ -75,5 +75,8 @@ public static class TokenDefinitions
         { "list", TokenType.List },
         { "dict", TokenType.Dict },
         { "instance", TokenType.Instance },
+        { "text", TokenType.TextType },
+        { "number", TokenType.NumberType },
+        { "option", TokenType.Option },
     };
 }

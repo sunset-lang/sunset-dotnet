@@ -55,6 +55,9 @@ public class NameResolver(ErrorLog log) : INameResolver
             case UnitDeclaration unitDeclaration:
                 Visit(unitDeclaration, parentScope);
                 break;
+            case OptionDeclaration optionDeclaration:
+                Visit(optionDeclaration, parentScope);
+                break;
             case UnitConstant unitConstant:
                 Visit(unitConstant, parentScope);
                 break;
@@ -153,6 +156,13 @@ public class NameResolver(ErrorLog log) : INameResolver
 
     private void Visit(NameExpression dest, IScope parentScope)
     {
+        // Handle built-in type keywords for option type annotations
+        // These don't need resolution as they're handled specially in type checking
+        if (dest.Name is "text" or "number")
+        {
+            return;
+        }
+
         var declaration = SearchParentsForName(dest.Name, parentScope);
 
         if (declaration != null)
@@ -198,6 +208,21 @@ public class NameResolver(ErrorLog log) : INameResolver
     {
         // TODO: Resolve names of units here, currently resolved for named units only in the UnitAssignmentExpression
         // This is to allow custom named units.
+    }
+
+    private void Visit(OptionDeclaration dest, IScope parentScope)
+    {
+        // Resolve type annotation if present
+        if (dest.TypeAnnotation != null)
+        {
+            Visit(dest.TypeAnnotation, parentScope);
+        }
+
+        // Resolve each value expression
+        foreach (var value in dest.Values)
+        {
+            Visit(value, parentScope);
+        }
     }
 
     private void Visit(ListExpression dest, IScope parentScope)

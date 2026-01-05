@@ -101,6 +101,11 @@ public enum TokenType
     // Type annotations
     List, // list keyword for type annotations (e.g., {Shape list})
     Dict, // dict keyword for type annotations (e.g., {string: Shape dict})
+    TextType, // text keyword for string type annotations (e.g., {text})
+    NumberType, // number keyword for dimensionless numeric type annotations (e.g., {number})
+
+    // Options
+    Option, // option keyword for option declarations
 
     // Element instance access
     Instance, // instance keyword for accessing element instance in list iteration

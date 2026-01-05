@@ -314,18 +314,22 @@ RectangleInstance3 = RectangleInstance2(Width = 10)                // Area = 40,
 ## Priority 6: Type System Extensions
 
 ### Options Type
-**Status:** ⬜ Not Started
+**Status:** 🔶 In Progress
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Options definition | `Options(key1: "desc1", key2: "desc2")` | ⬜ |
-| Option value selection | Select from defined options | ⬜ |
-| Exhaustive matching | Omit `else` when all options covered | ⬜ |
+| Options definition | `option Name {type}: values... end` | 🔶 |
+| Option type annotation | `{OptionName}` as type annotation | 🔶 |
+| Compile-time validation | Validate literal values against options | 🔶 |
+| `text` keyword | Type annotation for string options | 🔶 |
+| `number` keyword | Type annotation for dimensionless options | 🔶 |
+| Exhaustive matching | Omit `otherwise` when all options covered | ⬜ |
 
 **Implementation Notes:**
-- Add Options as a special element or type
-- Track option values for exhaustive matching
-- Integrate with conditional type checking
+- Options create a sum type with fixed valid values
+- `{text}` and `{number}` keywords for built-in type annotations
+- Type inference from first value if annotation omitted
+- Compile-time validation for literals, runtime for computed values
 
 ---
 

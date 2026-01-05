@@ -81,6 +81,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             ElementDeclaration element => Visit(element, currentScope),
             DimensionDeclaration => SuccessResult,  // Dimensions don't need evaluation
             UnitDeclaration => SuccessResult,  // Units don't need evaluation (already registered)
+            OptionDeclaration => SuccessResult,  // Options are type definitions, don't produce values
             PrototypeDeclaration prototype => Visit(prototype, currentScope),
             PrototypeOutputDeclaration => SuccessResult,  // Prototype outputs don't need evaluation
             InstanceConstant => _iterationValue ?? ErrorResult,

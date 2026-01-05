@@ -1,0 +1,65 @@
+// Sunset Diagramming Standard Library
+// Main entry point - imports all diagram modules.
+//
+// This library provides types and functions for generating diagrams
+// as SVG output alongside LaTeX and Markdown reports.
+//
+// Prerequisites (not yet implemented):
+// - String interpolation: "text {expression}"
+// - Import statement: import module.path
+//
+// Usage:
+//   import diagrams
+//
+// Example:
+//   define MyDiagram:
+//       inputs:
+//           Width = 2 {m}
+//           Height = 1.5 {m}
+//       outputs:
+//           _diagram {Diagram} = Diagram(
+//               ViewportWidth = 400,
+//               ViewportHeight = 300,
+//               Scale = 100
+//           )
+//           
+//           Shape {Rectangle} = Rectangle(
+//               centre = Point(x = 1 {m}, y = 0.75 {m}, _diagram = _diagram),
+//               width = Width,
+//               height = Height,
+//               _diagram = _diagram
+//           )
+//           
+//           return Output {Diagram} = _diagram(Elements = [Shape])
+//   end
+//
+// Available Types:
+//   - RGBA: Colour definition
+//   - DrawStyle, PointStyle, LineStyle, ReferenceStyle, PathStyle: Styling
+//   - DiagramElement: Base prototype for drawable elements
+//   - Linear: Prototype for line-like geometry
+//   - Diagram: Container for diagram elements
+//
+// Geometry:
+//   - Point: 2D point
+//   - Line: Finite line segment
+//   - PlaneHorizontal, PlaneVertical, PlaneRotated: Infinite lines
+//
+// Shapes:
+//   - Rectangle: Rectangle by centre and dimensions
+//   - Circle: Circle by centre and radius
+//   - Ellipse: Ellipse by centre and radii
+//   - OpenPath: Open polyline
+//   - FilledPath: Closed polygon with fill
+//
+// Operations:
+//   - Intersect: Line-line intersection
+//
+// Rendering:
+//   - DrawSVG: Generate SVG document
+
+import diagrams.core
+import diagrams.geometry
+import diagrams.shapes
+import diagrams.operations
+import diagrams.svg

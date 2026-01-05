@@ -1,0 +1,111 @@
+// Sunset Diagramming Standard Library - SVG Renderer Module
+// Generates SVG output from diagram definitions.
+//
+// Prerequisites (not yet implemented):
+// - String interpolation: "text {expression}"
+// - Import statement: import module.path
+
+import stdlib
+import diagrams.core
+
+// =============================================================================
+// SVG DOCUMENT GENERATOR
+// =============================================================================
+
+/// Generates a complete SVG document from diagram elements.
+define DrawSVG:
+    inputs:
+        /// Width of the SVG viewport in pixels
+        ViewportWidth = 400
+        /// Height of the SVG viewport in pixels
+        ViewportHeight = 300
+        /// Construction/reference geometry (optional, for debugging)
+        References {DiagramElement list} = []
+        /// Main elements to render
+        Elements {DiagramElement list} = []
+        /// Whether to include reference geometry in output
+        ShowReferences = false
+    outputs:
+        // SVG document header
+        ?header {text} = """<svg 
+            width="{ViewportWidth}" 
+            height="{ViewportHeight}" 
+            xmlns="http://www.w3.org/2000/svg"
+            style="background-color: white;">"""
+        
+        // SVG document footer
+        ?footer {text} = "</svg>"
+        
+        // Render reference geometry (if enabled)
+        ?refDrawings {text} = "" if ShowReferences == false
+            = References.select(value.Draw).join("\n") otherwise
+        
+        // Render main elements
+        ?elementDrawings {text} = Elements.select(value.Draw).join("\n")
+        
+        /// Complete SVG document as a string
+        return Draw {text} = header + "\n" + refDrawings + "\n" + elementDrawings + "\n" + footer
+end
+
+// =============================================================================
+// SVG UTILITIES
+// =============================================================================
+
+/// Wraps content in an SVG group with optional transform.
+define SvgGroup:
+    inputs:
+        /// Content to wrap
+        Content {text} = ""
+        /// Optional CSS class
+        Class {text} = ""
+        /// Optional transform (e.g., "translate(10, 20)")
+        Transform {text} = ""
+    outputs:
+        ?classAttr {text} = "" if Class == ""
+            = " class=\"{Class}\"" otherwise
+        
+        ?transformAttr {text} = "" if Transform == ""
+            = " transform=\"{Transform}\"" otherwise
+        
+        return Draw {text} = "<g{classAttr}{transformAttr}>\n{Content}\n</g>"
+end
+
+/// Creates an SVG text element.
+define SvgText:
+    inputs:
+        /// Text content
+        Text {text} = ""
+        /// X position in pixels
+        x = 0
+        /// Y position in pixels  
+        y = 0
+        /// Font size in pixels
+        FontSize = 12
+        /// Text anchor: "start", "middle", or "end"
+        Anchor {text} = "start"
+        /// Fill colour
+        Fill {RGBA} = RGBA(0, 0, 0)
+    outputs:
+        return Draw {text} = """<text 
+            x="{x}" y="{y}" 
+            font-size="{FontSize}"
+            text-anchor="{Anchor}"
+            fill="{Fill.Svg}"
+        >{Text}</text>"""
+end
+
+// =============================================================================
+// FUTURE: TYPST/CETZ RENDERER
+// =============================================================================
+
+// A Typst/CeTZ renderer will be added in a future version to support
+// Typst document output alongside SVG.
+//
+// define DrawTypst:
+//     inputs:
+//         ViewportWidth = 400
+//         ViewportHeight = 300
+//         Elements {DiagramElement list} = []
+//     outputs:
+//         return Draw {text}  // CeTZ code
+// end

@@ -1,0 +1,179 @@
+// Sunset Diagramming Standard Library - Geometry Module
+// Provides geometric primitives: points, lines, and planes.
+//
+// Prerequisites (not yet implemented):
+// - String interpolation: "text {expression}"
+// - Import statement: import module.path
+
+import stdlib
+import diagrams.core
+
+// =============================================================================
+// POINT
+// =============================================================================
+
+/// A point in 2D space.
+/// Coordinates are specified in real-world units (metres).
+define Point as DiagramElement:
+    inputs:
+        /// X coordinate in metres
+        x = 0 {m}
+        /// Y coordinate in metres
+        y = 0 {m}
+        /// Styling for the point
+        Style {PointStyle} = PointStyle()
+        /// Reference to parent diagram for coordinate transformation
+        _diagram {Diagram}
+    outputs:
+        // Transform to SVG coordinates (flip Y for engineering convention)
+        ?svgX = x {/m} * _diagram.Scale
+        ?svgY = _diagram.FlipY - (y {/m} * _diagram.Scale)
+        ?svgRadius = Style.Radius
+        
+        /// SVG circle element representing this point
+        return Draw {text} = """<circle 
+            cx="{svgX}" 
+            cy="{svgY}" 
+            r="{svgRadius}"
+            fill="{Style.FillColour.Svg}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end
+
+// =============================================================================
+// LINE (FINITE SEGMENT)
+// =============================================================================
+
+/// A finite line segment between two points.
+define Line as DiagramElement, Linear:
+    inputs:
+        /// Start point
+        pt1 {Point} = Point()
+        /// End point
+        pt2 {Point} = Point()
+        /// Styling for the line
+        Style {LineStyle} = LineStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // For Linear prototype - expose defining points
+        Point1 {Point} = pt1
+        Point2 {Point} = pt2
+        
+        // Transform to SVG coordinates
+        ?x1 = pt1.x {/m} * _diagram.Scale
+        ?y1 = _diagram.FlipY - (pt1.y {/m} * _diagram.Scale)
+        ?x2 = pt2.x {/m} * _diagram.Scale
+        ?y2 = _diagram.FlipY - (pt2.y {/m} * _diagram.Scale)
+        
+        /// SVG line element
+        return Draw {text} = """<line 
+            x1="{x1}" y1="{y1}" 
+            x2="{x2}" y2="{y2}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end
+
+// =============================================================================
+// INFINITE PLANES (CONSTRUCTION GEOMETRY)
+// =============================================================================
+
+/// An infinite horizontal line at a given y-coordinate.
+/// Used as construction/reference geometry.
+define PlaneHorizontal as DiagramElement, Linear:
+    inputs:
+        /// Y-coordinate of the horizontal line
+        y = 0 {m}
+        /// Styling (defaults to dashed grey reference line)
+        Style {ReferenceStyle} = ReferenceStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // For Linear prototype - define two points on the line
+        Point1 {Point} = Point(x = 0 {m}, y = y, _diagram = _diagram)
+        Point2 {Point} = Point(x = 1 {m}, y = y, _diagram = _diagram)
+        
+        // Draw to viewport extents
+        ?svgY = _diagram.FlipY - (y {/m} * _diagram.Scale)
+        
+        /// SVG line extending across viewport
+        return Draw {text} = """<line 
+            x1="0" y1="{svgY}" 
+            x2="{_diagram.ViewportWidth}" y2="{svgY}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+            stroke-dasharray="{Style.DashArray}"
+        />"""
+end
+
+/// An infinite vertical line at a given x-coordinate.
+/// Used as construction/reference geometry.
+define PlaneVertical as DiagramElement, Linear:
+    inputs:
+        /// X-coordinate of the vertical line
+        x = 0 {m}
+        /// Styling (defaults to dashed grey reference line)
+        Style {ReferenceStyle} = ReferenceStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // For Linear prototype - define two points on the line
+        Point1 {Point} = Point(x = x, y = 0 {m}, _diagram = _diagram)
+        Point2 {Point} = Point(x = x, y = 1 {m}, _diagram = _diagram)
+        
+        // Draw to viewport extents
+        ?svgX = x {/m} * _diagram.Scale
+        
+        /// SVG line extending across viewport
+        return Draw {text} = """<line 
+            x1="{svgX}" y1="0" 
+            x2="{svgX}" y2="{_diagram.ViewportHeight}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+            stroke-dasharray="{Style.DashArray}"
+        />"""
+end
+
+/// An infinite line through a point at a given angle.
+/// Used as construction/reference geometry.
+define PlaneRotated as DiagramElement, Linear:
+    inputs:
+        /// Origin point that the line passes through
+        origin {Point} = Point()
+        /// Angle from horizontal (counter-clockwise, in degrees)
+        angle = 0 {deg}
+        /// Styling (defaults to dashed grey reference line)
+        Style {ReferenceStyle} = ReferenceStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // Direction components (unit vector)
+        ?dx = cos(angle)
+        ?dy = sin(angle)
+        
+        // For Linear prototype - define two points on the line
+        Point1 {Point} = origin
+        Point2 {Point} = Point(
+            x = origin.x + dx * 1 {m}, 
+            y = origin.y + dy * 1 {m},
+            _diagram = _diagram
+        )
+        
+        // Extend line far enough to reach viewport edges
+        ?extent = 10000
+        ?x1 = (origin.x {/m} - dx * extent) * _diagram.Scale
+        ?y1 = _diagram.FlipY - ((origin.y {/m} - dy * extent) * _diagram.Scale)
+        ?x2 = (origin.x {/m} + dx * extent) * _diagram.Scale
+        ?y2 = _diagram.FlipY - ((origin.y {/m} + dy * extent) * _diagram.Scale)
+        
+        /// SVG line extending beyond viewport (clipped by SVG container)
+        return Draw {text} = """<line 
+            x1="{x1}" y1="{y1}" 
+            x2="{x2}" y2="{y2}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+            stroke-dasharray="{Style.DashArray}"
+        />"""
+end

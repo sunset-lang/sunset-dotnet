@@ -1,0 +1,102 @@
+// Sunset Diagramming Standard Library - Operations Module
+// Provides geometric operations like intersection.
+//
+// Prerequisites (not yet implemented):
+// - String interpolation: "text {expression}"
+// - Import statement: import module.path
+
+import stdlib
+import diagrams.core
+import diagrams.geometry
+
+// =============================================================================
+// INTERSECTION
+// =============================================================================
+
+/// Computes the intersection point of two linear elements.
+/// 
+/// Uses the parametric line intersection formula:
+/// Given line 1: P1 + t(P2 - P1) and line 2: P3 + s(P4 - P3)
+/// 
+/// Returns error if lines are parallel (denominator = 0).
+define Intersect:
+    inputs:
+        /// First linear element
+        L1 {Linear}
+        /// Second linear element
+        L2 {Linear}
+        /// Reference to parent diagram (for creating result Point)
+        _diagram {Diagram}
+    outputs:
+        // Extract coordinates from the defining points
+        // Non-dimensionalise to metres for calculation
+        ?x1 = L1.Point1.x {/m}
+        ?y1 = L1.Point1.y {/m}
+        ?x2 = L1.Point2.x {/m}
+        ?y2 = L1.Point2.y {/m}
+        ?x3 = L2.Point1.x {/m}
+        ?y3 = L2.Point1.y {/m}
+        ?x4 = L2.Point2.x {/m}
+        ?y4 = L2.Point2.y {/m}
+        
+        // Calculate denominator
+        // If zero, lines are parallel and intersection doesn't exist
+        ?denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        
+        // Calculate parameter t for line 1
+        // t = ((x1 - x3)(y3 - y4) - (y1 - y3)(x3 - x4)) / denom
+        ?tNumerator = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)
+        ?t = tNumerator / denom
+        
+        // Calculate intersection coordinates
+        // x = x1 + t(x2 - x1), y = y1 + t(y2 - y1)
+        ?ix = x1 + t * (x2 - x1)
+        ?iy = y1 + t * (y2 - y1)
+        
+        /// The intersection point.
+        /// Returns error if lines are parallel (division by zero in t calculation).
+        return Result {Point} = Point(x = ix {m}, y = iy {m}, _diagram = _diagram)
+end
+
+// =============================================================================
+// FUTURE OPERATIONS (PLACEHOLDERS)
+// =============================================================================
+
+// The following operations may be added in future versions:
+
+// /// Offsets a linear element by a perpendicular distance.
+// define Offset:
+//     inputs:
+//         Element {Linear}
+//         Distance = 0 {m}
+//     outputs:
+//         return Result {Linear}
+// end
+
+// /// Extends or trims a line to meet another line.
+// define Extend:
+//     inputs:
+//         Line {Line}
+//         Boundary {Linear}
+//     outputs:
+//         return Result {Line}
+// end
+
+// /// Mirrors an element about a linear axis.
+// define Mirror:
+//     inputs:
+//         Element {DiagramElement}
+//         Axis {Linear}
+//     outputs:
+//         return Result {DiagramElement}
+// end
+
+// /// Rotates an element about a point.
+// define Rotate:
+//     inputs:
+//         Element {DiagramElement}
+//         Centre {Point}
+//         Angle = 0 {deg}
+//     outputs:
+//         return Result {DiagramElement}
+// end

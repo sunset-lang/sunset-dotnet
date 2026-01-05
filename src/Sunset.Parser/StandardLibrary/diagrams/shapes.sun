@@ -1,0 +1,171 @@
+// Sunset Diagramming Standard Library - Shapes Module
+// Provides drawable shapes: rectangles, circles, ellipses, and paths.
+//
+// Prerequisites (not yet implemented):
+// - String interpolation: "text {expression}"
+// - Import statement: import module.path
+
+import stdlib
+import diagrams.core
+import diagrams.geometry
+
+// =============================================================================
+// RECTANGLE
+// =============================================================================
+
+/// A rectangle defined by its centre point and dimensions.
+define Rectangle as DiagramElement:
+    inputs:
+        /// Centre point of the rectangle
+        centre {Point} = Point()
+        /// Width of the rectangle
+        width = 1 {m}
+        /// Height of the rectangle
+        height = 1 {m}
+        /// Styling
+        Style {PathStyle} = PathStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // Calculate top-left corner in SVG coordinates
+        // (SVG rect uses top-left origin)
+        ?svgX = (centre.x {/m} - width {/m} / 2) * _diagram.Scale
+        ?svgY = _diagram.FlipY - ((centre.y {/m} + height {/m} / 2) * _diagram.Scale)
+        ?svgWidth = width {/m} * _diagram.Scale
+        ?svgHeight = height {/m} * _diagram.Scale
+        
+        /// SVG rect element
+        return Draw {text} = """<rect 
+            x="{svgX}" y="{svgY}" 
+            width="{svgWidth}" height="{svgHeight}"
+            fill="{Style.FillColour.Svg}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end
+
+// =============================================================================
+// CIRCLE
+// =============================================================================
+
+/// A circle defined by its centre point and radius.
+define Circle as DiagramElement:
+    inputs:
+        /// Centre point of the circle
+        centre {Point} = Point()
+        /// Radius of the circle
+        radius = 0.5 {m}
+        /// Styling
+        Style {PathStyle} = PathStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        ?svgCx = centre.x {/m} * _diagram.Scale
+        ?svgCy = _diagram.FlipY - (centre.y {/m} * _diagram.Scale)
+        ?svgRadius = radius {/m} * _diagram.Scale
+        
+        /// SVG circle element
+        return Draw {text} = """<circle 
+            cx="{svgCx}" cy="{svgCy}" 
+            r="{svgRadius}"
+            fill="{Style.FillColour.Svg}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end
+
+// =============================================================================
+// ELLIPSE
+// =============================================================================
+
+/// An ellipse defined by its centre point and radii.
+define Ellipse as DiagramElement:
+    inputs:
+        /// Centre point of the ellipse
+        centre {Point} = Point()
+        /// Horizontal radius
+        radiusX = 0.5 {m}
+        /// Vertical radius
+        radiusY = 0.25 {m}
+        /// Styling
+        Style {PathStyle} = PathStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        ?svgCx = centre.x {/m} * _diagram.Scale
+        ?svgCy = _diagram.FlipY - (centre.y {/m} * _diagram.Scale)
+        ?svgRx = radiusX {/m} * _diagram.Scale
+        ?svgRy = radiusY {/m} * _diagram.Scale
+        
+        /// SVG ellipse element
+        return Draw {text} = """<ellipse 
+            cx="{svgCx}" cy="{svgCy}" 
+            rx="{svgRx}" ry="{svgRy}"
+            fill="{Style.FillColour.Svg}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end
+
+// =============================================================================
+// PATHS
+// =============================================================================
+
+/// An open polyline (no fill) through a series of points.
+define OpenPath as DiagramElement:
+    inputs:
+        /// List of points defining the path
+        points {Point list} = []
+        /// Styling
+        Style {LineStyle} = LineStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // Generate SVG path data for all points after the first
+        // Each point becomes "L x y" (lineto command)
+        ?pathCommands {text} = points.select(
+            "L {value.x {/m} * _diagram.Scale} {_diagram.FlipY - (value.y {/m} * _diagram.Scale)}"
+        ).join(" ")
+        
+        // Get the first point for the moveto command
+        ?firstPoint = points.first()
+        ?startX = firstPoint.x {/m} * _diagram.Scale
+        ?startY = _diagram.FlipY - (firstPoint.y {/m} * _diagram.Scale)
+        
+        /// SVG path element (open, no fill)
+        return Draw {text} = """<path 
+            d="M {startX} {startY} {pathCommands}"
+            fill="none"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end
+
+/// A closed polygon with fill.
+define FilledPath as DiagramElement:
+    inputs:
+        /// List of points defining the polygon vertices
+        points {Point list} = []
+        /// Styling
+        Style {PathStyle} = PathStyle()
+        /// Reference to parent diagram
+        _diagram {Diagram}
+    outputs:
+        // Generate SVG path data
+        ?pathCommands {text} = points.select(
+            "L {value.x {/m} * _diagram.Scale} {_diagram.FlipY - (value.y {/m} * _diagram.Scale)}"
+        ).join(" ")
+        
+        // Get the first point for the moveto command
+        ?firstPoint = points.first()
+        ?startX = firstPoint.x {/m} * _diagram.Scale
+        ?startY = _diagram.FlipY - (firstPoint.y {/m} * _diagram.Scale)
+        
+        /// SVG path element (closed with Z command)
+        return Draw {text} = """<path 
+            d="M {startX} {startY} {pathCommands} Z"
+            fill="{Style.FillColour.Svg}"
+            stroke="{Style.StrokeColour.Svg}"
+            stroke-width="{Style.StrokeWidth}"
+        />"""
+end

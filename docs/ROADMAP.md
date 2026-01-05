@@ -179,13 +179,33 @@ Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
 ---
 
 ### String Interpolation
-**Status:** ⬜ Not Started (Deferred)
+**Status:** ⬜ Not Started
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Interpolation | `"Depth {expression}"` | ⬜ |
+| Interpolation | `"The value is {expression}"` | ⬜ |
 
-**Note:** String interpolation is deferred due to syntax conflict with the `{unit}` notation used for unit assignments. The `{` character inside strings cannot easily be distinguished from the start of a unit assignment expression without significant lexer changes. Use string concatenation as an alternative.
+**Syntax:**
+```sunset
+x = 100 {mm}
+message = "The length is {x}"  // Results in "The length is 100 mm"
+
+// Complex expressions supported
+summary = "Area: {Width * Height}"
+```
+
+**Behavior:**
+- Expressions within `{...}` inside strings are evaluated and converted to text
+- Quantities are formatted with their display units
+- Nested braces or escaping TBD
+
+**Implementation Notes:**
+- Lexer must detect `{` inside string tokens and switch to expression parsing mode
+- New expression type `InterpolatedStringExpression` with segments (text + expressions)
+- Type checker validates embedded expressions
+- Evaluator concatenates segments with formatted expression results
+
+**Priority:** High - Required for Diagramming Standard Library (SVG/Typst output generation)
 
 ---
 
@@ -403,7 +423,153 @@ The following bugs have been fixed:
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| **Total** | **49** | **33** | **1** | **15** |
+| Module System | 3 | 0 | 0 | 3 |
+| Diagramming Library | 1 | 0 | 0 | 1 |
+| **Total** | **53** | **33** | **1** | **19** |
+
+---
+
+## Priority 8: Module System
+
+### Import Statement
+**Status:** ⬜ Not Started
+
+| Feature | Syntax | Status |
+|---------|--------|--------|
+| Import declaration | `import module.path` | ⬜ |
+| Relative imports | `import diagrams.core` | ⬜ |
+| Standard library imports | `import stdlib` | ⬜ |
+
+**Syntax:**
+```sunset
+// Import from standard library
+import stdlib
+
+// Import diagram modules
+import diagrams.core
+import diagrams.geometry
+
+// In user code
+import diagrams  // Imports the main entry point
+```
+
+**Behavior:**
+- Imports make all top-level declarations from the imported file available in the current scope
+- Module paths use dot notation (e.g., `diagrams.core` resolves to `diagrams/core.sun`)
+- Standard library paths resolved from a known location
+- Circular imports detected and reported as errors
+
+**Implementation Notes:**
+- Add `Import` token type to `TokenType.cs` and `TokenDefinitions.cs`
+- New `ImportDeclaration` class in `Parsing/Declarations/`
+- `Environment` manages loaded modules and prevents duplicate loading
+- `NameResolver` resolves imported declarations into current scope
+- File resolution logic maps module paths to file system paths
+
+**Priority:** High - Required for Diagramming Standard Library (multi-file organization)
+
+---
+
+## Priority 9: Diagramming Standard Library
+
+### Standard Library: Diagrams
+**Status:** ⬜ Not Started (Blocked by Prerequisites)
+
+A standard library for generating diagrams as SVG or Typst/CeTZ output alongside LaTeX and Markdown reports.
+
+**Prerequisites:**
+- ⬜ String Interpolation (Priority 4)
+- ⬜ Import Statement (Priority 8)
+
+**File Structure:**
+```
+src/Sunset.Parser/StandardLibrary/
+├── stdlib.sun                      # Existing - units/dimensions
+└── diagrams/
+    ├── diagrams.sun                # Main entry point
+    ├── core.sun                    # RGBA, styles, prototypes, Diagram
+    ├── geometry.sun                # Point, Line, Planes
+    ├── shapes.sun                  # Rectangle, Circle, Ellipse, Paths
+    ├── operations.sun              # Intersect
+    └── svg.sun                     # SVG renderer
+```
+
+**Core Types:**
+
+| Type | Description |
+|------|-------------|
+| `RGBA` | Color definition (R, G, B, A components) |
+| `DrawStyle` | Base styling prototype (stroke, fill, width) |
+| `DiagramElement` | Base prototype for drawable elements |
+| `Diagram` | Container for elements with viewport and scale |
+| `Linear` | Prototype for line-like geometry (for intersections) |
+
+**Geometry Primitives:**
+
+| Element | Description |
+|---------|-------------|
+| `Point` | 2D point with x, y coordinates |
+| `Line` | Finite line segment between two points |
+| `PlaneHorizontal` | Infinite horizontal line at y offset |
+| `PlaneVertical` | Infinite vertical line at x offset |
+| `PlaneRotated` | Infinite line through point at angle |
+
+**Shapes:**
+
+| Element | Description |
+|---------|-------------|
+| `Rectangle` | Rectangle with centre, width, height |
+| `Circle` | Circle with centre, radius |
+| `Ellipse` | Ellipse with centre, radiusX, radiusY |
+| `OpenPath` | Open polyline through points |
+| `FilledPath` | Closed polygon with fill |
+
+**Operations:**
+
+| Function | Description |
+|----------|-------------|
+| `Intersect(L1, L2)` | Compute intersection of two Linear elements |
+
+**Renderers:**
+
+| Element | Description |
+|---------|-------------|
+| `DrawSVG` | Generate complete SVG document from Diagram |
+
+**Design Decisions:**
+- Coordinate system: Engineering convention (Y-up), flipped in SVG output
+- Scale: Dimensionless pixels-per-metre factor
+- Parallel line intersection: Returns `error`
+- Diagram reference: Passed as `_diagram` input to elements
+
+**Example Usage:**
+```sunset
+import diagrams
+
+define PadFooting_Elevation:
+    inputs:
+        Width = 1.2 {m}
+        Depth = 2.4 {m}
+    outputs:
+        _diagram {Diagram} = Diagram(Scale = 100)
+        
+        Left {PlaneVertical} = PlaneVertical(x = 0 {m}, _diagram = _diagram)
+        Right {PlaneVertical} = PlaneVertical(x = Width, _diagram = _diagram)
+        Bottom {PlaneHorizontal} = PlaneHorizontal(y = 0 {m}, _diagram = _diagram)
+        Top {PlaneHorizontal} = PlaneHorizontal(y = Depth, _diagram = _diagram)
+        
+        Corners {Point list} = [
+            Intersect(Left, Bottom).Result,
+            Intersect(Left, Top).Result,
+            Intersect(Right, Top).Result,
+            Intersect(Right, Bottom).Result
+        ]
+        
+        return Draw {Diagram} = _diagram(
+            Elements = [FilledPath(points = Corners, _diagram = _diagram)]
+        )
+end
+```
 
 ---
 
@@ -419,3 +585,4 @@ The following bugs have been fixed:
 | `src/Sunset.Parser/Analysis/TypeChecking/TypeChecker.cs` | Add type rules |
 | `src/Sunset.Parser/Visitors/Evaluation/Evaluator.cs` | Implement evaluation |
 | `src/Sunset.Parser/BuiltIns/` | Built-in function implementations |
+| `src/Sunset.Parser/StandardLibrary/` | Standard library `.sun` files |

@@ -20,17 +20,15 @@ Conditions are expressions that evaluate to `true` or `false`. They can be used 
 | Operator | Description |
 |----------|-------------|
 | `is` | Types are equivalent |
-| `is not` | Types are not equivalent |
 
 ### Logical Operators
 
-> **Note:** Logical operators `and` and `or` are not yet implemented. The `not` keyword only works with `is not`.
+> **Note:** Logical operators `and` and `or` are not yet implemented.
 
 | Operator | Description | Status |
 |----------|-------------|--------|
 | `and` | Logical AND | Not yet implemented |
 | `or` | Logical OR | Not yet implemented |
-| `not` | Logical NOT | Only works with `is not` |
 
 ## Single-Line If Expressions
 
@@ -103,6 +101,103 @@ The comparison can include combinations like `> 20 {mm} or < 10 {mm}`.
 1. **Type Consistency**: All branch expressions must evaluate to the same type/units
 2. **Required Otherwise**: Every conditional must have an `otherwise` branch
 3. **Sequential Evaluation**: Conditions are checked in order; first true condition wins
+
+## Type Pattern Matching
+
+Type pattern matching allows you to check the concrete type of an element and optionally bind it to a variable with the specific type. This is particularly useful when working with prototypes and polymorphic elements.
+
+### Basic Type Check
+
+Use `is` to check if an element implements a specific prototype or is a specific element type:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Circle as Shape:
+    inputs:
+        Radius = 1 {m}
+    outputs:
+        return Area {m^2} = 3.14159 * Radius ^ 2
+end
+
+myShape {Shape} = Circle(2 {m})
+
+result = "circle" if myShape is Circle
+       = "other" otherwise
+```
+
+### Pattern Matching with Binding
+
+When you need to access properties specific to a concrete element type, use pattern matching with a binding variable:
+
+```sunset
+prototype Shape:
+    outputs:
+        return Area {m^2}
+end
+
+define Rectangle as Shape:
+    inputs:
+        Width = 1 {m}
+        Length = 2 {m}
+    outputs:
+        return Area {m^2} = Width * Length
+end
+
+define Circle as Shape:
+    inputs:
+        Radius = 1 {m}
+    outputs:
+        return Area {m^2} = 3.14159 * Radius ^ 2
+end
+
+define AreaCalculator:
+    inputs:
+        ShapeToCalculate {Shape} = Rectangle()
+    outputs:
+        return Area {m^2} = rect.Width * rect.Length if ShapeToCalculate is Rectangle rect
+                         = 3.14159 * circ.Radius ^ 2 if ShapeToCalculate is Circle circ
+                         = error otherwise
+end
+
+RectangleArea {m^2} = AreaCalculator(Rectangle(2 {m}, 3 {m}))  // 6 m^2
+CircleArea {m^2} = AreaCalculator(Circle(2 {m}))               // ~12.57 m^2
+```
+
+The binding variable (e.g., `rect`, `circ`) is only in scope within its branch body and has the specific element type, allowing access to element-specific properties.
+
+### Property Access Restrictions
+
+When a variable is typed with a prototype annotation (e.g., `{Shape}`), you can only access properties defined in that prototype. To access properties specific to a concrete element type, you must use pattern matching:
+
+```sunset
+define Calculator:
+    inputs:
+        Shape {Shape} = Rectangle()
+    outputs:
+        // Error: Shape is typed as {Shape}, which doesn't have Width
+        // InvalidWidth = Shape.Width
+        
+        // Correct: Use pattern matching to access Rectangle-specific properties
+        return Width {m} = rect.Width if Shape is Rectangle rect
+                        = 0 {m} otherwise
+end
+```
+
+### Pattern Matching Rules
+
+1. **Required Otherwise**: When using type pattern matching, an `otherwise` branch is always required
+2. **Sequential Evaluation**: Patterns are checked in order; the first matching pattern wins
+3. **Binding Scope**: Binding variables are only available within their branch body
+4. **Type Safety**: The binding variable has the matched type, enabling access to type-specific properties
+
+> **Future Enhancement:** Combining type patterns with boolean conditions using `and`/`or` operators is planned for a future release. For example:
+> ```sunset
+> = value if x is Rectangle rect and rect.Width > 0 {m}
+> ```
 
 ## Examples
 

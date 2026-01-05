@@ -13,6 +13,9 @@ public interface IResultType
     {
         // Return false if either type is null - null types are not allowed.
         if (left is null || right is null) return false;
+        
+        // ErrorValueType is compatible with any type (it's a bottom type / sentinel value)
+        if (left is ErrorValueType || right is ErrorValueType) return true;
 
         return left switch
         {

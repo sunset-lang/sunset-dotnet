@@ -190,12 +190,19 @@ message = "This is a string"
 
 ### Multiline Strings
 
+Use triple quotes `"""` for strings that span multiple lines:
+
 ```sunset
 description = """
 This is a
 multiline string
 """
 ```
+
+**Behaviour:**
+- Content between `"""` delimiters is preserved as-is, including newlines
+- Leading/trailing whitespace within the string is preserved
+- Useful for embedding formatted text, code snippets, or markup (e.g., SVG)
 
 ### String Concatenation
 
@@ -796,12 +803,18 @@ Type annotations use curly braces to specify expected types:
 | Syntax | Description |
 |--------|-------------|
 | `{m}` | Quantity with unit (metres) |
+| `{text}` | String/text value |
+| `{number}` | Dimensionless numeric value |
 | `{Shape}` | Instance of element implementing Shape prototype |
 | `{Shape list}` | List of instances implementing Shape prototype |
+| `{text list}` | List of string values |
+| `{number list}` | List of dimensionless numbers |
 
 ```sunset
 myShape {Shape} = Square(2)
 shapes {Shape list} = [Square(2), Rectangle(2, 3)]
+names {text list} = ["Alice", "Bob", "Charlie"]
+factors {number list} = [1.0, 1.5, 2.0]
 ```
 
 ### Lists of Prototype Instances

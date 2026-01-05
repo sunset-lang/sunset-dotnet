@@ -1,0 +1,181 @@
+// Sunset Diagramming Standard Library - Core Module
+// Provides core types, styles, and prototypes for diagram generation.
+//
+// Prerequisites (not yet implemented):
+// - String interpolation: "text {expression}"
+// - Import statement: import module.path
+
+import stdlib
+
+// =============================================================================
+// COLOUR DEFINITIONS
+// =============================================================================
+
+/// RGBA colour definition for styling diagram elements.
+/// Components are integers from 0-255.
+define RGBA:
+    inputs:
+        R = 0
+        G = 0
+        B = 0
+        A = 255
+    outputs:
+        /// SVG-compatible colour string
+        return Svg {text} = "rgb({R},{G},{B})"
+end
+
+/// Predefined basic colours for convenience.
+define BasicColours:
+    outputs:
+        Black {RGBA} = RGBA(0, 0, 0)
+        White {RGBA} = RGBA(255, 255, 255)
+        Red {RGBA} = RGBA(255, 0, 0)
+        Green {RGBA} = RGBA(0, 255, 0)
+        Blue {RGBA} = RGBA(0, 0, 255)
+        Grey {RGBA} = RGBA(128, 128, 128)
+        LightGrey {RGBA} = RGBA(200, 200, 200)
+end
+
+// =============================================================================
+// OUTPUT FORMAT OPTIONS
+// =============================================================================
+
+/// Available output formats for diagram rendering.
+option DiagramFormat {text}:
+    "SVG"
+    "Typst"
+end
+
+// =============================================================================
+// STYLE DEFINITIONS
+// =============================================================================
+
+/// Base prototype for all drawing styles.
+/// Defines common styling properties for stroke and fill.
+prototype DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(0, 0, 0)
+        FillColour {RGBA} = RGBA(255, 255, 255)
+        StrokeWidth = 1
+end
+
+/// Style for rendering points.
+define PointStyle as DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(0, 0, 0)
+        FillColour {RGBA} = RGBA(255, 0, 0)
+        StrokeWidth = 1
+        Radius = 3
+end
+
+/// Style for rendering lines.
+define LineStyle as DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(0, 0, 0)
+        FillColour {RGBA} = RGBA(0, 0, 0, 0)
+        StrokeWidth = 2
+end
+
+/// Style for rendering construction/reference geometry.
+define ReferenceStyle as DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(128, 128, 128)
+        FillColour {RGBA} = RGBA(0, 0, 0, 0)
+        StrokeWidth = 1
+        DashArray {text} = "5,5"
+end
+
+/// Style for rendering filled paths and shapes.
+define PathStyle as DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(0, 0, 0)
+        FillColour {RGBA} = RGBA(200, 200, 200)
+        StrokeWidth = 1
+end
+
+// =============================================================================
+// DIAGRAM ELEMENT PROTOTYPES
+// =============================================================================
+
+/// Base prototype for all drawable diagram elements.
+/// Every element must produce a Draw output containing renderer-specific markup.
+prototype DiagramElement:
+    inputs:
+        Style {DrawStyle} = DrawStyle()
+    outputs:
+        /// The rendered output (e.g., SVG markup)
+        return Draw {text}
+end
+
+/// Marker prototype for line-like geometry that can be intersected.
+/// Implementations must provide two points defining the line.
+prototype Linear:
+    outputs:
+        /// First point on the line
+        Point1 {Point}
+        /// Second point on the line (defines direction)
+        Point2 {Point}
+end
+
+/// Prototype for user-defined diagram definitions.
+/// Provides a standard structure for creating diagrams with built-in diagram context.
+prototype DiagramDefinition:
+    inputs:
+        /// Width of the viewport in pixels
+        ViewportWidth = 400
+        /// Height of the viewport in pixels
+        ViewportHeight = 300
+        /// Scale factor: pixels per metre
+        Scale = 100
+        /// Output format for rendering
+        Format {DiagramFormat} = "SVG"
+    outputs:
+        /// The diagram context available to all elements
+        ?_diagram {Diagram} = Diagram(
+            ViewportWidth = ViewportWidth,
+            ViewportHeight = ViewportHeight,
+            Scale = Scale,
+            Format = Format
+        )
+        /// The final diagram output
+        return Draw {Diagram}
+end
+
+/// Marker prototype for infinite plane-like geometry (horizontal, vertical, rotated lines).
+/// Used to differentiate infinite planes from finite line segments in intersection operations.
+prototype Plane as Linear:
+end
+
+// =============================================================================
+// DIAGRAM CONTAINER
+// =============================================================================
+
+/// Container for a complete diagram.
+/// Manages viewport, scale, and coordinate transformation.
+define Diagram:
+    inputs:
+        /// Width of the viewport in pixels
+        ViewportWidth = 400
+        /// Height of the viewport in pixels
+        ViewportHeight = 300
+        /// Scale factor: pixels per metre
+        Scale = 100
+        /// Output format for rendering
+        Format {DiagramFormat} = "SVG"
+        /// Construction/reference geometry (drawn in debug mode)
+        References {DiagramElement list} = []
+        /// Main elements to draw
+        Elements {DiagramElement list} = []
+    outputs:
+        /// Y-coordinate for flipping (engineering convention: Y-up)
+        FlipY = ViewportHeight
+        
+        /// Generate the complete diagram output
+        return Draw {text} = DrawSVG(
+            ViewportWidth = ViewportWidth,
+            ViewportHeight = ViewportHeight,
+            References = References,
+            Elements = Elements
+        ).Draw if Format == "SVG"
+            = error otherwise
+end

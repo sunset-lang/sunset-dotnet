@@ -60,12 +60,66 @@ public class PackageRegistry
             }
         }
 
+        // In DEBUG mode, add the development StandardLibrary source path
+        // This allows development and testing without installing the package
+#if DEBUG
+        var devPath = GetDevelopmentStandardLibraryPath();
+        if (devPath != null && !_searchPaths.Contains(devPath))
+        {
+            _searchPaths.Add(devPath);
+        }
+#endif
+
         // Add default path
         if (!_searchPaths.Contains(DefaultPackagePath))
         {
             _searchPaths.Add(DefaultPackagePath);
         }
     }
+
+#if DEBUG
+    /// <summary>
+    ///     Attempts to find the StandardLibrary source path during development.
+    ///     Searches from the executing assembly location up to find the src/Sunset.Parser/StandardLibrary directory.
+    /// </summary>
+    private static string? GetDevelopmentStandardLibraryPath()
+    {
+        try
+        {
+            // Start from the current assembly's location
+            var assemblyDir = Path.GetDirectoryName(typeof(PackageRegistry).Assembly.Location);
+            if (assemblyDir == null) return null;
+
+            // Walk up the directory tree looking for the StandardLibrary directory
+            var currentDir = assemblyDir;
+            for (var i = 0; i < 10; i++)
+            {
+                var standardLibPath = Path.Combine(currentDir, "src", "Sunset.Parser", "StandardLibrary");
+                if (Directory.Exists(standardLibPath))
+                {
+                    return Path.Combine(currentDir, "src", "Sunset.Parser");
+                }
+
+                // Also check if we're already in the output directory structure
+                var altPath = Path.Combine(currentDir, "StandardLibrary");
+                if (Directory.Exists(altPath) && File.Exists(Path.Combine(altPath, "sunset-package.toml")))
+                {
+                    return currentDir;
+                }
+
+                var parent = Path.GetDirectoryName(currentDir);
+                if (parent == null || parent == currentDir) break;
+                currentDir = parent;
+            }
+        }
+        catch
+        {
+            // Ignore errors - development path is optional
+        }
+
+        return null;
+    }
+#endif
 
     /// <summary>
     ///     Adds a search path for packages.
@@ -81,20 +135,25 @@ public class PackageRegistry
 
     /// <summary>
     ///     Resolves a package by name, searching all configured paths.
+    ///     Package names are matched case-insensitively for cross-platform compatibility.
     /// </summary>
     /// <param name="packageName">The name of the package to find.</param>
     /// <returns>The package configuration, or null if not found.</returns>
     public PackageConfig? ResolvePackage(string packageName)
     {
-        // Check cache first
-        if (_packageCache.TryGetValue(packageName, out var cached))
+        // Check cache first (case-insensitive)
+        foreach (var (key, config) in _packageCache)
         {
-            return cached;
+            if (key.Equals(packageName, StringComparison.OrdinalIgnoreCase))
+            {
+                return config;
+            }
         }
 
         // Search all paths
         foreach (var searchPath in _searchPaths)
         {
+            // Try exact match first
             var packageDir = Path.Combine(searchPath, packageName);
             
             if (PackageConfigLoader.IsPackageDirectory(packageDir))
@@ -104,6 +163,32 @@ public class PackageRegistry
                 {
                     _packageCache[packageName] = config;
                     return config;
+                }
+            }
+
+            // Try case-insensitive match by scanning directory
+            if (Directory.Exists(searchPath))
+            {
+                try
+                {
+                    foreach (var dir in Directory.GetDirectories(searchPath))
+                    {
+                        var dirName = Path.GetFileName(dir);
+                        if (dirName.Equals(packageName, StringComparison.OrdinalIgnoreCase) &&
+                            PackageConfigLoader.IsPackageDirectory(dir))
+                        {
+                            var config = PackageConfigLoader.LoadFromDirectory(dir, _log);
+                            if (config != null)
+                            {
+                                _packageCache[packageName] = config;
+                                return config;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore directory access errors
                 }
             }
         }

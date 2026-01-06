@@ -82,8 +82,8 @@
 // Rendering:
 //   - DrawSVG: Generate SVG document
 
-import diagrams.core
-import diagrams.geometry
-import diagrams.shapes
-import diagrams.operations
-import diagrams.svg
+import Diagrams.Core
+import Diagrams.Geometry
+import Diagrams.Shapes
+import Diagrams.Operations
+import Diagrams.Svg

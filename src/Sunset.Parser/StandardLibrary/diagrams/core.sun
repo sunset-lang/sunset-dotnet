@@ -5,7 +5,7 @@
 // - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
-import stdlib
+// Units and dimensions are loaded automatically from StandardLibrary
 
 // =============================================================================
 // COLOUR DEFINITIONS

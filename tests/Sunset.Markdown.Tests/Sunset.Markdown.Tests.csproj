@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -23,6 +23,11 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Sunset.Markdown\Sunset.Markdown.csproj"/>
         <ProjectReference Include="..\Sunset.TestHelpers\Sunset.TestHelpers.csproj"/>
+    </ItemGroup>
+
+    <!-- Copy StandardLibrary to output directory so tests work in Release mode -->
+    <ItemGroup>
+        <None Include="..\..\src\Sunset.Parser\StandardLibrary\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="StandardLibrary" />
     </ItemGroup>
 
 </Project>

@@ -28,4 +28,9 @@
         <ProjectReference Include="..\Sunset.TestHelpers\Sunset.TestHelpers.csproj"/>
     </ItemGroup>
 
+    <!-- Copy StandardLibrary to output directory so tests work in Release mode -->
+    <ItemGroup>
+        <None Include="..\..\src\Sunset.Parser\StandardLibrary\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="StandardLibrary" />
+    </ItemGroup>
+
 </Project>

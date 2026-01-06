@@ -60,15 +60,13 @@ public class PackageRegistry
             }
         }
 
-        // In DEBUG mode, add the development StandardLibrary source path
+        // Add the development/test StandardLibrary path
         // This allows development and testing without installing the package
-#if DEBUG
         var devPath = GetDevelopmentStandardLibraryPath();
         if (devPath != null && !_searchPaths.Contains(devPath))
         {
             _searchPaths.Add(devPath);
         }
-#endif
 
         // Add default path
         if (!_searchPaths.Contains(DefaultPackagePath))
@@ -77,10 +75,11 @@ public class PackageRegistry
         }
     }
 
-#if DEBUG
     /// <summary>
-    ///     Attempts to find the StandardLibrary source path during development.
-    ///     Searches from the executing assembly location up to find the src/Sunset.Parser/StandardLibrary directory.
+    ///     Attempts to find the StandardLibrary path for development and testing.
+    ///     Searches from the executing assembly location to find StandardLibrary in:
+    ///     1. The output directory (for tests that copy StandardLibrary)
+    ///     2. The source tree (src/Sunset.Parser/StandardLibrary)
     /// </summary>
     private static string? GetDevelopmentStandardLibraryPath()
     {
@@ -90,7 +89,14 @@ public class PackageRegistry
             var assemblyDir = Path.GetDirectoryName(typeof(PackageRegistry).Assembly.Location);
             if (assemblyDir == null) return null;
 
-            // Walk up the directory tree looking for the StandardLibrary directory
+            // First check if StandardLibrary is in the output directory (copied by tests)
+            var outputLibPath = Path.Combine(assemblyDir, "StandardLibrary");
+            if (Directory.Exists(outputLibPath) && File.Exists(Path.Combine(outputLibPath, "sunset-package.toml")))
+            {
+                return assemblyDir;
+            }
+
+            // Walk up the directory tree looking for the StandardLibrary in source
             var currentDir = assemblyDir;
             for (var i = 0; i < 10; i++)
             {
@@ -119,7 +125,6 @@ public class PackageRegistry
 
         return null;
     }
-#endif
 
     /// <summary>
     ///     Adds a search path for packages.

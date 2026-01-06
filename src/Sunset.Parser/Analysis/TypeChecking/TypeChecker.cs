@@ -59,6 +59,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             IndexConstant => QuantityType.Dimensionless,
             InstanceConstant => _iterationValueType ?? ErrorValueType.Instance,
             DimensionDeclaration dimensionDeclaration => Visit(dimensionDeclaration),
+            ImportDeclaration => null, // Import declarations don't have types
             UnitDeclaration unitDeclaration => Visit(unitDeclaration),
             ListExpression listExpression => Visit(listExpression),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),

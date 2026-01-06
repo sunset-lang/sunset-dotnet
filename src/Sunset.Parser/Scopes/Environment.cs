@@ -1,10 +1,12 @@
-﻿using System.Reflection;
+using System.Reflection;
+using Sunset.Parser.Analysis.ImportResolution;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
+using Sunset.Parser.Packages;
 using Sunset.Parser.Parsing.Constants;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
@@ -39,11 +41,17 @@ public class Environment : IScope
     public RuntimeUnitRegistry UnitRegistry { get; private set; }
 
     /// <summary>
+    ///     The package registry for resolving import paths.
+    /// </summary>
+    public PackageRegistry PackageRegistry { get; }
+
+    /// <summary>
     ///     Represents an execution environment for evaluating declarations and their associated values.
     /// </summary>
     public Environment(SourceFile entryPoint)
     {
         UnitRegistry = new RuntimeUnitRegistry(DimensionRegistry);
+        PackageRegistry = new PackageRegistry(Log);
         LoadStandardLibrary();
         AddSource(entryPoint);
     }
@@ -51,6 +59,7 @@ public class Environment : IScope
     public Environment()
     {
         UnitRegistry = new RuntimeUnitRegistry(DimensionRegistry);
+        PackageRegistry = new PackageRegistry(Log);
         LoadStandardLibrary();
     }
 
@@ -58,6 +67,11 @@ public class Environment : IScope
     ///     The scopes contained within this environment.
     /// </summary>
     public Dictionary<string, IScope> ChildScopes { get; } = [];
+
+    /// <summary>
+    ///     Maps file scope names to their source files (for tracking file paths).
+    /// </summary>
+    private Dictionary<string, SourceFile> SourceFiles { get; } = [];
 
     public Dictionary<string, IDeclaration> ChildDeclarations { get; } = [];
 
@@ -101,6 +115,7 @@ public class Environment : IScope
             if (sourceScope == null) throw new Exception($"Could not parse source file {source.FilePath}");
 
             ChildScopes.Add(source.Name, sourceScope);
+            SourceFiles.Add(source.Name, source);
 
             // Merge parser/lexer errors into the environment's log
             if (source.ParserLog != null)
@@ -131,6 +146,9 @@ public class Environment : IScope
     /// </summary>
     public void Analyse()
     {
+        // Import resolution (before name resolution)
+        ResolveImports();
+
         // Name resolution
         var nameResolver = new NameResolver(Log);
         foreach (var scope in ChildScopes.Values)
@@ -167,6 +185,37 @@ public class Environment : IScope
         foreach (var scope in ChildScopes.Values)
         {
             quantityEvaluator.Visit(scope, scope);
+        }
+    }
+
+    /// <summary>
+    ///     Resolves all imports in file scopes.
+    /// </summary>
+    private void ResolveImports()
+    {
+        var importResolver = new ImportResolver(PackageRegistry, Log);
+
+        foreach (var (name, scope) in ChildScopes)
+        {
+            if (scope is not FileScope fileScope) continue;
+
+            // Extract import declarations from the file scope
+            var imports = fileScope.ChildDeclarations.Values
+                .OfType<ImportDeclaration>()
+                .ToList();
+
+            if (imports.Count == 0) continue;
+
+            // Get the file path for relative import resolution
+            string? filePath = SourceFiles.TryGetValue(name, out var sourceFile) 
+                ? sourceFile.FilePath 
+                : null;
+
+            // Resolve imports and store the result in pass data
+            var result = importResolver.ResolveImportsForFile(fileScope, filePath, imports);
+            
+            var passData = new ImportPassData { ResolvedImports = result };
+            fileScope.PassData[nameof(ImportPassData)] = passData;
         }
     }
 

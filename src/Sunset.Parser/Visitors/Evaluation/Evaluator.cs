@@ -82,6 +82,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             InterpolatedStringExpression interpolatedStringExpression => Visit(interpolatedStringExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
             DimensionDeclaration => SuccessResult,  // Dimensions don't need evaluation
+            ImportDeclaration => SuccessResult,  // Import declarations don't need evaluation
             UnitDeclaration => SuccessResult,  // Units don't need evaluation (already registered)
             OptionDeclaration => SuccessResult,  // Options are type definitions, don't produce values
             PrototypeDeclaration prototype => Visit(prototype, currentScope),

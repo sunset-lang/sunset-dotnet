@@ -39,6 +39,7 @@ public class ReferenceChecker(ErrorLog log)
             PositionalArgument positionalArgument => Visit(positionalArgument, visited),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration, visited),
             DimensionDeclaration => null, // Dimension declarations have no cyclic references
+            ImportDeclaration => null, // Import declarations have no cyclic references
             OptionDeclaration optionDeclaration => Visit(optionDeclaration, visited),
             UnitDeclaration unitDeclaration => Visit(unitDeclaration, visited),
             UnitConstant => null,

@@ -109,16 +109,21 @@ end
 
 /// Marker prototype for line-like geometry that can be intersected.
 /// Implementations must provide two points defining the line.
+/// 
+/// Implementing elements must define:
+///   Point1 - First point on the line
+///   Point2 - Second point on the line (defines direction)
 prototype Linear:
-    outputs:
-        /// First point on the line
-        Point1 {Point}
-        /// Second point on the line (defines direction)
-        Point2 {Point}
 end
 
 /// Prototype for user-defined diagram definitions.
 /// Provides a standard structure for creating diagrams with built-in diagram context.
+/// 
+/// Implementing elements must define:
+///   Draw {text} - The final diagram output (SVG or other format)
+/// 
+/// Implementing elements should create a _diagram variable like:
+///   ?_diagram {Diagram} = Diagram(ViewportWidth = ViewportWidth, ...)
 prototype DiagramDefinition:
     inputs:
         /// Width of the viewport in pixels
@@ -129,16 +134,6 @@ prototype DiagramDefinition:
         Scale = 100
         /// Output format for rendering
         Format {DiagramFormat} = "SVG"
-    outputs:
-        /// The diagram context available to all elements
-        ?_diagram {Diagram} = Diagram(
-            ViewportWidth = ViewportWidth,
-            ViewportHeight = ViewportHeight,
-            Scale = Scale,
-            Format = Format
-        )
-        /// The final diagram output
-        return Draw {Diagram}
 end
 
 /// Marker prototype for infinite plane-like geometry (horizontal, vertical, rotated lines).

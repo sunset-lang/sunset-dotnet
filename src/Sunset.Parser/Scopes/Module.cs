@@ -155,6 +155,7 @@ public class Module : IScope
 
     /// <summary>
     ///     Gets a child scope (submodule or file) by name.
+    ///     Uses case-insensitive matching for cross-platform compatibility.
     /// </summary>
     /// <param name="name">The name of the child scope.</param>
     /// <returns>The child scope, or null if not found.</returns>
@@ -162,6 +163,7 @@ public class Module : IScope
     {
         Initialize();
 
+        // Try exact match first
         if (Submodules.TryGetValue(name, out var submodule))
         {
             return submodule;
@@ -170,6 +172,23 @@ public class Module : IScope
         if (Files.TryGetValue(name, out var fileScope))
         {
             return fileScope;
+        }
+
+        // Try case-insensitive match
+        foreach (var (key, submod) in Submodules)
+        {
+            if (key.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                return submod;
+            }
+        }
+
+        foreach (var (key, file) in Files)
+        {
+            if (key.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                return file;
+            }
         }
 
         return null;

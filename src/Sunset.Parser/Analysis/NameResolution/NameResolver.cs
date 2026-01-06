@@ -1,3 +1,4 @@
+using Sunset.Parser.Analysis.ImportResolution;
 using Sunset.Parser.BuiltIns;
 using Sunset.Parser.BuiltIns.ListMethods;
 using Sunset.Parser.Errors;
@@ -79,6 +80,9 @@ public class NameResolver(ErrorLog log) : INameResolver
             case InterpolatedStringExpression interpolatedStringExpression:
                 Visit(interpolatedStringExpression, parentScope);
                 break;
+            // Import declarations are handled by ImportResolver and don't need name resolution
+            case ImportDeclaration:
+                break;
             // Ignore constants in the name resolver as they are terminal nodes and don't have names.
             case NumberConstant:
             case StringConstant:
@@ -105,11 +109,30 @@ public class NameResolver(ErrorLog log) : INameResolver
             // Visit the left declaration and resolve the name into the Declaration property if possible.
             Visit(dest.Left, parentScope);
 
-            // TODO: Consider other possible uses of the access operator
             if (dest.Left is NameExpression leftNameExpression)
             {
+                var leftResolved = leftNameExpression.GetResolvedDeclaration();
+
+                // Handle imported scopes (Package, Module, FileScope) for qualified access
+                // e.g., after "import diagrams", can use "diagrams.geometry.Point"
+                if (leftResolved is IScope leftScope)
+                {
+                    if (dest.Right is NameExpression rightNameExpression)
+                    {
+                        Visit(rightNameExpression, leftScope);
+                        return;
+                    }
+
+                    // Handle nested dot expressions (e.g., a.b.c)
+                    if (dest.Right is BinaryExpression rightBinary && rightBinary.Operator == TokenType.Dot)
+                    {
+                        Visit(rightBinary, leftScope);
+                        return;
+                    }
+                }
+
                 // Pass through from the name to the variable declaration to the element declaration, if a call expression is used to create a new element instance.
-                if (leftNameExpression.GetResolvedDeclaration() is VariableDeclaration variableDeclaration)
+                if (leftResolved is VariableDeclaration variableDeclaration)
                 {
                     if (variableDeclaration.GetResolvedDeclaration() is ElementDeclaration elementDeclaration)
                     {
@@ -123,7 +146,7 @@ public class NameResolver(ErrorLog log) : INameResolver
                 }
 
                 // Handle pattern binding variables (e.g., rect.Width where rect is a pattern binding)
-                if (leftNameExpression.GetResolvedDeclaration() is PatternBindingVariable patternBindingVariable)
+                if (leftResolved is PatternBindingVariable patternBindingVariable)
                 {
                     // Use the bound element type as the scope for the right name expression
                     if (dest.Right is NameExpression rightNameExpression)
@@ -133,14 +156,14 @@ public class NameResolver(ErrorLog log) : INameResolver
                     }
                 }
 
-                // TODO: Handle other cases like libraries, modules and files.
-
-                // TODO: Handle this error properly
-                throw new Exception("Left name expression was not a scope.");
+                // If we get here, the left side resolved but isn't a scope we can navigate
+                Log.Error(new GenericSemanticError($"Cannot use dot operator on '{leftNameExpression.Name}' - not a scope type"));
+                return;
             }
 
-            // TODO: Make this an error rather than an exception
-            throw new Exception("Expected a name expression at the left hand side of the dot operator");
+            // Left side is not a name expression - might be a more complex expression
+            Log.Error(new GenericSemanticError("Expected a name expression at the left hand side of the dot operator"));
+            return;
         }
 
         // Otherwise, resolve each operand separately with the same parent scope.
@@ -167,7 +190,7 @@ public class NameResolver(ErrorLog log) : INameResolver
             return;
         }
 
-        var declaration = SearchParentsForName(dest.Name, parentScope);
+        var declaration = SearchParentsForName(dest.Name, parentScope, dest.Token);
 
         if (declaration != null)
         {
@@ -269,18 +292,73 @@ public class NameResolver(ErrorLog log) : INameResolver
     /// </summary>
     /// <param name="name">Name to search for in the scope.</param>
     /// <param name="scope">Scope to search through.</param>
+    /// <param name="token">Optional token for ambiguous import error reporting.</param>
     /// <returns>Returns a declaration if one is found, otherwise returns null if no declaration is found.</returns>
-    private IDeclaration? SearchParentsForName(string name, IScope scope)
+    private IDeclaration? SearchParentsForName(string name, IScope scope, IToken? token = null)
     {
         var declaration = scope.TryGetDeclaration(name);
 
         // If found, just return the declaration.
         if (declaration != null) return declaration;
 
+        // If this is a FileScope, check imported declarations
+        if (scope is FileScope fileScope)
+        {
+            var importedDeclaration = TryGetImportedDeclaration(name, fileScope, token);
+            if (importedDeclaration != null) return importedDeclaration;
+        }
+
         // If the declaration cannot be found in the parent scope, start ascending the tree until the name is found.
         if (scope.ParentScope != null)
         {
-            return SearchParentsForName(name, scope.ParentScope);
+            return SearchParentsForName(name, scope.ParentScope, token);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Attempts to get a declaration from imports in a FileScope.
+    /// </summary>
+    /// <param name="name">Name to search for.</param>
+    /// <param name="fileScope">The file scope to check imports for.</param>
+    /// <param name="token">Optional token for error reporting.</param>
+    /// <returns>The imported declaration if found, otherwise null.</returns>
+    private IDeclaration? TryGetImportedDeclaration(string name, FileScope fileScope, IToken? token = null)
+    {
+        // Check if the FileScope has import pass data
+        if (!fileScope.PassData.TryGetValue(nameof(ImportPassData), out var passData))
+        {
+            return null;
+        }
+
+        if (passData is not ImportPassData importData)
+        {
+            return null;
+        }
+
+        // Check for ambiguous imports - report error if the name is ambiguous
+        if (importData.ResolvedImports.AmbiguousImports.TryGetValue(name, out var sources))
+        {
+            if (token != null)
+            {
+                Log.Error(new AmbiguousIdentifierError(name, sources, token));
+            }
+            // Return the first declaration anyway so we can continue analysis
+            // The error has been logged
+        }
+
+        // Check direct imports first
+        if (importData.ResolvedImports.DirectImports.TryGetValue(name, out var directDecl))
+        {
+            return directDecl;
+        }
+
+        // Check scope imports (Package, Module, FileScope) for qualified access
+        // e.g., after "import diagrams", the name "diagrams" should resolve to the Package
+        if (importData.ResolvedImports.ScopeImports.TryGetValue(name, out var scopeDecl))
+        {
+            return scopeDecl;
         }
 
         return null;

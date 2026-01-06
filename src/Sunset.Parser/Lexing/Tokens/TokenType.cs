@@ -110,4 +110,7 @@ public enum TokenType
 
     // Element instance access
     Instance, // instance keyword for accessing element instance in list iteration
+
+    // Module system
+    Import, // import keyword for importing declarations from other files/modules
 }

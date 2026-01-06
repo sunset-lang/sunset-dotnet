@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Errors;
+using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Visitors;
 
@@ -19,6 +19,29 @@ public class FileScope(string name, IScope? parentScope) : IScope
 
     public IDeclaration? TryGetDeclaration(string name)
     {
+        return ChildDeclarations.GetValueOrDefault(name);
+    }
+
+    /// <summary>
+    ///     Returns only the public (exported) declarations from this file.
+    ///     Declarations starting with '?' are considered private and are filtered out.
+    /// </summary>
+    public IEnumerable<KeyValuePair<string, IDeclaration>> ExportedDeclarations =>
+        ChildDeclarations.Where(kvp => !kvp.Key.StartsWith('?'));
+
+    /// <summary>
+    ///     Gets an exported declaration by name.
+    ///     Returns null if the declaration doesn't exist or is private.
+    /// </summary>
+    /// <param name="name">The name of the declaration to get.</param>
+    /// <returns>The declaration if it exists and is public, otherwise null.</returns>
+    public IDeclaration? TryGetExportedDeclaration(string name)
+    {
+        if (name.StartsWith('?'))
+        {
+            return null; // Private declarations cannot be accessed externally
+        }
+        
         return ChildDeclarations.GetValueOrDefault(name);
     }
 

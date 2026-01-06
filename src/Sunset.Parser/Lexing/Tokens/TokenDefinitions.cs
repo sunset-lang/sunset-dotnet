@@ -78,5 +78,6 @@ public static class TokenDefinitions
         { "text", TokenType.TextType },
         { "number", TokenType.NumberType },
         { "option", TokenType.Option },
+        { "import", TokenType.Import },
     };
 }

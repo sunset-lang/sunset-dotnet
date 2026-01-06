@@ -5,8 +5,8 @@
 // - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
-import stdlib
-import diagrams.core
+// Units and dimensions are loaded automatically from StandardLibrary
+import Diagrams.Core
 
 // =============================================================================
 // POINT

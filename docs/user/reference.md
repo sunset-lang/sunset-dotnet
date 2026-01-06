@@ -15,6 +15,7 @@ This is the complete reference guide for the Sunset programming language, a doma
 - [Prototypes](#prototypes)
 - [Reporting](#reporting)
 - [Collections](#collections)
+- [Imports and Packages](#imports-and-packages)
 - [Options](#options) *(Not Yet Implemented)*
 - [Mathematical Functions](#mathematical-functions)
 
@@ -1004,6 +1005,116 @@ aboveValue = table[~150+]  // 180 (value at key 200)
 ```
 
 See [Functions on Collections](functions-on-collections.md) for more details.
+
+---
+
+## Imports and Packages
+
+Sunset supports importing code from other files and packages to enable code reuse and modular organization.
+
+### Basic Import Syntax
+
+Use the `import` statement to import definitions from other files or packages:
+
+```sunset
+import Diagrams.Core
+import Diagrams.Geometry
+```
+
+### Import Resolution
+
+When you use an import statement, Sunset searches for the module in the following order:
+
+1. **Relative imports** (paths starting with `./` or `../`)
+2. **Package imports** (searching package directories)
+3. **StandardLibrary fallback** (built-in modules)
+
+### Relative Imports
+
+Import files relative to the current file's location:
+
+```sunset
+// Import from current directory
+import ./helpers
+
+// Import from parent directory
+import ../shared.utils
+
+// Import from multiple levels up
+import ../../common.types
+```
+
+| Syntax | Description |
+|--------|-------------|
+| `./module` | Import from current directory |
+| `../module` | Import from parent directory |
+| `../../module` | Import from grandparent directory |
+
+### Package Imports
+
+Import from installed packages by package name:
+
+```sunset
+// Import a module from a package
+import PackageName.ModuleName
+
+// Import a specific file from a package
+import PackageName.SubModule.FileName
+```
+
+### StandardLibrary
+
+Sunset includes a built-in StandardLibrary that provides common units, dimensions, and utility modules. The StandardLibrary is automatically searched when an import cannot be found in other locations.
+
+**Available StandardLibrary modules:**
+
+| Module | Description |
+|--------|-------------|
+| `StandardLibrary` | Base units and dimensions (automatically loaded) |
+| `Diagrams` | Diagram generation library (SVG output) |
+| `Diagrams.Core` | Core diagram types and prototypes |
+| `Diagrams.Geometry` | Geometric primitives (Point, Line, Plane) |
+| `Diagrams.Shapes` | Shape definitions (Rectangle, Circle, etc.) |
+| `Diagrams.Operations` | Geometric operations (Intersect, etc.) |
+| `Diagrams.Svg` | SVG rendering utilities |
+
+**Note:** The base `StandardLibrary` module (containing units like `m`, `mm`, `kg`, `N`, etc.) is automatically loaded for all Sunset files. You don't need to explicitly import it.
+
+### Import Examples
+
+```sunset
+// Import diagram functionality
+import Diagrams.Core
+import Diagrams.Geometry
+
+// Use imported types
+point {Point} = Point(x = 1 {m}, y = 2 {m})
+colour {RGBA} = RGBA(R = 255, G = 128, B = 64)
+```
+
+### Package Configuration
+
+Packages are configured using a `sunset-package.toml` file in the package root directory. This file defines the package metadata and entry points.
+
+Example `sunset-package.toml`:
+
+```toml
+[package]
+name = "MyPackage"
+version = "1.0.0"
+
+[files]
+# Map module names to file paths
+main = "src/main.sun"
+helpers = "src/helpers.sun"
+```
+
+### Import Visibility
+
+When you import a module, all public declarations (elements, prototypes, options, and top-level variables) from that module become available in the importing file.
+
+- **Public declarations**: All top-level declarations are public by default
+- **Anonymous variables** (prefixed with `?`): Not exported or visible to importers
 
 ---
 

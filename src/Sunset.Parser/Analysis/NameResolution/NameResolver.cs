@@ -80,6 +80,9 @@ public class NameResolver(ErrorLog log) : INameResolver
             case InterpolatedStringExpression interpolatedStringExpression:
                 Visit(interpolatedStringExpression, parentScope);
                 break;
+            case ListTypeExpression listTypeExpression:
+                Visit(listTypeExpression, parentScope);
+                break;
             // Import declarations are handled by ImportResolver and don't need name resolution
             case ImportDeclaration:
                 break;
@@ -206,6 +209,12 @@ public class NameResolver(ErrorLog log) : INameResolver
     {
         // Resolve names in the unit expression (e.g., kg, m, s in {kg m / s^2})
         Visit(dest.UnitExpression, parentScope);
+    }
+
+    private void Visit(ListTypeExpression dest, IScope parentScope)
+    {
+        // Resolve names in the element type expression (e.g., Point in {Point list})
+        Visit(dest.ElementTypeExpression, parentScope);
     }
 
     private void Visit(NonDimensionalizingExpression dest, IScope parentScope)

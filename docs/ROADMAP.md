@@ -439,75 +439,85 @@ The following bugs have been fixed:
 | Element Inheritance | 5 | 1 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 0 | 2 |
 | Element Groups | 2 | 0 | 0 | 2 |
-| Module System | 3 | 0 | 0 | 3 |
-| Diagramming Library | 1 | 0 | 0 | 1 |
-| **Total** | **53** | **34** | **1** | **18** |
+| Module System | 8 | 8 | 0 | 0 |
+| Diagramming Library | 1 | 1 | 0 | 0 |
+| **Total** | **58** | **43** | **1** | **14** |
 
 ---
 
 ## Priority 8: Module System
 
 ### Import Statement
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Import declaration | `import module.path` | ⬜ |
-| Relative imports | `import diagrams.core` | ⬜ |
-| Standard library imports | `import stdlib` | ⬜ |
+| Import declaration | `import module.path` | ✅ |
+| Relative imports | `import ./local.module` | ✅ |
+| Parent directory imports | `import ../shared.utils` | ✅ |
+| Package imports | `import PackageName` | ✅ |
+| Module imports | `import PackageName.Module` | ✅ |
+| File imports | `import PackageName.Module.File` | ✅ |
+| Specific identifier imports | `import Package.File.[Ident1, Ident2]` | ✅ |
+| StandardLibrary fallback | `import Diagrams.Geometry` | ✅ |
 
 **Syntax:**
 ```sunset
-// Import from standard library
-import stdlib
+// Import from standard library modules (resolves to StandardLibrary/Diagrams/...)
+import Diagrams.Core
+import Diagrams.Geometry
 
-// Import diagram modules
-import diagrams.core
-import diagrams.geometry
+// Relative imports
+import ./local.helpers      // Current directory
+import ../shared.utils      // Parent directory
+import ../../common.types   // Two levels up
 
-// In user code
-import diagrams  // Imports the main entry point
+// Import specific identifiers
+import Diagrams.Geometry.[Point, Line]
 ```
 
 **Behavior:**
-- Imports make all top-level declarations from the imported file available in the current scope
-- Module paths use dot notation (e.g., `diagrams.core` resolves to `diagrams/core.sun`)
-- Standard library paths resolved from a known location
+- Imports make all exported declarations from the imported file available in the current scope
+- Module paths use dot notation (e.g., `Diagrams.Core` resolves to `Diagrams/Core.sun`)
+- StandardLibrary modules can be imported without the `StandardLibrary.` prefix
+- Relative imports use `./` (current directory) or `../` (parent directory) notation
 - Circular imports detected and reported as errors
+- Case-insensitive package resolution for cross-platform compatibility
 
-**Implementation Notes:**
-- Add `Import` token type to `TokenType.cs` and `TokenDefinitions.cs`
-- New `ImportDeclaration` class in `Parsing/Declarations/`
-- `Environment` manages loaded modules and prevents duplicate loading
-- `NameResolver` resolves imported declarations into current scope
-- File resolution logic maps module paths to file system paths
-
-**Priority:** High - Required for Diagramming Standard Library (multi-file organization)
+**Implementation Details:**
+- `Import` token type in `TokenType.cs` and `TokenDefinitions.cs`
+- `ImportDeclaration` class in `Parsing/Declarations/ImportDeclaration.cs`
+- `ImportResolver` in `Analysis/ImportResolution/ImportResolver.cs` resolves imports
+- `PackageRegistry` in `Packages/PackageRegistry.cs` manages package discovery
+- `Package` and `Module` classes in `Packages/` represent package structure
+- `Environment` loads StandardLibrary and passes it to ImportResolver for fallback resolution
+- Import pass data stored in `ImportPassData` on FileScope
 
 ---
 
 ## Priority 9: Diagramming Standard Library
 
 ### Standard Library: Diagrams
-**Status:** ⬜ Not Started (Blocked by Prerequisites)
+**Status:** ✅ Implemented
 
-A standard library for generating diagrams as SVG or Typst/CeTZ output alongside LaTeX and Markdown reports.
+A standard library for generating diagrams as SVG output alongside LaTeX and Markdown reports.
 
 **Prerequisites:**
-- ⬜ String Interpolation (Priority 4)
-- ⬜ Import Statement (Priority 8)
+- ✅ String Interpolation (Priority 4)
+- ✅ Import Statement (Priority 8)
 
 **File Structure:**
 ```
 src/Sunset.Parser/StandardLibrary/
-├── stdlib.sun                      # Existing - units/dimensions
-└── diagrams/
-    ├── diagrams.sun                # Main entry point
-    ├── core.sun                    # RGBA, styles, prototypes, Diagram
-    ├── geometry.sun                # Point, Line, Planes
-    ├── shapes.sun                  # Rectangle, Circle, Ellipse, Paths
-    ├── operations.sun              # Intersect
-    └── svg.sun                     # SVG renderer
+├── sunset-package.toml             # Package manifest
+├── StandardLibrary.sun             # Entry point - units/dimensions
+└── Diagrams/
+    ├── Diagrams.sun                # Main entry point (imports all modules)
+    ├── Core.sun                    # RGBA, styles, prototypes, Diagram
+    ├── Geometry.sun                # Point, Line, Planes
+    ├── Shapes.sun                  # Rectangle, Circle, Ellipse, Paths
+    ├── Operations.sun              # Intersect
+    └── Svg.sun                     # SVG renderer
 ```
 
 **Core Types:**
@@ -566,7 +576,7 @@ src/Sunset.Parser/StandardLibrary/
 
 **Example Usage (using DiagramDefinition prototype):**
 ```sunset
-import diagrams
+import Diagrams
 
 define PadFooting_Elevation as DiagramDefinition:
     inputs:

@@ -2,6 +2,17 @@
 
 This file provides guidance to OpenCode when working with code in this repository.
 
+## Language Reference
+
+A complete language reference for the Sunset programming language is available at `docs/user/reference.md`. This document covers all language features including:
+- Variables and units
+- Elements and prototypes
+- Collections (lists and dictionaries)
+- Imports and packages
+- Mathematical functions
+
+Refer to this document when you need to understand Sunset language syntax or features.
+
 ## Build Commands
 
 ```bash

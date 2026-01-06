@@ -288,7 +288,8 @@ public partial class Parser
                 or TokenType.Colon
                 or TokenType.If
                 or TokenType.Otherwise
-                or TokenType.TypeEquality)  // Break on 'is' for pattern matching
+                or TokenType.TypeEquality  // Break on 'is' for pattern matching
+                or TokenType.List)  // Break on 'list' for list type annotations like {Point list}
             {
                 break;
             }
@@ -508,6 +509,46 @@ public partial class Parser
 
         Consume(TokenType.CloseBrace);
         return annotation;
+    }
+
+    /// <summary>
+    /// Parses a type annotation like {m^2}, {Point}, {number list}, {Point list}.
+    /// Used for variable declarations: x {m^2} = ...
+    /// </summary>
+    private (IToken OpenBrace, IToken? CloseBrace, IExpression Expression)? ParseTypeAnnotation()
+    {
+        var openBrace = Consume(TokenType.OpenBrace);
+        if (openBrace == null) return null;
+
+        IExpression baseType;
+
+        // Check for built-in type keywords
+        if (_current.Type == TokenType.TextType)
+        {
+            baseType = new NameExpression((StringToken)Consume(TokenType.TextType)!);
+        }
+        else if (_current.Type == TokenType.NumberType)
+        {
+            baseType = new NameExpression((StringToken)Consume(TokenType.NumberType)!);
+        }
+        else
+        {
+            // Parse as expression (unit like m^2 or type name like Point)
+            _inUnitExpression = true;
+            baseType = GetArithmeticExpression();
+            _inUnitExpression = false;
+        }
+
+        // Check for 'list' modifier
+        IExpression finalExpression = baseType;
+        if (_current.Type == TokenType.List)
+        {
+            var listKeyword = Consume(TokenType.List)!;
+            finalExpression = new ListTypeExpression(baseType, listKeyword);
+        }
+
+        var closeBrace = Consume(TokenType.CloseBrace);
+        return (openBrace, closeBrace, finalExpression);
     }
 
     /// <summary>
@@ -820,17 +861,17 @@ public partial class Parser
             throw new Exception("Expected identifier for prototype output");
         }
 
-        // Parse optional unit assignment
+        // Parse optional type annotation (unit or type name)
         UnitAssignmentExpression? unitAssignment = null;
         if (_current.Type == TokenType.OpenBrace)
         {
-            var openBrace = Consume(TokenType.OpenBrace);
-            var unitExpression = GetArithmeticExpression();
-            var closeBrace = Consume(TokenType.CloseBrace);
-
-            if (openBrace != null)
+            var typeAnnotation = ParseTypeAnnotation();
+            if (typeAnnotation != null)
             {
-                unitAssignment = new UnitAssignmentExpression(openBrace, closeBrace, unitExpression);
+                unitAssignment = new UnitAssignmentExpression(
+                    typeAnnotation.Value.OpenBrace,
+                    typeAnnotation.Value.CloseBrace,
+                    typeAnnotation.Value.Expression);
             }
         }
 
@@ -889,13 +930,13 @@ public partial class Parser
 
         if (_current.Type == TokenType.OpenBrace)
         {
-            var openBrace = Consume(TokenType.OpenBrace);
-            var unitExpression = GetArithmeticExpression();
-            var closeBrace = Consume(TokenType.CloseBrace);
-
-            if (openBrace != null)
+            var typeAnnotation = ParseTypeAnnotation();
+            if (typeAnnotation != null)
             {
-                unitAssignment = new UnitAssignmentExpression(openBrace, closeBrace, unitExpression);
+                unitAssignment = new UnitAssignmentExpression(
+                    typeAnnotation.Value.OpenBrace,
+                    typeAnnotation.Value.CloseBrace,
+                    typeAnnotation.Value.Expression);
             }
         }
 

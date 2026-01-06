@@ -20,16 +20,18 @@ public class ImportResolver
 
     private readonly PackageRegistry _registry;
     private readonly ErrorLog _log;
+    private readonly Package? _standardLibraryPackage;
 
     /// <summary>
     ///     Track files currently being processed to detect circular imports.
     /// </summary>
     private readonly HashSet<string> _processingStack = [];
 
-    public ImportResolver(PackageRegistry registry, ErrorLog log)
+    public ImportResolver(PackageRegistry registry, ErrorLog log, Package? standardLibraryPackage = null)
     {
         _registry = registry;
         _log = log;
+        _standardLibraryPackage = standardLibraryPackage;
     }
 
     /// <summary>
@@ -151,6 +153,13 @@ public class ImportResolver
 
         if (packageConfig == null)
         {
+            // Try to resolve as a StandardLibrary module (e.g., "import Diagrams.X" -> "StandardLibrary/Diagrams/X")
+            var standardLibraryResult = TryResolveFromStandardLibrary(import);
+            if (standardLibraryResult != null)
+            {
+                return standardLibraryResult;
+            }
+
             _log.Error(new PackageNotFoundError(
                 import.PathSegments[0].ToString(),
                 import.ImportToken));
@@ -287,6 +296,111 @@ public class ImportResolver
         {
             // Import the scope itself (requires qualification for access)
             result.ScopeImports[currentScope.Name] = currentScope;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Tries to resolve an import from the StandardLibrary package.
+    ///     This allows "import Diagrams.Geometry" to resolve to "StandardLibrary/Diagrams/Geometry.sun".
+    /// </summary>
+    private ImportResolutionResult? TryResolveFromStandardLibrary(ImportDeclaration import)
+    {
+        if (_standardLibraryPackage == null || import.IsRelative)
+        {
+            return null;
+        }
+
+        // Try to navigate from StandardLibrary root using the import path segments
+        // e.g., "import Diagrams.Geometry" tries to find StandardLibrary/Diagrams/Geometry.sun
+        IScope currentScope = _standardLibraryPackage;
+
+        for (var i = 0; i < import.PathSegments.Count; i++)
+        {
+            var segment = import.PathSegments[i].ToString();
+            IScope? nextScope = null;
+
+            if (currentScope is Package pkg)
+            {
+                nextScope = pkg.GetChildScope(segment);
+            }
+            else if (currentScope is Module mod)
+            {
+                nextScope = mod.GetChildScope(segment);
+            }
+            else if (currentScope is FileScope)
+            {
+                // We've reached a file - remaining segments are identifier references
+                break;
+            }
+
+            if (nextScope == null)
+            {
+                // Not found in StandardLibrary
+                return null;
+            }
+
+            currentScope = nextScope;
+        }
+
+        // Build result based on what we found
+        var result = new ImportResolutionResult();
+
+        if (import.SpecificIdentifiers != null && import.SpecificIdentifiers.Count > 0)
+        {
+            // Import specific identifiers from a file
+            if (currentScope is not FileScope fileScope)
+            {
+                return null;
+            }
+
+            foreach (var identifierToken in import.SpecificIdentifiers)
+            {
+                var identifier = identifierToken.ToString();
+                var decl = fileScope.TryGetExportedDeclaration(identifier);
+
+                if (decl == null)
+                {
+                    // Check if it's private
+                    var privateDecl = fileScope.TryGetDeclaration(identifier);
+                    if (privateDecl != null)
+                    {
+                        _log.Error(new PrivateIdentifierImportError(
+                            identifier,
+                            fileScope.FullPath,
+                            identifierToken));
+                    }
+                    else
+                    {
+                        _log.Error(new IdentifierNotFoundInFileError(
+                            identifier,
+                            fileScope.FullPath,
+                            identifierToken));
+                    }
+                    result.Success = false;
+                    continue;
+                }
+
+                result.DirectImports[identifier] = decl;
+            }
+        }
+        else if (currentScope is FileScope targetFile)
+        {
+            // Import all exported declarations from the file
+            foreach (var (name, decl) in targetFile.ExportedDeclarations)
+            {
+                result.DirectImports[name] = decl;
+            }
+        }
+        else if (currentScope is Module || currentScope is Package)
+        {
+            // Import the scope itself (requires qualification for access)
+            result.ScopeImports[currentScope.Name] = currentScope;
+        }
+        else
+        {
+            return null;
         }
 
         return result;

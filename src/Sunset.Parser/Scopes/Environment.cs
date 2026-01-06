@@ -1,4 +1,3 @@
-using System.Reflection;
 using Sunset.Parser.Analysis.ImportResolution;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
@@ -193,7 +192,7 @@ public class Environment : IScope
     /// </summary>
     private void ResolveImports()
     {
-        var importResolver = new ImportResolver(PackageRegistry, Log);
+        var importResolver = new ImportResolver(PackageRegistry, Log, StandardLibraryPackage);
 
         foreach (var (name, scope) in ChildScopes)
         {
@@ -220,39 +219,43 @@ public class Environment : IScope
     }
 
     /// <summary>
-    ///     Loads the standard library from embedded resources.
+    ///     The loaded StandardLibrary package, used for resolving imports like "import Diagrams.X".
+    /// </summary>
+    public Package? StandardLibraryPackage { get; private set; }
+
+    /// <summary>
+    ///     Loads the standard library from the file system.
+    ///     In DEBUG mode, loads from the source directory.
+    ///     In RELEASE mode, expects the package to be installed in ~/.sunset/packages/.
     /// </summary>
     private void LoadStandardLibrary()
     {
         if (_standardLibraryLoaded) return;
 
-        var assembly = typeof(Environment).Assembly;
-
-        // Load dimensions and units from a single file
-        LoadEmbeddedSource(assembly, "Sunset.Parser.StandardLibrary.stdlib.sun", "$stdlib");
-
-        // Register dimensions and units from the standard library
-        RegisterDimensionsAndUnits();
-
-        _standardLibraryLoaded = true;
-    }
-
-    /// <summary>
-    ///     Loads an embedded resource as a source file.
-    /// </summary>
-    private void LoadEmbeddedSource(Assembly assembly, string resourceName, string sourceName)
-    {
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null)
+        // Resolve StandardLibrary as a normal package from file system
+        var stdlibConfig = PackageRegistry.ResolvePackage("StandardLibrary");
+        if (stdlibConfig == null)
         {
-            Log.Warning($"Could not load embedded resource: {resourceName}");
+            Log.Warning("StandardLibrary package not found. Units, dimensions, and diagrams will not be available.");
+            _standardLibraryLoaded = true;
             return;
         }
 
-        using var reader = new StreamReader(stream);
-        var content = reader.ReadToEnd();
-        var source = SourceFile.FromString(content, Log, sourceName);
-        AddSource(source);
+        // Create and initialize the package
+        StandardLibraryPackage = new Package(stdlibConfig, Log);
+        StandardLibraryPackage.Initialize();
+
+        // Add the entry point file (StandardLibrary.sun) to the environment
+        // This makes units and dimensions directly available without explicit import
+        if (StandardLibraryPackage.RootFiles.TryGetValue("StandardLibrary", out var entryPoint))
+        {
+            ChildScopes.Add("$stdlib", entryPoint);
+            
+            // Register dimensions and units from the standard library
+            RegisterDimensionsAndUnits();
+        }
+
+        _standardLibraryLoaded = true;
     }
 
     /// <summary>

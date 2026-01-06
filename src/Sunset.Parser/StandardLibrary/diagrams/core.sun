@@ -5,7 +5,7 @@
 // - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
-import stdlib
+// Units and dimensions are loaded automatically from StandardLibrary
 
 // =============================================================================
 // COLOUR DEFINITIONS
@@ -59,6 +59,14 @@ prototype DrawStyle:
         StrokeWidth = 1
 end
 
+/// Default implementation of DrawStyle with standard values.
+define DefaultDrawStyle as DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(0, 0, 0)
+        FillColour {RGBA} = RGBA(255, 255, 255)
+        StrokeWidth = 1
+end
+
 /// Style for rendering points.
 define PointStyle as DrawStyle:
     inputs:
@@ -101,7 +109,7 @@ end
 /// Every element must produce a Draw output containing renderer-specific markup.
 prototype DiagramElement:
     inputs:
-        Style {DrawStyle} = DrawStyle()
+        Style {DrawStyle} = DefaultDrawStyle()
     outputs:
         /// The rendered output (e.g., SVG markup)
         return Draw {text}
@@ -109,16 +117,21 @@ end
 
 /// Marker prototype for line-like geometry that can be intersected.
 /// Implementations must provide two points defining the line.
+/// 
+/// Implementing elements must define:
+///   Point1 - First point on the line
+///   Point2 - Second point on the line (defines direction)
 prototype Linear:
-    outputs:
-        /// First point on the line
-        Point1 {Point}
-        /// Second point on the line (defines direction)
-        Point2 {Point}
 end
 
 /// Prototype for user-defined diagram definitions.
 /// Provides a standard structure for creating diagrams with built-in diagram context.
+/// 
+/// Implementing elements must define:
+///   Draw {text} - The final diagram output (SVG or other format)
+/// 
+/// Implementing elements should create a _diagram variable like:
+///   ?_diagram {Diagram} = Diagram(ViewportWidth = ViewportWidth, ...)
 prototype DiagramDefinition:
     inputs:
         /// Width of the viewport in pixels
@@ -129,16 +142,6 @@ prototype DiagramDefinition:
         Scale = 100
         /// Output format for rendering
         Format {DiagramFormat} = "SVG"
-    outputs:
-        /// The diagram context available to all elements
-        ?_diagram {Diagram} = Diagram(
-            ViewportWidth = ViewportWidth,
-            ViewportHeight = ViewportHeight,
-            Scale = Scale,
-            Format = Format
-        )
-        /// The final diagram output
-        return Draw {Diagram}
 end
 
 /// Marker prototype for infinite plane-like geometry (horizontal, vertical, rotated lines).
@@ -171,11 +174,11 @@ define Diagram:
         FlipY = ViewportHeight
         
         /// Generate the complete diagram output
+        // Note: Only SVG format is currently supported
         return Draw {text} = DrawSVG(
             ViewportWidth = ViewportWidth,
             ViewportHeight = ViewportHeight,
             References = References,
             Elements = Elements
-        ).Draw if Format == "SVG"
-            = error otherwise
+        ).Draw
 end

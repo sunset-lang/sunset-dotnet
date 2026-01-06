@@ -2,7 +2,7 @@
 // Provides core types, styles, and prototypes for diagram generation.
 //
 // Prerequisites (not yet implemented):
-// - String interpolation: "text {expression}"
+// - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
 import stdlib
@@ -21,7 +21,7 @@ define RGBA:
         A = 255
     outputs:
         /// SVG-compatible colour string
-        return Svg {text} = "rgb({R},{G},{B})"
+        return Svg {text} = "rgb(::R::,::G::,::B::)"
 end
 
 /// Predefined basic colours for convenience.

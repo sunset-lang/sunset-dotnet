@@ -432,62 +432,304 @@ public class Lexer
     ///     Gets a string or multiline string token from the source.
     ///     Assumes that the first character is a double quote ("), and will check if there is a multiline string by
     ///     checking whether the next two characters are also double quotes.
+    ///     Handles string interpolation with ::expression:: syntax.
     /// </summary>
     /// <returns>A string token.</returns>
     private IToken GetStringToken()
     {
         var start = _position;
         var columnStart = _column;
+        var lineStart = _line;
 
         Advance();
 
         // Multiline strings, assuming that the current character is "
         if (_current == '\"' && _peek == '\"')
         {
-            var lineStart = _line;
             Advance();
             Advance();
-            while (!(_current == '\"' && _peek == '\"' && _peekNext == '\"'))
-            {
-                if (_current == '\0')
-                {
-                    // End of file reached - multiline string not closed
-                    var stringErrorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
-                        start, _position, _line, _line, columnStart, _column, _file);
-                    Log.Error(new UnclosedMultilineStringError(stringErrorToken));
-                    return stringErrorToken;
-                }
-
-                Advance();
-            }
-
-            Advance();
-            Advance();
-            Advance();
-            return new StringToken(_source[(start + 3)..(_position - 3)], TokenType.MultilineString,
-                start, _position, lineStart, _line, columnStart, _column, _file);
+            return GetMultilineStringContent(start, lineStart, columnStart);
         }
 
         // Single line strings
+        return GetSingleLineStringContent(start, lineStart, columnStart);
+    }
+
+    /// <summary>
+    /// Parses the content of a single-line string, handling interpolation.
+    /// </summary>
+    private IToken GetSingleLineStringContent(int start, int lineStart, int columnStart)
+    {
+        var segments = new List<InterpolatedStringSegment>();
+        var currentText = new StringBuilder();
+        var hasInterpolation = false;
+        var hasEscapes = false;
+
         while (_current != '\"')
         {
             if (_current is '\0' or '\n' or '\r')
             {
-                // Consider that this is a string parsing error
+                // Unclosed string error
                 var stringErrorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
                     start, _position, _line, _column, _file);
                 Log.Error(new UnclosedStringError(stringErrorToken));
                 return stringErrorToken;
             }
 
+            // Check for escape sequence \::
+            if (_current == '\\' && _peek == ':' && Peek(2) == ':')
+            {
+                hasEscapes = true;
+                currentText.Append("::");
+                Advance(); // Skip backslash
+                Advance(); // Skip first colon
+                Advance(); // Skip second colon
+                continue;
+            }
+
+            // Check for interpolation start ::
+            if (_current == ':' && _peek == ':')
+            {
+                hasInterpolation = true;
+                
+                // Save any text accumulated so far
+                segments.Add(new TextSegmentData(currentText.ToString()));
+                currentText.Clear();
+                
+                Advance(); // Skip first colon
+                Advance(); // Skip second colon
+
+                // Check for empty interpolation ::::
+                if (_current == ':' && _peek == ':')
+                {
+                    var errorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
+                        start, _position, _line, _column, _file);
+                    Log.Error(new EmptyInterpolationError(errorToken));
+                    Advance(); // Skip first colon
+                    Advance(); // Skip second colon
+                    continue;
+                }
+
+                // Capture the expression content until closing ::
+                var exprContent = new StringBuilder();
+                while (!(_current == ':' && _peek == ':'))
+                {
+                    if (_current is '\0' or '\n' or '\r' || _current == '\"')
+                    {
+                        // Unclosed interpolation
+                        var errorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
+                            start, _position, _line, _column, _file);
+                        Log.Error(new UnclosedInterpolationError(errorToken));
+                        
+                        // If we hit the closing quote, break to handle unclosed string properly
+                        if (_current == '\"')
+                        {
+                            Advance();
+                            return CreateInterpolatedStringToken(segments, currentText, false, start, lineStart, columnStart);
+                        }
+                        return errorToken;
+                    }
+
+                    exprContent.Append(_current);
+                    Advance();
+                }
+
+                // Skip closing ::
+                Advance();
+                Advance();
+
+                var expressionText = exprContent.ToString().Trim();
+                if (string.IsNullOrEmpty(expressionText))
+                {
+                    var errorToken = new StringToken(_source[(start + 1).._position], TokenType.String,
+                        start, _position, _line, _column, _file);
+                    Log.Error(new EmptyInterpolationError(errorToken));
+                }
+                else
+                {
+                    segments.Add(new ExpressionSegmentData(expressionText));
+                }
+                continue;
+            }
+
+            currentText.Append(_current);
             Advance();
         }
 
         // Advance past the closing quote
         Advance();
+
+        if (hasInterpolation)
+        {
+            return CreateInterpolatedStringToken(segments, currentText, false, start, lineStart, columnStart);
+        }
+
+        // Regular string without interpolation - use processed text if escapes were used
+        if (hasEscapes)
+        {
+            return new StringToken(currentText.ToString().AsMemory(), TokenType.String, start, _position, _line,
+                _column, _file);
+        }
         
-        return new StringToken(_source[(start + 1) .. (_position - 1)], TokenType.String, start, _position, _line,
+        return new StringToken(_source[(start + 1)..(_position - 1)], TokenType.String, start, _position, _line,
             _column, _file);
+    }
+
+    /// <summary>
+    /// Parses the content of a multiline string, handling interpolation.
+    /// </summary>
+    private IToken GetMultilineStringContent(int start, int lineStart, int columnStart)
+    {
+        var segments = new List<InterpolatedStringSegment>();
+        var currentText = new StringBuilder();
+        var hasInterpolation = false;
+        var hasEscapes = false;
+
+        while (!(_current == '\"' && _peek == '\"' && _peekNext == '\"'))
+        {
+            if (_current == '\0')
+            {
+                // End of file reached - multiline string not closed
+                var stringErrorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
+                    start, _position, lineStart, _line, columnStart, _column, _file);
+                Log.Error(new UnclosedMultilineStringError(stringErrorToken));
+                return stringErrorToken;
+            }
+
+            // Check for escape sequence \::
+            if (_current == '\\' && _peek == ':' && Peek(2) == ':')
+            {
+                hasEscapes = true;
+                currentText.Append("::");
+                Advance(); // Skip backslash
+                Advance(); // Skip first colon
+                Advance(); // Skip second colon
+                continue;
+            }
+
+            // Check for interpolation start ::
+            if (_current == ':' && _peek == ':')
+            {
+                hasInterpolation = true;
+                
+                // Save any text accumulated so far
+                segments.Add(new TextSegmentData(currentText.ToString()));
+                currentText.Clear();
+                
+                Advance(); // Skip first colon
+                Advance(); // Skip second colon
+
+                // Check for empty interpolation ::::
+                if (_current == ':' && _peek == ':')
+                {
+                    var errorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
+                        start, _position, lineStart, _line, columnStart, _column, _file);
+                    Log.Error(new EmptyInterpolationError(errorToken));
+                    Advance(); // Skip first colon
+                    Advance(); // Skip second colon
+                    continue;
+                }
+
+                // Capture the expression content until closing ::
+                var exprContent = new StringBuilder();
+                while (!(_current == ':' && _peek == ':'))
+                {
+                    if (_current == '\0')
+                    {
+                        // Unclosed interpolation at end of file
+                        var errorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
+                            start, _position, lineStart, _line, columnStart, _column, _file);
+                        Log.Error(new UnclosedInterpolationError(errorToken));
+                        return errorToken;
+                    }
+                    
+                    // Check for closing """ which would indicate unclosed interpolation
+                    if (_current == '\"' && _peek == '\"' && _peekNext == '\"')
+                    {
+                        var errorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
+                            start, _position, lineStart, _line, columnStart, _column, _file);
+                        Log.Error(new UnclosedInterpolationError(errorToken));
+                        // Advance past the closing """
+                        Advance();
+                        Advance();
+                        Advance();
+                        return CreateInterpolatedStringToken(segments, currentText, true, start, lineStart, columnStart);
+                    }
+
+                    exprContent.Append(_current);
+                    Advance();
+                }
+
+                // Skip closing ::
+                Advance();
+                Advance();
+
+                var expressionText = exprContent.ToString().Trim();
+                if (string.IsNullOrEmpty(expressionText))
+                {
+                    var errorToken = new StringToken(_source[(start + 3).._position], TokenType.MultilineString,
+                        start, _position, lineStart, _line, columnStart, _column, _file);
+                    Log.Error(new EmptyInterpolationError(errorToken));
+                }
+                else
+                {
+                    segments.Add(new ExpressionSegmentData(expressionText));
+                }
+                continue;
+            }
+
+            currentText.Append(_current);
+            Advance();
+        }
+
+        // Advance past the closing """
+        Advance();
+        Advance();
+        Advance();
+
+        if (hasInterpolation)
+        {
+            return CreateInterpolatedStringToken(segments, currentText, true, start, lineStart, columnStart);
+        }
+
+        // Regular multiline string without interpolation - use processed text if escapes were used
+        if (hasEscapes)
+        {
+            return new StringToken(currentText.ToString().AsMemory(), TokenType.MultilineString,
+                start, _position, lineStart, _line, columnStart, _column, _file);
+        }
+        
+        return new StringToken(_source[(start + 3)..(_position - 3)], TokenType.MultilineString,
+            start, _position, lineStart, _line, columnStart, _column, _file);
+    }
+
+    /// <summary>
+    /// Creates an InterpolatedStringToken from the accumulated segments.
+    /// </summary>
+    private InterpolatedStringToken CreateInterpolatedStringToken(
+        List<InterpolatedStringSegment> segments,
+        StringBuilder remainingText,
+        bool isMultiline,
+        int start,
+        int lineStart,
+        int columnStart)
+    {
+        // Add any remaining text
+        if (remainingText.Length > 0)
+        {
+            segments.Add(new TextSegmentData(remainingText.ToString()));
+        }
+
+        return new InterpolatedStringToken(
+            segments,
+            isMultiline,
+            start,
+            _position,
+            lineStart,
+            _line,
+            columnStart,
+            _column,
+            _file);
     }
 
     /// <summary>

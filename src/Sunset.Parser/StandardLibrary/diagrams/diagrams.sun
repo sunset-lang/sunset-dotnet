@@ -5,7 +5,7 @@
 // as SVG output alongside LaTeX and Markdown reports.
 //
 // Prerequisites (not yet implemented):
-// - String interpolation: "text {expression}"
+// - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 //
 // Usage:

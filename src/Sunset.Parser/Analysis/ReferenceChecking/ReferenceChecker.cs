@@ -54,6 +54,7 @@ public class ReferenceChecker(ErrorLog log)
             ListExpression listExpression => Visit(listExpression, visited),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression, visited),
             IndexExpression indexExpression => Visit(indexExpression, visited),
+            InterpolatedStringExpression interpolatedStringExpression => Visit(interpolatedStringExpression, visited),
             _ => throw new ArgumentException($"Cycle checker cannot visit the node of type {dest.GetType()}")
         };
     }
@@ -163,6 +164,23 @@ public class ReferenceChecker(ErrorLog log)
         var targetReferences = Visit(dest.Target, visited) ?? [];
         var indexReferences = Visit(dest.Index, visited) ?? [];
         return targetReferences.Union(indexReferences).ToHashSet();
+    }
+
+    private HashSet<IDeclaration> Visit(InterpolatedStringExpression dest, HashSet<IDeclaration> visited)
+    {
+        var references = new HashSet<IDeclaration>();
+        foreach (var segment in dest.Segments)
+        {
+            if (segment is ExpressionSegment expressionSegment)
+            {
+                var segmentReferences = Visit(expressionSegment.Expression, visited);
+                if (segmentReferences != null)
+                {
+                    references.UnionWith(segmentReferences);
+                }
+            }
+        }
+        return references;
     }
 
     private HashSet<IDeclaration> Visit(IfExpression dest, HashSet<IDeclaration> visited)

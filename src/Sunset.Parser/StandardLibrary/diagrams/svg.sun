@@ -2,7 +2,7 @@
 // Generates SVG output from diagram definitions.
 //
 // Prerequisites (not yet implemented):
-// - String interpolation: "text {expression}"
+// - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
 import stdlib
@@ -29,8 +29,8 @@ define DrawSVG:
     outputs:
         // SVG document header
         ?header {text} = """<svg 
-            width="{ViewportWidth}" 
-            height="{ViewportHeight}" 
+            width="::ViewportWidth::" 
+            height="::ViewportHeight::" 
             xmlns="http://www.w3.org/2000/svg"
             style="background-color: white;">"""
         
@@ -63,12 +63,12 @@ define SvgGroup:
         Transform {text} = ""
     outputs:
         ?classAttr {text} = "" if Class == ""
-            = " class=\"{Class}\"" otherwise
+            = " class=\"::Class::\"" otherwise
         
         ?transformAttr {text} = "" if Transform == ""
-            = " transform=\"{Transform}\"" otherwise
+            = " transform=\"::Transform::\"" otherwise
         
-        return Draw {text} = "<g{classAttr}{transformAttr}>\n{Content}\n</g>"
+        return Draw {text} = "<g::classAttr::::transformAttr::>\n::Content::\n</g>"
 end
 
 /// Creates an SVG text element.
@@ -88,11 +88,11 @@ define SvgText:
         Fill {RGBA} = RGBA(0, 0, 0)
     outputs:
         return Draw {text} = """<text 
-            x="{x}" y="{y}" 
-            font-size="{FontSize}"
-            text-anchor="{Anchor}"
-            fill="{Fill.Svg}"
-        >{Text}</text>"""
+            x="::x::" y="::y::" 
+            font-size="::FontSize::"
+            text-anchor="::Anchor::"
+            fill="::Fill.Svg::"
+        >::Text::</text>"""
 end
 
 // =============================================================================

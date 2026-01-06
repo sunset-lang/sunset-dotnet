@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 .cache
 /**/_site/
 .idea
+
+# Temporary files
+.tmp/

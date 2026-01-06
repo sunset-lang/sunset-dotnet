@@ -2,7 +2,7 @@
 // Provides drawable shapes: rectangles, circles, ellipses, and paths.
 //
 // Prerequisites (not yet implemented):
-// - String interpolation: "text {expression}"
+// - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
 import stdlib
@@ -36,11 +36,11 @@ define Rectangle as DiagramElement:
         
         /// SVG rect element
         return Draw {text} = """<rect 
-            x="{svgX}" y="{svgY}" 
-            width="{svgWidth}" height="{svgHeight}"
-            fill="{Style.FillColour.Svg}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            x="::svgX::" y="::svgY::" 
+            width="::svgWidth::" height="::svgHeight::"
+            fill="::Style.FillColour.Svg::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -67,11 +67,11 @@ define Circle as DiagramElement:
         
         /// SVG circle element
         return Draw {text} = """<circle 
-            cx="{svgCx}" cy="{svgCy}" 
-            r="{svgRadius}"
-            fill="{Style.FillColour.Svg}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            cx="::svgCx::" cy="::svgCy::" 
+            r="::svgRadius::"
+            fill="::Style.FillColour.Svg::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -101,11 +101,11 @@ define Ellipse as DiagramElement:
         
         /// SVG ellipse element
         return Draw {text} = """<ellipse 
-            cx="{svgCx}" cy="{svgCy}" 
-            rx="{svgRx}" ry="{svgRy}"
-            fill="{Style.FillColour.Svg}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            cx="::svgCx::" cy="::svgCy::" 
+            rx="::svgRx::" ry="::svgRy::"
+            fill="::Style.FillColour.Svg::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -127,7 +127,7 @@ define OpenPath as DiagramElement:
         // Generate SVG path data for all points after the first
         // Each point becomes "L x y" (lineto command)
         ?pathCommands {text} = points.select(
-            "L {value.x {/m} * _diagram.Scale} {_diagram.FlipY - (value.y {/m} * _diagram.Scale)}"
+            "L ::value.x {/m} * _diagram.Scale:: ::_diagram.FlipY - (value.y {/m} * _diagram.Scale)::"
         ).join(" ")
         
         // Get the first point for the moveto command
@@ -137,10 +137,10 @@ define OpenPath as DiagramElement:
         
         /// SVG path element (open, no fill)
         return Draw {text} = """<path 
-            d="M {startX} {startY} {pathCommands}"
+            d="M ::startX:: ::startY:: ::pathCommands::"
             fill="none"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -157,7 +157,7 @@ define FilledPath as DiagramElement:
     outputs:
         // Generate SVG path data
         ?pathCommands {text} = points.select(
-            "L {value.x {/m} * _diagram.Scale} {_diagram.FlipY - (value.y {/m} * _diagram.Scale)}"
+            "L ::value.x {/m} * _diagram.Scale:: ::_diagram.FlipY - (value.y {/m} * _diagram.Scale)::"
         ).join(" ")
         
         // Get the first point for the moveto command
@@ -167,10 +167,10 @@ define FilledPath as DiagramElement:
         
         /// SVG path element (closed with Z command)
         return Draw {text} = """<path 
-            d="M {startX} {startY} {pathCommands} Z"
-            fill="{Style.FillColour.Svg}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            d="M ::startX:: ::startY:: ::pathCommands:: Z"
+            fill="::Style.FillColour.Svg::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end

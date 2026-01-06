@@ -2,7 +2,7 @@
 // Provides geometric primitives: points, lines, and planes.
 //
 // Prerequisites (not yet implemented):
-// - String interpolation: "text {expression}"
+// - String interpolation: "text ::expression::"
 // - Import statement: import module.path
 
 import stdlib
@@ -32,12 +32,12 @@ define Point as DiagramElement:
         
         /// SVG circle element representing this point
         return Draw {text} = """<circle 
-            cx="{svgX}" 
-            cy="{svgY}" 
-            r="{svgRadius}"
-            fill="{Style.FillColour.Svg}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            cx="::svgX::" 
+            cy="::svgY::" 
+            r="::svgRadius::"
+            fill="::Style.FillColour.Svg::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -70,10 +70,10 @@ define Line as DiagramElement, Linear:
         
         /// SVG line element
         return Draw {text} = """<line 
-            x1="{x1}" y1="{y1}" 
-            x2="{x2}" y2="{y2}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
+            x1="::x1::" y1="::y1::" 
+            x2="::x2::" y2="::y2::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -102,11 +102,11 @@ define PlaneHorizontal as DiagramElement, Plane:
         
         /// SVG line extending across viewport
         return Draw {text} = """<line 
-            x1="0" y1="{svgY}" 
-            x2="{_diagram.ViewportWidth}" y2="{svgY}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
-            stroke-dasharray="{Style.DashArray}"
+            x1="0" y1="::svgY::" 
+            x2="::_diagram.ViewportWidth::" y2="::svgY::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
+            stroke-dasharray="::Style.DashArray::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -131,11 +131,11 @@ define PlaneVertical as DiagramElement, Plane:
         
         /// SVG line extending across viewport
         return Draw {text} = """<line 
-            x1="{svgX}" y1="0" 
-            x2="{svgX}" y2="{_diagram.ViewportHeight}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
-            stroke-dasharray="{Style.DashArray}"
+            x1="::svgX::" y1="0" 
+            x2="::svgX::" y2="::_diagram.ViewportHeight::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
+            stroke-dasharray="::Style.DashArray::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end
@@ -174,11 +174,11 @@ define PlaneRotated as DiagramElement, Plane:
         
         /// SVG line extending beyond viewport (clipped by SVG container)
         return Draw {text} = """<line 
-            x1="{x1}" y1="{y1}" 
-            x2="{x2}" y2="{y2}"
-            stroke="{Style.StrokeColour.Svg}"
-            stroke-width="{Style.StrokeWidth}"
-            stroke-dasharray="{Style.DashArray}"
+            x1="::x1::" y1="::y1::" 
+            x2="::x2::" y2="::y2::"
+            stroke="::Style.StrokeColour.Svg::"
+            stroke-width="::Style.StrokeWidth::"
+            stroke-dasharray="::Style.DashArray::"
         />""" if _diagram.Format == "SVG"
             = error otherwise
 end

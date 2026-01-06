@@ -65,6 +65,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
             InterpolatedStringExpression interpolatedStringExpression => Visit(interpolatedStringExpression),
+            ListTypeExpression listTypeExpression => Visit(listTypeExpression),
             ElementDeclaration elementDeclaration => VisitElementDeclaration(elementDeclaration),
             PrototypeDeclaration prototypeDeclaration => Visit(prototypeDeclaration),
             PrototypeOutputDeclaration prototypeOutputDeclaration => Visit(prototypeOutputDeclaration),
@@ -98,6 +99,43 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         if (leftResult is ErrorValueType || rightResult is ErrorValueType)
         {
             return ErrorValueType.Instance;
+        }
+
+        // Check for invalid type annotation combinations (element/prototype types in binary operations)
+        // This must be done BEFORE resolving element types to their default return values
+        if (dest.Operator != TokenType.Dot)
+        {
+            // Check if left operand is an element/prototype type used in binary operation
+            if (leftResult is ElementType leftElementType)
+            {
+                var typeName = leftElementType.ElementDeclaration.Name;
+                var conflictingPart = GetTypeAnnotationConflictDescription(rightResult, dest.Operator);
+                Log.Error(new InvalidTypeAnnotationError(dest, typeName, conflictingPart));
+                return ErrorValueType.Instance;
+            }
+            if (leftResult is PrototypeType leftPrototypeType)
+            {
+                var typeName = leftPrototypeType.Declaration.Name;
+                var conflictingPart = GetTypeAnnotationConflictDescription(rightResult, dest.Operator);
+                Log.Error(new InvalidTypeAnnotationError(dest, typeName, conflictingPart));
+                return ErrorValueType.Instance;
+            }
+
+            // Check if right operand is an element/prototype type used in binary operation
+            if (rightResult is ElementType rightElementType)
+            {
+                var typeName = rightElementType.ElementDeclaration.Name;
+                var conflictingPart = GetTypeAnnotationConflictDescription(leftResult, dest.Operator);
+                Log.Error(new InvalidTypeAnnotationError(dest, typeName, conflictingPart));
+                return ErrorValueType.Instance;
+            }
+            if (rightResult is PrototypeType rightPrototypeType)
+            {
+                var typeName = rightPrototypeType.Declaration.Name;
+                var conflictingPart = GetTypeAnnotationConflictDescription(leftResult, dest.Operator);
+                Log.Error(new InvalidTypeAnnotationError(dest, typeName, conflictingPart));
+                return ErrorValueType.Instance;
+            }
         }
 
         // Resolve ElementType to its default return value type for non-dot operations
@@ -210,6 +248,31 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                     }
                 }
                 // Property access failed
+                return ErrorValueType.Instance;
+            }
+            // Property access on prototype-typed variable: prototype.PropertyName
+            // This only allows access to properties defined in the prototype
+            case PrototypeType prototypeType when dest.Operator == TokenType.Dot:
+            {
+                if (dest.Right is NameExpression nameExpr)
+                {
+                    var resolved = nameExpr.GetResolvedDeclaration();
+                    // Only allow access to properties defined in the prototype itself
+                    if (resolved is PrototypeOutputDeclaration protoOutput)
+                    {
+                        return Visit(protoOutput);
+                    }
+                    if (resolved is VariableDeclaration varDecl)
+                    {
+                        // Check if this variable is declared in the prototype
+                        if (varDecl.ParentScope == prototypeType.Declaration)
+                        {
+                            return Visit(varDecl);
+                        }
+                    }
+                }
+                // Property access on prototype-typed variable to non-prototype property - error
+                // This returns ErrorValueType which signals an error without throwing
                 return ErrorValueType.Instance;
             }
             default:
@@ -387,6 +450,12 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     {
         var resultType = Visit(dest.UnitExpression);
 
+        // Handle error state - don't log additional errors
+        if (resultType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
         // Handle option type annotations (e.g., {Size})
         if (resultType is OptionType optionType)
         {
@@ -394,16 +463,62 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             return optionType;
         }
 
-        // Only set the result type if it is a unit type.
-        if (resultType is not UnitType unitType)
+        // Handle element type annotations (e.g., {Point})
+        if (resultType is ElementType elementType)
+        {
+            dest.SetEvaluatedType(elementType);
+            return elementType;
+        }
+
+        // Handle prototype type annotations (e.g., {Linear})
+        if (resultType is PrototypeType prototypeType)
+        {
+            dest.SetEvaluatedType(prototypeType);
+            return prototypeType;
+        }
+
+        // Handle unit type annotations (e.g., {m^2})
+        if (resultType is UnitType unitType)
+        {
+            var quantityType = unitType.ToQuantityType();
+            dest.SetEvaluatedType(quantityType);
+            return quantityType;
+        }
+
+        // Handle list type annotations (e.g., {Point list})
+        if (resultType is ListType listType)
+        {
+            dest.SetEvaluatedType(listType);
+            return listType;
+        }
+
+        // Not a valid type annotation
+        return null;
+    }
+
+    private IResultType? Visit(ListTypeExpression dest)
+    {
+        var elementType = Visit(dest.ElementTypeExpression);
+
+        if (elementType == null)
         {
             return null;
         }
 
-        // Elevate the type to a quantity type.
-        var quantityType = unitType.ToQuantityType();
-        dest.SetEvaluatedType(quantityType);
-        return quantityType;
+        if (elementType is ErrorValueType)
+        {
+            return ErrorValueType.Instance;
+        }
+
+        // Convert UnitType to QuantityType for list element types
+        if (elementType is UnitType unitType)
+        {
+            elementType = unitType.ToQuantityType();
+        }
+
+        var listType = new ListType(elementType);
+        dest.SetEvaluatedType(listType);
+        return listType;
     }
 
     private IResultType? Visit(NonDimensionalizingExpression dest)
@@ -768,8 +883,8 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         if (dest.Elements.Count == 0)
         {
             // Empty list - we can't determine element type, but it's valid
-            // Use a placeholder type that will be compatible with any list operation
-            return new ListType(QuantityType.Dimensionless);
+            // Use UnknownElementType which is compatible with any list element type
+            return new ListType(UnknownElementType.Instance);
         }
 
         // Get the type of the first element
@@ -1326,5 +1441,31 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         }
 
         return type;
+    }
+
+    /// <summary>
+    /// Gets a human-readable description of what conflicts with an element/prototype type
+    /// in a type annotation context.
+    /// </summary>
+    private static string GetTypeAnnotationConflictDescription(IResultType otherType, TokenType op)
+    {
+        var opSymbol = op switch
+        {
+            TokenType.Power => "^",
+            TokenType.Multiply => "*",
+            TokenType.Divide => "/",
+            TokenType.Plus => "+",
+            TokenType.Minus => "-",
+            _ => op.ToString()
+        };
+
+        return otherType switch
+        {
+            UnitType unitType => unitType.Unit.ToString(),
+            QuantityType quantityType => quantityType.Unit.IsDimensionless ? "number" : quantityType.Unit.ToString(),
+            ElementType elementType => elementType.ElementDeclaration.Name,
+            PrototypeType prototypeType => prototypeType.Declaration.Name,
+            _ => opSymbol
+        };
     }
 }

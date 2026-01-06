@@ -59,6 +59,14 @@ prototype DrawStyle:
         StrokeWidth = 1
 end
 
+/// Default implementation of DrawStyle with standard values.
+define DefaultDrawStyle as DrawStyle:
+    inputs:
+        StrokeColour {RGBA} = RGBA(0, 0, 0)
+        FillColour {RGBA} = RGBA(255, 255, 255)
+        StrokeWidth = 1
+end
+
 /// Style for rendering points.
 define PointStyle as DrawStyle:
     inputs:
@@ -101,7 +109,7 @@ end
 /// Every element must produce a Draw output containing renderer-specific markup.
 prototype DiagramElement:
     inputs:
-        Style {DrawStyle} = DrawStyle()
+        Style {DrawStyle} = DefaultDrawStyle()
     outputs:
         /// The rendered output (e.g., SVG markup)
         return Draw {text}
@@ -166,11 +174,11 @@ define Diagram:
         FlipY = ViewportHeight
         
         /// Generate the complete diagram output
+        // Note: Only SVG format is currently supported
         return Draw {text} = DrawSVG(
             ViewportWidth = ViewportWidth,
             ViewportHeight = ViewportHeight,
             References = References,
             Elements = Elements
-        ).Draw if Format == "SVG"
-            = error otherwise
+        ).Draw
 end

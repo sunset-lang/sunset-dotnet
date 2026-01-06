@@ -156,7 +156,7 @@ public class DiagramsIntegrationTests
     // =========================================================================
 
     [Test]
-    [Ignore("Blocked: Diagrams library uses {Type list} annotations not yet supported by parser")]
+    [Ignore("Blocked by string comparison in if expressions bug - Format == \"SVG\" not parsing correctly inside elements")]
     public void Import_DiagramsCore_ResolvesFromStandardLibrary()
     {
         // This should resolve to StandardLibrary/Diagrams/Core.sun
@@ -179,7 +179,7 @@ public class DiagramsIntegrationTests
     }
 
     [Test]
-    [Ignore("Blocked: Diagrams library uses {Type list} annotations not yet supported by parser")]
+    [Ignore("Blocked by string comparison in if expressions bug and forward reference resolution in imports")]
     public void Import_Diagrams_ResolvesAllModules()
     {
         // This should resolve to StandardLibrary/Diagrams/Diagrams.sun which imports all modules

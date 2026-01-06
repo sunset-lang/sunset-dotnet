@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Analysis.TypeChecking;
+using Sunset.Parser.Analysis.TypeChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Results.Types;
@@ -90,14 +90,26 @@ public class TypeCheckerTests
     }
 
     [Test]
-    [Ignore("Unit declaration evaluation not working correctly for declared units - needs investigation")]
+    public void Visit_UnitAssignmentExpression_WithBaseUnitPower_ReturnsQuantityType()
+    {
+        // Verify {m^2} correctly evaluates to QuantityType with Length^2
+        var sourceFile = SourceFile.FromString("x {m^2} = 5 {m^2}");
+        var environment = new Environment(sourceFile);
+        environment.Analyse();
+
+        var fileScope = environment.ChildScopes["$file"] as FileScope;
+        var declaration = fileScope!.ChildDeclarations["x"] as VariableDeclaration;
+
+        // The assigned type should be m^2 (Length^2)
+        var assignedType = declaration!.GetAssignedType();
+        Assert.That(assignedType, Is.InstanceOf<QuantityType>());
+        var quantityType = (QuantityType)assignedType!;
+        Assert.That(quantityType.Unit.UnitDimensions.Count(d => d.Power == 2), Is.EqualTo(1));
+    }
+
+    [Test]
     public void Visit_VariableDeclaration_WithInvalidUnits_UsingBaseUnits_CreatesError()
     {
-        // TODO: Investigate why Visit(UnitAssignmentExpression) returns null for declared units like {m^2}
-        // The issue is that the binary expression m^2 inside the UnitAssignment is not being
-        // correctly evaluated to a UnitType, causing the declared unit to be ignored and the
-        // evaluated type to be used for both assigned and evaluated types.
-
         // Use only base units to avoid derived unit evaluation complexity
         // Declared: m^2 (area), Evaluated: m^3 (volume) - incompatible dimensions
         var sourceFile = SourceFile.FromString("area <A> {m^2} = 100 {m} * 200 {m} * 300 {m}");

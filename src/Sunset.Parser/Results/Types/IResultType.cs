@@ -16,6 +16,9 @@ public interface IResultType
         
         // ErrorValueType is compatible with any type (it's a bottom type / sentinel value)
         if (left is ErrorValueType || right is ErrorValueType) return true;
+        
+        // UnknownElementType is compatible with any type (used for empty lists)
+        if (left is UnknownElementType || right is UnknownElementType) return true;
 
         return left switch
         {
@@ -38,6 +41,12 @@ public interface IResultType
                 AreCompatible(leftDict.ValueType, rightDict.ValueType),
             DictionaryType => false,
             
+            // Element type compatibility - two ElementTypes are compatible if they reference the same declaration
+            // OR if they share a common implemented prototype
+            ElementType leftElement when right is ElementType rightElement =>
+                leftElement.ElementDeclaration == rightElement.ElementDeclaration ||
+                ElementsShareCommonPrototype(leftElement.ElementDeclaration, rightElement.ElementDeclaration),
+            
             // Prototype compatibility
             PrototypeType leftProto when right is PrototypeType rightProto =>
                 leftProto.Declaration == rightProto.Declaration ||
@@ -51,6 +60,7 @@ public interface IResultType
                 ElementImplementsPrototype(rightElement.ElementDeclaration, leftProto.Declaration),
 
             PrototypeType => false,
+            ElementType => false,
 
             // Option type compatibility
             // Two OptionTypes are compatible if they reference the same declaration
@@ -79,6 +89,51 @@ public interface IResultType
     private static bool ElementImplementsPrototype(ElementDeclaration element, PrototypeDeclaration prototype)
     {
         return element.ImplementedPrototypes?.Any(p => PrototypeImplementsPrototype(p, prototype)) ?? false;
+    }
+
+    /// <summary>
+    /// Checks if two elements share a common implemented prototype.
+    /// </summary>
+    private static bool ElementsShareCommonPrototype(ElementDeclaration left, ElementDeclaration right)
+    {
+        if (left.ImplementedPrototypes == null || right.ImplementedPrototypes == null)
+            return false;
+
+        // Get all prototypes implemented by each element (including base prototypes)
+        var leftProtos = GetAllImplementedPrototypes(left);
+        var rightProtos = GetAllImplementedPrototypes(right);
+
+        // Check if there's any common prototype
+        return leftProtos.Any(lp => rightProtos.Any(rp => lp == rp));
+    }
+
+    /// <summary>
+    /// Gets all prototypes implemented by an element, including base prototypes.
+    /// </summary>
+    private static HashSet<PrototypeDeclaration> GetAllImplementedPrototypes(ElementDeclaration element)
+    {
+        var result = new HashSet<PrototypeDeclaration>();
+        if (element.ImplementedPrototypes == null) return result;
+
+        foreach (var proto in element.ImplementedPrototypes)
+        {
+            AddPrototypeAndBases(proto, result);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Recursively adds a prototype and all its base prototypes to the set.
+    /// </summary>
+    private static void AddPrototypeAndBases(PrototypeDeclaration proto, HashSet<PrototypeDeclaration> result)
+    {
+        result.Add(proto);
+        if (proto.BasePrototypes == null) return;
+
+        foreach (var baseProto in proto.BasePrototypes)
+        {
+            AddPrototypeAndBases(baseProto, result);
+        }
     }
 }
 
@@ -120,6 +175,12 @@ public class BooleanType : StaticType<BooleanType>;
 public class StringType : StaticType<StringType>;
 
 public class ErrorValueType : StaticType<ErrorValueType>;
+
+/// <summary>
+/// Represents an unknown element type for empty lists.
+/// This type is compatible with any other type.
+/// </summary>
+public class UnknownElementType : StaticType<UnknownElementType>;
 
 public class UnitType(Unit unit) : IResultType
 {

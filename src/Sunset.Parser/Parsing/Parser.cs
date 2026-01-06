@@ -68,6 +68,7 @@ public partial class Parser
 
             IDeclaration? declaration = _current.Type switch
             {
+                TokenType.Import => GetImportDeclaration(parentScope),
                 TokenType.Define => GetElementDeclaration(parentScope),
                 TokenType.Prototype => GetPrototypeDeclaration(parentScope),
                 TokenType.Dimension => GetDimensionDeclaration(parentScope),
@@ -507,6 +508,134 @@ public partial class Parser
 
         Consume(TokenType.CloseBrace);
         return annotation;
+    }
+
+    /// <summary>
+    ///     Parses an import declaration.
+    ///     Examples:
+    ///     - import diagrams                           (package import)
+    ///     - import diagrams.core                      (file import)
+    ///     - import diagrams.geometry.Point            (identifier import)
+    ///     - import diagrams.geometry.[Point, Line]    (multiple identifier import)
+    ///     - import ./local.helpers                    (relative import - current directory)
+    ///     - import ../shared.utils                    (relative import - parent directory)
+    /// </summary>
+    /// <param name="parentScope">The parent scope for this declaration.</param>
+    /// <returns>The parsed ImportDeclaration, or null if parsing failed.</returns>
+    public ImportDeclaration? GetImportDeclaration(IScope parentScope)
+    {
+        var importToken = Consume(TokenType.Import);
+        if (importToken == null)
+        {
+            throw new Exception("Expected an import token");
+        }
+
+        // Check for relative import prefix: ./ or ../
+        var isRelative = false;
+        var relativeDepth = 0;
+
+        // Handle relative import prefixes: ./ or ../ (can be repeated for ../)
+        while (_current.Type == TokenType.Dot)
+        {
+            var nextToken = Peek();
+            if (nextToken?.Type == TokenType.Divide)
+            {
+                // This is ./ (current directory)
+                isRelative = true;
+                Consume(TokenType.Dot);
+                Consume(TokenType.Divide);
+                break;
+            }
+            else if (nextToken?.Type == TokenType.Dot)
+            {
+                // This is ../ (parent directory) - consume both dots
+                isRelative = true;
+                relativeDepth++;
+                Consume(TokenType.Dot);
+                Consume(TokenType.Dot);
+                // Continue loop to check for more ../ or the final /
+                if (_current.Type == TokenType.Divide)
+                {
+                    Consume(TokenType.Divide);
+                    // Check if there's another .. coming
+                    if (_current.Type != TokenType.Dot)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // Just a dot followed by something else - not a relative import
+                break;
+            }
+        }
+
+        // Parse the path segments (dot-separated identifiers)
+        var pathSegments = new List<StringToken>();
+
+        // First identifier
+        if (Consume(TokenType.Identifier) is not StringToken firstSegment)
+        {
+            Log.Error(new UnexpectedSymbolError(_current));
+            return null;
+        }
+        pathSegments.Add(firstSegment);
+
+        // Continue parsing dot-separated identifiers
+        while (_current.Type == TokenType.Dot)
+        {
+            var nextToken = Peek();
+            
+            // Check if this is an identifier list: .[Point, Line]
+            if (nextToken?.Type == TokenType.OpenBracket)
+            {
+                Consume(TokenType.Dot);
+                break;
+            }
+
+            // Regular dot-separated identifier
+            Consume(TokenType.Dot);
+
+            if (Consume(TokenType.Identifier) is not StringToken segment)
+            {
+                Log.Error(new UnexpectedSymbolError(_current));
+                return null;
+            }
+            pathSegments.Add(segment);
+        }
+
+        // Parse optional specific identifiers: [Point, Line, Circle]
+        List<StringToken>? specificIdentifiers = null;
+        if (_current.Type == TokenType.OpenBracket)
+        {
+            specificIdentifiers = [];
+            Consume(TokenType.OpenBracket);
+
+            // Parse comma-separated identifiers
+            while (_current.Type != TokenType.CloseBracket && _current.Type != TokenType.EndOfFile)
+            {
+                if (Consume(TokenType.Identifier) is not StringToken identifier)
+                {
+                    Log.Error(new UnexpectedSymbolError(_current));
+                    return null;
+                }
+                specificIdentifiers.Add(identifier);
+
+                // Consume comma if present (allow trailing comma)
+                if (_current.Type == TokenType.Comma)
+                {
+                    Consume(TokenType.Comma);
+                }
+            }
+
+            Consume(TokenType.CloseBracket);
+        }
+
+        // End with a newline or end of file
+        Consume([TokenType.Newline, TokenType.EndOfFile], optional: true);
+
+        return new ImportDeclaration(importToken, pathSegments, specificIdentifiers, isRelative, relativeDepth, parentScope);
     }
 
     public ElementDeclaration? GetElementDeclaration(IScope parentScope)

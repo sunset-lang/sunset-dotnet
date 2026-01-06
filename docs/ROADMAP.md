@@ -179,11 +179,14 @@ Result = (50 {cm}) {/ m}  // Results in 0.5 (dimensionless)
 ---
 
 ### String Interpolation
-**Status:** ⬜ Not Started
+**Status:** ✅ Implemented
 
 | Feature | Syntax | Status |
 |---------|--------|--------|
-| Interpolation | `"The value is ::expression::"` | ⬜ |
+| Interpolation | `"The value is ::expression::"` | ✅ |
+| Escape sequence | `"\::not interpolation\::"` | ✅ |
+| Multiline support | `"""text ::expr:: more"""` | ✅ |
+| Boolean formatting | `"::true::"` → `"True"` | ✅ |
 
 **Syntax:**
 ```sunset
@@ -192,20 +195,33 @@ message = "The length is ::x::"  // Results in "The length is 100 mm"
 
 // Complex expressions supported
 summary = "Area: ::Width * Height::"
+
+// Escape literal colons with backslash
+ratio = "ratio 1\::2"  // Results in "ratio 1::2"
+
+// Property access in interpolation
+result = "area: ::sq.Area::"
 ```
 
 **Behavior:**
 - Expressions within `::...::` inside strings are evaluated and converted to text
-- Quantities are formatted with their display units
-- Escaping TBD
+- Quantities are formatted with their display units (e.g., `"100 mm"`)
+- Dimensionless quantities show only the numeric value
+- Booleans are formatted as `"True"` or `"False"`
+- Escape `\::` produces literal `::` in output
+- Empty interpolation `::::` reports an error
+- Unclosed interpolation `::expr` (without closing `::`) reports an error
+- Strings inside interpolation are not allowed (reports `StringInInterpolationError`)
 
-**Implementation Notes:**
-- Lexer must detect `::` inside string tokens and switch to expression parsing mode
-- New expression type `InterpolatedStringExpression` with segments (text + expressions)
-- Type checker validates embedded expressions
-- Evaluator concatenates segments with formatted expression results
-
-**Priority:** High - Required for Diagramming Standard Library (SVG/Typst output generation)
+**Implementation Details:**
+- `InterpolatedStringToken` in `src/Sunset.Parser/Lexing/Tokens/InterpolatedStringToken.cs` with segment data
+- `InterpolatedStringExpression` in `src/Sunset.Parser/Expressions/InterpolatedStringExpression.cs`
+- `TextSegment` and `ExpressionSegment` in `src/Sunset.Parser/Expressions/StringSegment.cs`
+- Lexer detects `::` in strings and creates `InterpolatedStringToken` with parsed segments
+- Parser creates sub-parser for each expression segment via `ParseExpressionSegment()`
+- All analysis passes (NameResolver, ReferenceChecker, TypeChecker) visit embedded expressions
+- Evaluator concatenates text segments with formatted expression results
+- Error types: `UnclosedInterpolationError`, `EmptyInterpolationError`, `StringInInterpolationError`
 
 ---
 
@@ -416,7 +432,7 @@ The following bugs have been fixed:
 | Lists - Basic | 4 | 4 | 0 | 0 |
 | Lists - Advanced | 6 | 6 | 0 | 0 |
 | Unit Operations | 1 | 1 | 0 | 0 |
-| String Operations | 4 | 3 | 0 | 1 |
+| String Operations | 4 | 4 | 0 | 0 |
 | Functional Programming | 5 | 5 | 0 | 0 |
 | Dictionaries | 7 | 6 | 0 | 1 |
 | Options | 3 | 0 | 0 | 3 |
@@ -425,7 +441,7 @@ The following bugs have been fixed:
 | Element Groups | 2 | 0 | 0 | 2 |
 | Module System | 3 | 0 | 0 | 3 |
 | Diagramming Library | 1 | 0 | 0 | 1 |
-| **Total** | **53** | **33** | **1** | **19** |
+| **Total** | **53** | **34** | **1** | **18** |
 
 ---
 

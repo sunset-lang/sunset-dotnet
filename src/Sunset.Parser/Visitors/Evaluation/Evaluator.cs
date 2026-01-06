@@ -71,6 +71,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             CallExpression callExpression => Visit(callExpression, currentScope),
             NumberConstant numberConstant => Visit(numberConstant),
             StringConstant stringConstant => Visit(stringConstant),
+            BooleanConstant booleanConstant => Visit(booleanConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorResult,
             ValueConstant => _iterationValue ?? ErrorResult,
@@ -78,6 +79,7 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             ListExpression listExpression => Visit(listExpression, currentScope),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression, currentScope),
             IndexExpression indexExpression => Visit(indexExpression, currentScope),
+            InterpolatedStringExpression interpolatedStringExpression => Visit(interpolatedStringExpression, currentScope),
             ElementDeclaration element => Visit(element, currentScope),
             DimensionDeclaration => SuccessResult,  // Dimensions don't need evaluation
             UnitDeclaration => SuccessResult,  // Units don't need evaluation (already registered)
@@ -766,6 +768,61 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
     private static StringResult Visit(StringConstant dest)
     {
         return new StringResult(dest.Token.ToString());
+    }
+
+    private static BooleanResult Visit(BooleanConstant dest)
+    {
+        return new BooleanResult(dest.Value);
+    }
+
+    private IResult Visit(InterpolatedStringExpression dest, IScope currentScope)
+    {
+        var builder = new System.Text.StringBuilder();
+
+        foreach (var segment in dest.Segments)
+        {
+            switch (segment)
+            {
+                case TextSegment textSegment:
+                    builder.Append(textSegment.Text);
+                    break;
+
+                case ExpressionSegment expressionSegment:
+                    var result = Visit(expressionSegment.Expression, currentScope);
+
+                    // If any segment is an error, the whole string is an error
+                    if (result is ErrorResult)
+                    {
+                        return ErrorResult;
+                    }
+
+                    // Resolve element instances to their default return value
+                    result = ResolveDefaultReturnValue(result, currentScope);
+
+                    // Format the result as a string
+                    var formatted = FormatResultForInterpolation(result);
+                    builder.Append(formatted);
+                    break;
+            }
+        }
+
+        var stringResult = new StringResult(builder.ToString());
+        dest.SetResult(currentScope, stringResult);
+        return stringResult;
+    }
+
+    /// <summary>
+    /// Formats a result for interpolation within a string.
+    /// </summary>
+    private static string FormatResultForInterpolation(IResult result)
+    {
+        return result switch
+        {
+            QuantityResult qty => FormatQuantity(qty),
+            BooleanResult b => b.Result ? "True" : "False",
+            StringResult s => s.Result, // Should not happen due to type checking
+            _ => result.ToString() ?? ""
+        };
     }
 
     private static UnitResult Visit(UnitConstant dest)

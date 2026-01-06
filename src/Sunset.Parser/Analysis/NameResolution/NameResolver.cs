@@ -76,9 +76,13 @@ public class NameResolver(ErrorLog log) : INameResolver
             case IndexExpression indexExpression:
                 Visit(indexExpression, parentScope);
                 break;
+            case InterpolatedStringExpression interpolatedStringExpression:
+                Visit(interpolatedStringExpression, parentScope);
+                break;
             // Ignore constants in the name resolver as they are terminal nodes and don't have names.
             case NumberConstant:
             case StringConstant:
+            case BooleanConstant:
             case ErrorConstant:
             // Value, index, and instance are special iteration context variables resolved at evaluation time
             case ValueConstant:
@@ -246,6 +250,18 @@ public class NameResolver(ErrorLog log) : INameResolver
     {
         Visit(dest.Target, parentScope);
         Visit(dest.Index, parentScope);
+    }
+
+    private void Visit(InterpolatedStringExpression dest, IScope parentScope)
+    {
+        // Resolve names in each expression segment
+        foreach (var segment in dest.Segments)
+        {
+            if (segment is ExpressionSegment expressionSegment)
+            {
+                Visit(expressionSegment.Expression, parentScope);
+            }
+        }
     }
 
     /// <summary>

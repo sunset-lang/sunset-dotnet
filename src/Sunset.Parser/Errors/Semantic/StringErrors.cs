@@ -16,3 +16,15 @@ public class InvalidStringOperationError(BinaryExpression expression) : ISemanti
     public IToken StartToken { get; } = expression.OperatorToken;
     public IToken? EndToken => null;
 }
+
+/// <summary>
+/// Error when a string value is used inside a string interpolation.
+/// Strings are not allowed to be nested within interpolated strings.
+/// </summary>
+public class StringInInterpolationError(IExpression expression, IToken token) : ISemanticError
+{
+    public string Message => "Strings are not allowed in string interpolation.";
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken StartToken { get; } = token;
+    public IToken? EndToken => null;
+}

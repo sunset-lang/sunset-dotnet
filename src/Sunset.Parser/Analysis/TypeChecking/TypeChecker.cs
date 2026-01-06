@@ -51,6 +51,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             Argument argument => Visit(argument),
             VariableDeclaration variableDeclaration => Visit(variableDeclaration),
             NumberConstant => QuantityType.Dimensionless,
+            BooleanConstant => BooleanType.Instance,
             StringConstant stringConstant => Visit(stringConstant),
             UnitConstant unitConstant => Visit(unitConstant),
             ErrorConstant => ErrorValueType.Instance,
@@ -62,6 +63,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             ListExpression listExpression => Visit(listExpression),
             DictionaryExpression dictionaryExpression => Visit(dictionaryExpression),
             IndexExpression indexExpression => Visit(indexExpression),
+            InterpolatedStringExpression interpolatedStringExpression => Visit(interpolatedStringExpression),
             ElementDeclaration elementDeclaration => VisitElementDeclaration(elementDeclaration),
             PrototypeDeclaration prototypeDeclaration => Visit(prototypeDeclaration),
             PrototypeOutputDeclaration prototypeOutputDeclaration => Visit(prototypeOutputDeclaration),
@@ -666,6 +668,37 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
     private static IResultType Visit(StringConstant dest)
     {
         return StringType.Instance;
+    }
+
+    private IResultType Visit(InterpolatedStringExpression dest)
+    {
+        var hasError = false;
+
+        // Type check each expression segment
+        foreach (var segment in dest.Segments)
+        {
+            if (segment is not ExpressionSegment expressionSegment) continue;
+
+            var segmentType = Visit(expressionSegment.Expression);
+
+            // If the segment evaluates to an error, mark the whole string as having an error
+            if (segmentType == null || segmentType is ErrorValueType)
+            {
+                hasError = true;
+                continue;
+            }
+
+            // Check if the expression evaluates to a string type (nested string in interpolation)
+            if (segmentType is StringType)
+            {
+                Log.Error(new StringInInterpolationError(expressionSegment.Expression, dest.Token));
+                hasError = true;
+            }
+        }
+
+        // Return StringType even if there are errors - the interpolated string itself is a string
+        // The errors have been logged and will prevent successful evaluation
+        return hasError ? ErrorValueType.Instance : StringType.Instance;
     }
 
     private static IResultType Visit(UnitConstant dest)

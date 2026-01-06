@@ -23,6 +23,7 @@ public enum TokenType
 
     String, // ".*"
     MultilineString, // """.*"""
+    InterpolatedString, // String containing ::expression:: interpolations
     Comment, // #.*
     Documentation, // ##.*
 

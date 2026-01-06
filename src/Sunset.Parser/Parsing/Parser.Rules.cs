@@ -2,6 +2,7 @@ using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Lexing.Tokens.Numbers;
 using Sunset.Parser.Parsing.Constants;
+using Sunset.Parser.Scopes;
 
 namespace Sunset.Parser.Parsing;
 
@@ -33,11 +34,14 @@ public partial class Parser
             { TokenType.Number, (Number, null, Precedence.Primary) },
             { TokenType.String, (String, null, Precedence.Primary) },
             { TokenType.MultilineString, (MultilineString, null, Precedence.Primary) },
+            { TokenType.InterpolatedString, (InterpolatedString, null, Precedence.Primary) },
             { TokenType.Identifier, (Name, ImplicitMultiplication, Precedence.Primary) },
             { TokenType.ErrorValue, (ErrorValue, null, Precedence.Primary) },
             { TokenType.Value, (ValueKeyword, null, Precedence.Primary) },
             { TokenType.Index, (IndexKeyword, null, Precedence.Primary) },
-            { TokenType.Instance, (InstanceKeyword, null, Precedence.Primary) }
+            { TokenType.Instance, (InstanceKeyword, null, Precedence.Primary) },
+            { TokenType.True, (BooleanLiteral, null, Precedence.Primary) },
+            { TokenType.False, (BooleanLiteral, null, Precedence.Primary) }
         };
 
     private static (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
@@ -347,6 +351,49 @@ public partial class Parser
         throw new Exception("Expected a multiline string token");
     }
 
+    private static InterpolatedStringExpression InterpolatedString(Parser parser)
+    {
+        if (parser.Consume(TokenType.InterpolatedString) is not InterpolatedStringToken token)
+        {
+            throw new Exception("Expected an interpolated string token");
+        }
+
+        var segments = new List<StringSegment>();
+
+        foreach (var segment in token.Segments)
+        {
+            switch (segment)
+            {
+                case TextSegmentData textData:
+                    segments.Add(new TextSegment(textData.Text));
+                    break;
+
+                case ExpressionSegmentData exprData:
+                    // Parse the expression text using a sub-parser
+                    var expression = ParseExpressionSegment(exprData.ExpressionText, token.SourceFile, parser.Log);
+                    segments.Add(new ExpressionSegment(expression, exprData.ExpressionText));
+                    break;
+            }
+        }
+
+        return new InterpolatedStringExpression(token, segments);
+    }
+
+    /// <summary>
+    /// Parses an expression segment from the given expression text.
+    /// </summary>
+    private static IExpression ParseExpressionSegment(string expressionText, SourceFile sourceFile, Errors.ErrorLog log)
+    {
+        // Create a temporary source file with the expression text
+        var tempSource = SourceFile.FromString(expressionText, log, sourceFile.Name + "_interpolation");
+        
+        // Create a parser for the expression
+        var subParser = new Parser(tempSource, false, log);
+        
+        // Parse the expression
+        return subParser.GetArithmeticExpression();
+    }
+
     private static NumberConstant Number(Parser parser)
     {
         if (parser.Consume(TokenType.Number) is INumberToken token) return new NumberConstant(token);
@@ -380,6 +427,14 @@ public partial class Parser
         var token = parser.Consume(TokenType.Instance);
         if (token == null) throw new Exception("Expected an instance token");
         return new InstanceConstant(token);
+    }
+
+    private static BooleanConstant BooleanLiteral(Parser parser)
+    {
+        // Try True first, then False
+        var token = parser.Consume(TokenType.True) ?? parser.Consume(TokenType.False);
+        if (token == null) throw new Exception("Expected a boolean token (true or false)");
+        return new BooleanConstant(token);
     }
 
     private static Precedence GetInfixTokenPrecedence(TokenType type)

@@ -203,11 +203,13 @@ public class DebugPrinter(ErrorLog log) : IVisitor<string>
                                                         {pair.Key.FullPath}: {Visit(pair.Value)}
                                               """));
 
+        var expressionStr = dest.Expression != null ? Visit(dest.Expression) : "<required input>";
+
         return $"""
                     {dest.FullPath}:
                         Unit: {dest.GetAssignedType()}
                         Symbol: {dest.Variable.Symbol}
-                        Expression: {Visit(dest.Expression)}
+                        Expression: {expressionStr}
                         References: {referenceNames}
                         Results:
                 {results}

@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Analysis.NameResolution;
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Expressions;
@@ -100,6 +100,12 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
             {
                 return ReportQuantity(quantityResult.Result);
             }
+        }
+
+        // Required inputs have no expression
+        if (dest.Expression == null)
+        {
+            return "<required input>";
         }
 
         return Visit(dest.Expression, currentScope);

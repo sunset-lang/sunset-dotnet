@@ -93,9 +93,16 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 GetPatternBindingResult(patternBindingVariable.Name, currentScope),
             // Pattern binding reference during evaluation - return the bound instance directly
             PatternBindingReference patternBindingReference => patternBindingReference.BoundInstance,
+            // Prototype pattern binding during name resolution - look up in the current scope for the bound instance
+            PrototypeBindingVariable prototypeBindingVariable =>
+                GetPatternBindingResult(prototypeBindingVariable.Name, currentScope),
+            // Prototype pattern binding reference during evaluation - return the bound instance directly
+            PrototypeBindingReference prototypeBindingReference => prototypeBindingReference.BoundInstance,
             // Pattern binding scope (for completeness) - should not normally be visited directly
             PatternBindingScope => SuccessResult,
             PatternBindingEvaluationScope => SuccessResult,
+            PrototypeBindingScope => SuccessResult,
+            PrototypeBindingEvaluationScope => SuccessResult,
             IScope scope => Visit(scope, currentScope),
             _ => throw new NotImplementedException()
         };
@@ -111,9 +118,65 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         {
             if (dest.Right is NameExpression nameExpression)
             {
-                // Evaluate the name expression within the element scope
+                // When accessing a property on an element instance, we need to look up the property
+                // by name in the element, not use the resolved declaration (which might be a
+                // PrototypeOutputDeclaration when accessed through a prototype pattern binding).
+                var propertyName = nameExpression.Name;
+                
+                // First check if the element has this property
+                if (elementResult.ChildDeclarations.TryGetValue(propertyName, out var propertyDecl))
+                {
+                    // Found the property directly in the element - evaluate it
+                    return Visit(propertyDecl, elementResult);
+                }
+                
+                // Fall back to the resolved declaration (for non-prototype cases)
                 return Visit(nameExpression, elementResult);
             }
+        }
+
+        // Short-circuit evaluation for boolean operators
+        // Must be handled BEFORE evaluating the right operand
+        if (dest.Operator == TokenType.And)
+        {
+            leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
+            if (leftResult is BooleanResult { Result: false })
+            {
+                // Short-circuit: false and X = false (don't evaluate X)
+                return new BooleanResult(false);
+            }
+            if (leftResult is not BooleanResult leftBoolAnd)
+            {
+                return ErrorResult;
+            }
+            var rightResultAnd = Visit(dest.Right, currentScope);
+            rightResultAnd = ResolveDefaultReturnValue(rightResultAnd, currentScope);
+            if (rightResultAnd is BooleanResult rightBoolAnd)
+            {
+                return new BooleanResult(leftBoolAnd.Result && rightBoolAnd.Result);
+            }
+            return ErrorResult;
+        }
+
+        if (dest.Operator == TokenType.Or)
+        {
+            leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
+            if (leftResult is BooleanResult { Result: true })
+            {
+                // Short-circuit: true or X = true (don't evaluate X)
+                return new BooleanResult(true);
+            }
+            if (leftResult is not BooleanResult leftBoolOr)
+            {
+                return ErrorResult;
+            }
+            var rightResultOr = Visit(dest.Right, currentScope);
+            rightResultOr = ResolveDefaultReturnValue(rightResultOr, currentScope);
+            if (rightResultOr is BooleanResult rightBoolOr)
+            {
+                return new BooleanResult(leftBoolOr.Result || rightBoolOr.Result);
+            }
+            return ErrorResult;
         }
 
         // For non-dot operators, extract default return value from element instances
@@ -167,9 +230,17 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return ErrorResult;
         }
 
-        // String concatenation: string + string
+        // String operations: equality comparison and concatenation
         if (leftResult is StringResult leftString && rightResult is StringResult rightString)
         {
+            if (dest.Operator == TokenType.Equal)
+            {
+                return new BooleanResult(leftString.Result == rightString.Result);
+            }
+            if (dest.Operator == TokenType.NotEqual)
+            {
+                return new BooleanResult(leftString.Result != rightString.Result);
+            }
             if (dest.Operator == TokenType.Plus)
             {
                 return new StringResult(leftString.Result + rightString.Result);
@@ -231,6 +302,12 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             return new QuantityResult(operationResultQuantity);
         }
 
+        // Handle 'not' operator for boolean operands
+        if (dest.Operator == TokenType.Not && operandValue is BooleanResult boolResult)
+        {
+            return new BooleanResult(!boolResult.Result);
+        }
+
         Log.Error(new OperationError(dest));
         return ErrorResult;
     }
@@ -273,10 +350,24 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                         IScope bodyScope = currentScope;
                         if (ifBranch.Pattern.BindingNameToken != null && scrutineeResult is ElementInstanceResult elementResult)
                         {
-                            bodyScope = new PatternBindingEvaluationScope(
-                                currentScope,
-                                ifBranch.Pattern.BindingNameToken.ToString(),
-                                elementResult);
+                            var patternType = ifBranch.Pattern.GetResolvedType();
+                            if (patternType is PrototypeDeclaration prototypeDecl)
+                            {
+                                // Prototype pattern binding - create scope with prototype interface restriction
+                                bodyScope = new PrototypeBindingEvaluationScope(
+                                    currentScope,
+                                    ifBranch.Pattern.BindingNameToken.ToString(),
+                                    elementResult,
+                                    prototypeDecl);
+                            }
+                            else
+                            {
+                                // Element pattern binding - create scope with full element access
+                                bodyScope = new PatternBindingEvaluationScope(
+                                    currentScope,
+                                    ifBranch.Pattern.BindingNameToken.ToString(),
+                                    elementResult);
+                            }
                         }
 
                         dest.SetResult(currentScope, new BranchResult(ifBranch));
@@ -371,6 +462,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             {
                 return patternScope.BoundInstance;
             }
+            if (scope is PrototypeBindingEvaluationScope protoPatternScope && protoPatternScope.BindingName == bindingName)
+            {
+                return protoPatternScope.BoundInstance;
+            }
             scope = scope.ParentScope;
         }
         
@@ -433,6 +528,13 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         // Get the cached result if there already is one
         var result = dest.GetResult(currentScope);
         if (result != null) return result;
+
+        // Required inputs have no expression - value should have been set via argument
+        // If we reach here without a cached result, it's an error (type checking should have caught this)
+        if (dest.Expression == null)
+        {
+            return ErrorResult;
+        }
 
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);

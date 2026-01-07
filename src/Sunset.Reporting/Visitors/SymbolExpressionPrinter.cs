@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Analysis.ReferenceChecking;
 using Sunset.Parser.Errors;
@@ -133,9 +133,14 @@ public abstract class SymbolExpressionPrinter(
         {
             symbolExpression = dest.Variable.Symbol;
         }
-        else
+        else if (dest.Expression != null)
         {
             symbolExpression = Visit(dest.Expression, currentScope);
+        }
+        else
+        {
+            // Required inputs have no expression
+            symbolExpression = "<required input>";
         }
 
         // Cache the symbol expression for possible later usage

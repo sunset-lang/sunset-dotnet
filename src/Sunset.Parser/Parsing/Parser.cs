@@ -940,12 +940,20 @@ public partial class Parser
             }
         }
 
-        var equalToken = Consume(TokenType.Equal);
+        var equalToken = Consume(TokenType.Equal, optional: true);
+
+        // If no '=' token, this is a required input (no default value)
+        if (equalToken == null)
+        {
+            // Required inputs must end with a newline or EOF
+            Consume([TokenType.Newline, TokenType.EndOfFile]);
+            return new VariableDeclaration(nameToken, null, parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
+        }
 
         // Check for incomplete expression (e.g., "x =" with no value)
         if (_current.Type is TokenType.EndOfFile or TokenType.Newline)
         {
-            Log.Error(new IncompleteExpressionError(equalToken ?? _current));
+            Log.Error(new IncompleteExpressionError(equalToken));
             var errorToken = new StringToken(
                 _current.ToString().AsMemory(),
                 TokenType.ErrorValue,

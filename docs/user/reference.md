@@ -222,8 +222,6 @@ label = "Length: " + Length  // Results in "Length: 100 mm"
 
 ### String Interpolation
 
-> **Status: Not Yet Implemented**
-
 Expressions can be embedded within strings using `::expression::`:
 
 ```sunset
@@ -362,12 +360,14 @@ Result <r> = numerator / denominator
 
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `==` | Equal to | `x == y` |
+| `=` | Equal to | `x = y` |
 | `!=` | Not equal to | `x != y` |
 | `<` | Less than | `x < y` |
 | `<=` | Less than or equal | `x <= y` |
 | `>` | Greater than | `x > y` |
 | `>=` | Greater than or equal | `x >= y` |
+
+> **Note:** The `=` operator is context-sensitive. In assignment contexts (variable declarations), it assigns a value. In condition contexts (if expressions), it tests for equality. This aligns with mathematical notation and is unambiguous because Sunset variables are immutable.
 
 ### Type Comparison Operators
 
@@ -376,15 +376,41 @@ Result <r> = numerator / denominator
 | `is` | Type equality | `Section is Circle` |
 | `is Type binding` | Type match with binding | `Section is Circle circ` |
 
+### Boolean Operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `and` | Logical AND | `x > 0 and x < 10` |
+| `or` | Logical OR | `x < 0 or x > 10` |
+| `not` | Logical NOT (unary) | `not isValid` |
+
+Boolean operators use **short-circuit evaluation**:
+- `and` returns `false` immediately if the left operand is `false`, without evaluating the right operand
+- `or` returns `true` immediately if the left operand is `true`, without evaluating the right operand
+
+```sunset
+// Short-circuit prevents division by zero error
+result = true if x != 0 and (y / x > 1)
+       = false otherwise
+
+// Combining comparisons
+isInRange = (value >= minValue) and (value <= maxValue)
+
+// Using 'not' for negation
+isInvalid = not isValid
+```
+
 ### Operator Precedence
 
 From highest to lowest:
 1. Parentheses `()`
 2. Exponentiation `^`
-3. Unary minus `-`
+3. Unary operators: `-`, `not`
 4. Multiplication `*`, Division `/`
 5. Addition `+`, Subtraction `-`
-6. Comparisons `<`, `<=`, `>`, `>=`, `==`, `!=`
+6. Comparisons `<`, `<=`, `>`, `>=`, `=`, `!=`
+7. `and`
+8. `or` (lowest)
 
 ---
 
@@ -468,6 +494,10 @@ area {m^2} = rect.Width * rect.Length if myShape is Rectangle rect
 - An `otherwise` branch is always required when using pattern matching
 - Binding variables are only in scope within their branch body
 - The binding has the matched type, enabling access to type-specific properties
+
+> **Note:** Consider whether pattern binding variables are needed for your use case.
+> When matching against a prototype without a binding, you can access prototype-defined 
+> properties directly on the scrutinee variable within the branch body.
 
 ---
 

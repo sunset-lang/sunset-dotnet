@@ -137,6 +137,38 @@ public class NameResolver(ErrorLog log) : INameResolver
                 // Pass through from the name to the variable declaration to the element declaration, if a call expression is used to create a new element instance.
                 if (leftResolved is VariableDeclaration variableDeclaration)
                 {
+                    // Check if the variable has a prototype type annotation - if so, resolve against the prototype interface
+                    if (variableDeclaration.UnitAssignment?.UnitExpression is NameExpression typeNameExpr)
+                    {
+                        var typeDecl = typeNameExpr.GetResolvedDeclaration();
+                        if (typeDecl is PrototypeDeclaration prototypeDeclaration)
+                        {
+                            // Resolve property access against the prototype's interface only
+                            if (dest.Right is NameExpression rightNameExpression)
+                            {
+                                Visit(rightNameExpression, prototypeDeclaration);
+
+                                // If not found in prototype, check if it exists on concrete type for better error message
+                                if (rightNameExpression.GetResolvedDeclaration() == null &&
+                                    variableDeclaration.GetResolvedDeclaration() is ElementDeclaration concreteElement)
+                                {
+                                    var concreteProperty = concreteElement.TryGetDeclaration(rightNameExpression.Name);
+                                    if (concreteProperty != null)
+                                    {
+                                        // Property exists on concrete type but not on prototype - specific error
+                                        Log.Error(new PrototypePropertyAccessError(
+                                            rightNameExpression.Name,
+                                            prototypeDeclaration.Name,
+                                            concreteElement.Name,
+                                            rightNameExpression.Token));
+                                    }
+                                }
+                                return;
+                            }
+                        }
+                    }
+
+                    // Fall through to concrete element resolution
                     if (variableDeclaration.GetResolvedDeclaration() is ElementDeclaration elementDeclaration)
                     {
                         // Use the left scope as the parent scope for the right name expression.
@@ -155,6 +187,18 @@ public class NameResolver(ErrorLog log) : INameResolver
                     if (dest.Right is NameExpression rightNameExpression)
                     {
                         Visit(rightNameExpression, patternBindingVariable.BoundElementType);
+                        return;
+                    }
+                }
+
+                // Handle prototype binding variables (e.g., s.Area where s is bound to a prototype in pattern matching)
+                if (leftResolved is PrototypeBindingVariable protoBindingVariable)
+                {
+                    // Use the bound prototype type as the scope for the right name expression
+                    // This restricts access to only prototype-defined properties
+                    if (dest.Right is NameExpression rightNameExpression)
+                    {
+                        Visit(rightNameExpression, protoBindingVariable.BoundPrototypeType);
                         return;
                     }
                 }
@@ -403,18 +447,24 @@ public class NameResolver(ErrorLog log) : INameResolver
                                 elementDecl);
                             Visit(ifBranch.Body, bindingScope);
                         }
-                        else if (ifBranch.Pattern.BindingNameToken != null && typeDecl is PrototypeDeclaration)
+                        else if (typeDecl is PrototypeDeclaration prototypeDecl)
                         {
-                            // For prototype patterns, we can't create a binding scope directly
-                            // because we don't know the concrete element type at compile time.
-                            // The binding will be resolved at runtime.
-                            // For now, just resolve the body in the parent scope
-                            // TODO: Consider creating a PrototypeBindingScope that allows property access
-                            Visit(ifBranch.Body, parentScope);
-                        }
-                        else
-                        {
-                            Visit(ifBranch.Body, parentScope);
+                            if (ifBranch.Pattern.BindingNameToken != null)
+                            {
+                                // For prototype patterns with binding, create a scope that provides
+                                // access to prototype-defined properties on the binding variable
+                                var bindingScope = new PrototypeBindingScope(
+                                    parentScope,
+                                    ifBranch.Pattern.BindingNameToken.ToString(),
+                                    prototypeDecl,
+                                    ifBranch.Pattern.BindingNameToken);
+                                Visit(ifBranch.Body, bindingScope);
+                            }
+                            else
+                            {
+                                // No binding, just resolve in parent scope
+                                Visit(ifBranch.Body, parentScope);
+                            }
                         }
                     }
                     else
@@ -570,8 +620,11 @@ public class NameResolver(ErrorLog log) : INameResolver
             throw new Exception("All variables should have a parent scope. Parent scope not found for this variable.");
         }
 
-        // Resolve all names within the expression.
-        Visit(dest.Expression, dest.ParentScope);
+        // Resolve all names within the expression (if present - required inputs have no expression)
+        if (dest.Expression != null)
+        {
+            Visit(dest.Expression, dest.ParentScope);
+        }
 
         // Resolve names in the declared unit assignment if present (e.g., x {m} = ...)
         if (dest.UnitAssignment != null)

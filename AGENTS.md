@@ -169,3 +169,7 @@ env.Analyse();
 - Analysis passes are pure functions—don't mutate AST during analysis
 - Use base SI units internally; convert only for display
 - Expression operators perform automatic simplification at construction
+
+## Documentation Requirements
+
+All changes to language features and syntax must be accompanied by an update to `docs/user/reference.md`. This ensures the language reference stays in sync with the implementation.

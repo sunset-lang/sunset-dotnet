@@ -1,4 +1,4 @@
-﻿using Sunset.Parser.Expressions;
+using Sunset.Parser.Expressions;
 
 namespace Sunset.Parser.Visitors;
 
@@ -7,5 +7,8 @@ namespace Sunset.Parser.Visitors;
 /// </summary>
 public interface IEvaluationTarget : IVisitable
 {
-    IExpression Expression { get; }
+    /// <summary>
+    /// The expression that defines the value. May be null for required inputs.
+    /// </summary>
+    IExpression? Expression { get; }
 }

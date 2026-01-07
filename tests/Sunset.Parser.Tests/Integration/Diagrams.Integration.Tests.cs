@@ -156,7 +156,7 @@ public class DiagramsIntegrationTests
     // =========================================================================
 
     [Test]
-    [Ignore("Blocked by string comparison in if expressions bug - Format == \"SVG\" not parsing correctly inside elements")]
+    [Ignore("Blocked by: Diagrams/Core.sun uses unsupported syntax - parser throws 'Expected an identifier' when parsing the module")]
     public void Import_DiagramsCore_ResolvesFromStandardLibrary()
     {
         // This should resolve to StandardLibrary/Diagrams/Core.sun
@@ -179,7 +179,7 @@ public class DiagramsIntegrationTests
     }
 
     [Test]
-    [Ignore("Blocked by string comparison in if expressions bug and forward reference resolution in imports")]
+    [Ignore("Blocked by: Diagrams module chain has unresolved element declarations during evaluation")]
     public void Import_Diagrams_ResolvesAllModules()
     {
         // This should resolve to StandardLibrary/Diagrams/Diagrams.sun which imports all modules

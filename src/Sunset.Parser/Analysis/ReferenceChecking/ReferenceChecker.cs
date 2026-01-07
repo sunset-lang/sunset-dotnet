@@ -247,6 +247,13 @@ public class ReferenceChecker(ErrorLog log)
             return cachedReferences;
         }
 
+        // Required inputs have no expression to check for references
+        if (dest.Expression == null)
+        {
+            dest.SetReferences([]);
+            return [];
+        }
+
         // Capture a cyclic reference if this variable has already been visited
         if (visited.Contains(dest))
         {

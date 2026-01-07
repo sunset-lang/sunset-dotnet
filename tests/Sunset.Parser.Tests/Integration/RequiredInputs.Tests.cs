@@ -20,7 +20,6 @@ public class RequiredInputsTests
     #region Parsing Tests
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void Parse_RequiredInput_NoExpression_ParsesSuccessfully()
     {
         var sourceFile = SourceFile.FromString("""
@@ -44,7 +43,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void Parse_OptionalInput_HasExpression_ParsesSuccessfully()
     {
         var sourceFile = SourceFile.FromString("""
@@ -68,7 +66,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void Parse_MixedInputs_ParsesSuccessfully()
     {
         var sourceFile = SourceFile.FromString("""
@@ -98,7 +95,6 @@ public class RequiredInputsTests
     #region Type Checking - Required Input Validation
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void TypeCheck_RequiredInputProvided_NamedArgument_NoError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -121,7 +117,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void TypeCheck_RequiredInputProvided_PositionalArgument_NoError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -144,7 +139,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void TypeCheck_RequiredInputNotProvided_GeneratesError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -171,7 +165,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void TypeCheck_MultipleRequiredInputs_AllProvided_NoError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -199,7 +192,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void TypeCheck_MultipleRequiredInputs_OneMissing_GeneratesError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -224,7 +216,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void TypeCheck_MixedInputs_RequiredProvided_OptionalUseDefault_NoError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -257,7 +248,6 @@ public class RequiredInputsTests
     #region Evaluation Tests
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void Evaluate_RequiredInputWithNamedArgument_CorrectValue()
     {
         var sourceFile = SourceFile.FromString("""
@@ -286,7 +276,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void Evaluate_RequiredInputWithPositionalArgument_CorrectValue()
     {
         var sourceFile = SourceFile.FromString("""
@@ -319,7 +308,6 @@ public class RequiredInputsTests
     #region Element Type Required Inputs
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
     public void Parse_RequiredInputWithElementType_ParsesSuccessfully()
     {
         var sourceFile = SourceFile.FromString("""
@@ -352,7 +340,7 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Multi-line function calls and element type annotations together have parsing issues")]
+    [Ignore("Blocked by: Required inputs with element type annotations (e.g., 'Start {ElementType}') need semantic analysis fix for accessing properties via dot operator")]
     public void TypeCheck_RequiredElementTypeInput_Provided_NoError()
     {
         var sourceFile = SourceFile.FromString("""

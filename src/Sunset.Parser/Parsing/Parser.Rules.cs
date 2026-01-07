@@ -322,6 +322,16 @@ public partial class Parser
         var arguments = new List<IArgument>();
         while (parser._current.Type != TokenType.EndOfFile)
         {
+            // Consume any newlines before trying to parse an argument
+            // This enables multi-line function calls with arguments on separate lines
+            parser.ConsumeNewlines();
+            
+            // Check for close parenthesis after newlines (handles trailing commas and empty calls)
+            if (parser._current.Type == TokenType.CloseParenthesis)
+            {
+                break;
+            }
+            
             // Try to parse a named argument first (name = expression)
             var namedArgument = parser.TryGetNamedArgument();
             if (namedArgument != null)
@@ -336,12 +346,23 @@ public partial class Parser
                 arguments.Add(positionalArgument);
             }
 
+            // Consume newlines after argument, then check for end or comma
+            parser.ConsumeNewlines();
+            
             if (parser._current.Type == TokenType.CloseParenthesis)
             {
                 break;
             }
 
-            // Consume a comma to separate arguments
+            // Expect a comma between arguments
+            if (parser._current.Type != TokenType.Comma)
+            {
+                // No comma and not close paren - likely an error, but don't log here
+                // The loop will try to parse another argument which will fail gracefully
+                break;
+            }
+            
+            // Consume the comma and any newlines after it
             parser.Consume(TokenType.Comma, false, true);
         }
 

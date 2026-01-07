@@ -13,8 +13,11 @@ public partial class Parser
         Dictionary<TokenType, (Func<Parser, IExpression>? prefixParse, Func<Parser, IExpression, IExpression>?
             infixParse, Precedence infixPrecedence)> ParsingRules = new()
         {
-            { TokenType.Equal, (null, Binary, Precedence.Equality) },
-            { TokenType.NotEqual, (null, Binary, Precedence.Equality) },
+        { TokenType.Or, (null, Binary, Precedence.Or) },
+        { TokenType.And, (null, Binary, Precedence.And) },
+        { TokenType.Not, (UnaryNot, null, Precedence.None) },
+        { TokenType.Equal, (null, Binary, Precedence.Equality) },
+        { TokenType.NotEqual, (null, Binary, Precedence.Equality) },
             { TokenType.OpenAngleBracket, (null, Binary, Precedence.Comparison) },
             { TokenType.LessThan, (null, Binary, Precedence.Comparison) },
             { TokenType.LessThanOrEqual, (null, Binary, Precedence.Comparison) },
@@ -69,6 +72,13 @@ public partial class Parser
     private static UnaryExpression Unary(Parser parser)
     {
         if (parser.Consume(TokenType.Minus) is not Token operatorToken) throw new Exception("Expected a minus token");
+        var operand = parser.GetArithmeticExpression(Precedence.Unary);
+        return new UnaryExpression(operatorToken, operand);
+    }
+
+    private static UnaryExpression UnaryNot(Parser parser)
+    {
+        if (parser.Consume(TokenType.Not) is not IToken operatorToken) throw new Exception("Expected 'not' token");
         var operand = parser.GetArithmeticExpression(Precedence.Unary);
         return new UnaryExpression(operatorToken, operand);
     }
@@ -228,11 +238,13 @@ public partial class Parser
     private static BinaryExpression Binary(Parser parser, IExpression left)
     {
         // TODO: This could be handled better with Consume
-        if (parser._current is not Token operatorToken) throw new Exception("Expected an operator token");
+        // Note: Keywords like 'and', 'or' are StringToken, not Token, so we check for IToken
+        if (parser._current is not IToken currentToken) throw new Exception("Expected an operator token");
+        IToken operatorToken = currentToken;
 
         // Check for <= and >= operators. This is not a double character token to avoid issues with symbol assignments next 
         // to the assignment operators, e.g. <x> = 1 being different to <x>=1
-        if (operatorToken.Type is TokenType.OpenAngleBracket or TokenType.CloseAngleBracket)
+        if (currentToken.Type is TokenType.OpenAngleBracket or TokenType.CloseAngleBracket)
         {
             var nextToken = parser.Peek();
             if (nextToken is { Type: TokenType.Equal })
@@ -431,8 +443,8 @@ public partial class Parser
 
     private static BooleanConstant BooleanLiteral(Parser parser)
     {
-        // Try True first, then False
-        var token = parser.Consume(TokenType.True) ?? parser.Consume(TokenType.False);
+        // Try True first (optional), then False
+        var token = parser.Consume(TokenType.True, optional: true) ?? parser.Consume(TokenType.False);
         if (token == null) throw new Exception("Expected a boolean token (true or false)");
         return new BooleanConstant(token);
     }

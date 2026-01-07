@@ -48,7 +48,12 @@ public enum TokenType
     LessThan, // <
     LessThanOrEqual, // <=
     TypeEquality, // is
-    TypeInequalityModifier, // not
+    TypeInequalityModifier, // not (used with 'is not')
+
+    // Boolean operators
+    And, // and
+    Or, // or
+    Not, // not (unary logical negation)
 
     // Brackets
     // ()

@@ -620,8 +620,11 @@ public class NameResolver(ErrorLog log) : INameResolver
             throw new Exception("All variables should have a parent scope. Parent scope not found for this variable.");
         }
 
-        // Resolve all names within the expression.
-        Visit(dest.Expression, dest.ParentScope);
+        // Resolve all names within the expression (if present - required inputs have no expression)
+        if (dest.Expression != null)
+        {
+            Visit(dest.Expression, dest.ParentScope);
+        }
 
         // Resolve names in the declared unit assignment if present (e.g., x {m} = ...)
         if (dest.UnitAssignment != null)

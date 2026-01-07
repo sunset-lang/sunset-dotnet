@@ -156,7 +156,7 @@ public class DiagramsIntegrationTests
     // =========================================================================
 
     [Test]
-    [Ignore("Blocked by: option keyword parsing and other advanced features in Diagrams.Core module")]
+    [Ignore("Blocked by: Other parsing issues in Diagrams module files unrelated to required inputs")]
     public void Import_DiagramsCore_ResolvesFromStandardLibrary()
     {
         // This should resolve to StandardLibrary/Diagrams/Core.sun
@@ -179,7 +179,7 @@ public class DiagramsIntegrationTests
     }
 
     [Test]
-    [Ignore("Blocked by: option keyword parsing and other advanced features in Diagrams library modules")]
+    [Ignore("Blocked by: Other parsing issues in Diagrams module files unrelated to required inputs")]
     public void Import_Diagrams_ResolvesAllModules()
     {
         // This should resolve to StandardLibrary/Diagrams/Diagrams.sun which imports all modules

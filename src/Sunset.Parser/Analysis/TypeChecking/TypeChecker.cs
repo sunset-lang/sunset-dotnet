@@ -155,6 +155,22 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             rightResult = rightOption.UnderlyingType;
         }
 
+        // Handle boolean operators - require boolean operands
+        if (dest.Operator is TokenType.And or TokenType.Or)
+        {
+            if (leftResult is not BooleanType)
+            {
+                Log.Error(new BooleanOperandTypeError(dest.OperatorToken, "left", leftResult?.GetType().Name ?? "null"));
+                return ErrorValueType.Instance;
+            }
+            if (rightResult is not BooleanType)
+            {
+                Log.Error(new BooleanOperandTypeError(dest.OperatorToken, "right", rightResult?.GetType().Name ?? "null"));
+                return ErrorValueType.Instance;
+            }
+            return BooleanType.Instance;
+        }
+
         switch (leftResult)
         {
             case QuantityType leftQuantityType when rightResult is QuantityType rightQuantityType:
@@ -279,6 +295,7 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 // This returns ErrorValueType which signals an error without throwing
                 return ErrorValueType.Instance;
             }
+
             default:
                 throw new NotImplementedException($"Binary expression type checking not implemented for left: {leftResult.GetType()}, right: {rightResult.GetType()}");
         }
@@ -323,7 +340,26 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private IResultType? Visit(UnaryExpression dest)
     {
-        return Visit(dest.Operand);
+        var operandType = Visit(dest.Operand);
+        
+        // Handle 'not' operator - requires boolean operand
+        if (dest.Operator == TokenType.Not)
+        {
+            if (operandType is BooleanType)
+            {
+                return BooleanType.Instance;
+            }
+            if (operandType is ErrorValueType)
+            {
+                return ErrorValueType.Instance;
+            }
+            // Log error for non-boolean operand
+            Log.Error(new BooleanOperandTypeError(dest.OperatorToken, "the", operandType?.GetType().Name ?? "null"));
+            return ErrorValueType.Instance;
+        }
+        
+        // For other unary operators (like negation), return the operand type
+        return operandType;
     }
 
     private IResultType? Visit(GroupingExpression dest)
@@ -609,13 +645,63 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
         // Check that the evaluated type of the call expression is an element
         var resultType = Visit(dest.Target);
-        if (resultType is not ElementType)
+        if (resultType is not ElementType elementType)
         {
             return null;
         }
 
+        // Validate that all required inputs are provided
+        ValidateRequiredInputs(dest, elementType.ElementDeclaration);
+
         dest.SetEvaluatedType(resultType);
         return resultType;
+    }
+
+    /// <summary>
+    /// Validates that all required inputs (inputs without default values) are provided
+    /// when instantiating an element.
+    /// </summary>
+    private void ValidateRequiredInputs(CallExpression dest, ElementDeclaration elementDecl)
+    {
+        if (elementDecl.Inputs == null) return;
+
+        // Collect names of inputs provided via named arguments
+        var providedInputNames = new HashSet<string>();
+        foreach (var argument in dest.Arguments)
+        {
+            if (argument is Argument namedArgument)
+            {
+                var resolvedDecl = namedArgument.ArgumentName.GetResolvedDeclaration();
+                if (resolvedDecl != null)
+                {
+                    providedInputNames.Add(resolvedDecl.Name);
+                }
+            }
+        }
+
+        // Count positional arguments
+        var positionalCount = dest.Arguments.Count(a => a is PositionalArgument);
+
+        // Get the token for error reporting (from the target expression if it's a NameExpression)
+        var errorToken = dest.Target is NameExpression nameExpr ? nameExpr.Token : null;
+
+        // Check each input for required inputs that are not provided
+        for (var i = 0; i < elementDecl.Inputs.Count; i++)
+        {
+            if (elementDecl.Inputs[i] is not VariableDeclaration varDecl) continue;
+            if (!varDecl.IsRequiredInput) continue;
+
+            // Check if provided by name
+            var providedByName = providedInputNames.Contains(varDecl.Name);
+
+            // Check if provided by position
+            var providedByPosition = i < positionalCount;
+
+            if (!providedByName && !providedByPosition && errorToken != null)
+            {
+                Log.Error(new RequiredInputNotProvidedError(errorToken, varDecl, elementDecl));
+            }
+        }
     }
 
     private IResultType? VisitBuiltInFunction(CallExpression dest, IBuiltInFunction function)
@@ -1095,6 +1181,14 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
         }
 
         dest.SetAssignedType(assignedType);
+
+        // Required inputs have no expression - type comes from the type annotation only
+        if (dest.Expression == null)
+        {
+            // For required inputs, the assigned type is the only type information we have
+            dest.SetEvaluatedType(assignedType);
+            return assignedType;
+        }
 
         // Evaluate the units of the calculation expression and set them in the metadata as well.
         var evaluatedType = Visit(dest.Expression);

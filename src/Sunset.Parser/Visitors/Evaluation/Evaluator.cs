@@ -135,6 +135,50 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             }
         }
 
+        // Short-circuit evaluation for boolean operators
+        // Must be handled BEFORE evaluating the right operand
+        if (dest.Operator == TokenType.And)
+        {
+            leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
+            if (leftResult is BooleanResult { Result: false })
+            {
+                // Short-circuit: false and X = false (don't evaluate X)
+                return new BooleanResult(false);
+            }
+            if (leftResult is not BooleanResult leftBoolAnd)
+            {
+                return ErrorResult;
+            }
+            var rightResultAnd = Visit(dest.Right, currentScope);
+            rightResultAnd = ResolveDefaultReturnValue(rightResultAnd, currentScope);
+            if (rightResultAnd is BooleanResult rightBoolAnd)
+            {
+                return new BooleanResult(leftBoolAnd.Result && rightBoolAnd.Result);
+            }
+            return ErrorResult;
+        }
+
+        if (dest.Operator == TokenType.Or)
+        {
+            leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
+            if (leftResult is BooleanResult { Result: true })
+            {
+                // Short-circuit: true or X = true (don't evaluate X)
+                return new BooleanResult(true);
+            }
+            if (leftResult is not BooleanResult leftBoolOr)
+            {
+                return ErrorResult;
+            }
+            var rightResultOr = Visit(dest.Right, currentScope);
+            rightResultOr = ResolveDefaultReturnValue(rightResultOr, currentScope);
+            if (rightResultOr is BooleanResult rightBoolOr)
+            {
+                return new BooleanResult(leftBoolOr.Result || rightBoolOr.Result);
+            }
+            return ErrorResult;
+        }
+
         // For non-dot operators, extract default return value from element instances
         leftResult = ResolveDefaultReturnValue(leftResult, currentScope);
 
@@ -256,6 +300,12 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
                 _ => throw new NotImplementedException()
             };
             return new QuantityResult(operationResultQuantity);
+        }
+
+        // Handle 'not' operator for boolean operands
+        if (dest.Operator == TokenType.Not && operandValue is BooleanResult boolResult)
+        {
+            return new BooleanResult(!boolResult.Result);
         }
 
         Log.Error(new OperationError(dest));
@@ -478,6 +528,13 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         // Get the cached result if there already is one
         var result = dest.GetResult(currentScope);
         if (result != null) return result;
+
+        // Required inputs have no expression - value should have been set via argument
+        // If we reach here without a cached result, it's an error (type checking should have caught this)
+        if (dest.Expression == null)
+        {
+            return ErrorResult;
+        }
 
         // Get the result from visiting the expression
         var value = Visit(dest.Expression, currentScope);

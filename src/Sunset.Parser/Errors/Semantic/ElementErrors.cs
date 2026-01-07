@@ -28,3 +28,20 @@ public class EmptyElementInstantiationError(IToken token) : ISemanticError
     public IToken? StartToken { get; } = token;
     public IToken? EndToken => null;
 }
+
+/// <summary>
+/// Error when a required input is not provided when instantiating an element.
+/// Required inputs are variable declarations without a default value (no '= expression').
+/// </summary>
+public class RequiredInputNotProvidedError(
+    IToken callToken,
+    VariableDeclaration requiredInput,
+    ElementDeclaration element) : ISemanticError
+{
+    public string Message =>
+        $"Required input '{requiredInput.Name}' was not provided when instantiating element '{element.Name}'.";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; } = callToken;
+    public IToken? EndToken => null;
+}

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Sunset.Parser.Expressions;
 using Sunset.Parser.Lexing.Tokens;
 using Sunset.Parser.Parsing.Constants;
@@ -124,11 +124,17 @@ public class Variable : IVariable,
     public List<IVariable> GetDependentVariables()
     {
         if (Expression is VariableDeclaration variableAssignmentExpression &&
-            variableAssignmentExpression.Variable == this)
+            variableAssignmentExpression.Variable == this &&
+            variableAssignmentExpression.Expression != null)
         {
             var result = GetDependentVariables(variableAssignmentExpression.Expression);
             result.Add(this);
             return result;
+        }
+
+        if (Expression == null)
+        {
+            return [];
         }
 
         return GetDependentVariables(Expression);

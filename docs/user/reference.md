@@ -376,15 +376,41 @@ Result <r> = numerator / denominator
 | `is` | Type equality | `Section is Circle` |
 | `is Type binding` | Type match with binding | `Section is Circle circ` |
 
+### Boolean Operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `and` | Logical AND | `x > 0 and x < 10` |
+| `or` | Logical OR | `x < 0 or x > 10` |
+| `not` | Logical NOT (unary) | `not isValid` |
+
+Boolean operators use **short-circuit evaluation**:
+- `and` returns `false` immediately if the left operand is `false`, without evaluating the right operand
+- `or` returns `true` immediately if the left operand is `true`, without evaluating the right operand
+
+```sunset
+// Short-circuit prevents division by zero error
+result = true if x != 0 and (y / x > 1)
+       = false otherwise
+
+// Combining comparisons
+isInRange = (value >= minValue) and (value <= maxValue)
+
+// Using 'not' for negation
+isInvalid = not isValid
+```
+
 ### Operator Precedence
 
 From highest to lowest:
 1. Parentheses `()`
 2. Exponentiation `^`
-3. Unary minus `-`
+3. Unary operators: `-`, `not`
 4. Multiplication `*`, Division `/`
 5. Addition `+`, Subtraction `-`
 6. Comparisons `<`, `<=`, `>`, `>=`, `=`, `!=`
+7. `and`
+8. `or` (lowest)
 
 ---
 

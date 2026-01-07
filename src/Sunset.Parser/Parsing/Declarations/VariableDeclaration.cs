@@ -18,7 +18,7 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
     private readonly SymbolName? _symbolExpression;
     private IScope? _parentScope;
 
-    public VariableDeclaration(IVariable variable, IExpression expression, IScope? parentScope)
+    public VariableDeclaration(IVariable variable, IExpression? expression, IScope? parentScope)
     {
         // Used for API methods
         ParentScope = parentScope;
@@ -34,7 +34,7 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
 
     public VariableDeclaration(
         StringToken nameToken,
-        IExpression expression,
+        IExpression? expression,
         IScope parentScope,
         UnitAssignmentExpression? unitAssignment = null,
         SymbolName? symbolExpression = null,
@@ -102,8 +102,15 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
 
     /// <summary>
     ///     The expression that defines the value of the variable.
+    ///     Null for required inputs that have no default value.
     /// </summary>
-    public IExpression Expression { get; }
+    public IExpression? Expression { get; }
+
+    /// <summary>
+    ///     Indicates whether this variable is a required input (has no default value).
+    ///     Required inputs must be provided when instantiating the containing element.
+    /// </summary>
+    public bool IsRequiredInput => Expression == null;
 
     public string Name { get; }
     public string FullPath { get; }

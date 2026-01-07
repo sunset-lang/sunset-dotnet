@@ -122,3 +122,24 @@ public class InstanceAccessOnNonElementError(IToken token) : ISemanticError
     public IToken? StartToken { get; } = token;
     public IToken? EndToken => null;
 }
+
+/// <summary>
+/// Error when accessing a property on a prototype-typed variable that is not defined
+/// in the prototype interface, even though it exists on the concrete implementation.
+/// This guides users to use pattern matching to access implementation-specific properties.
+/// </summary>
+public class PrototypePropertyAccessError(
+    string propertyName,
+    string prototypeName,
+    string concreteTypeName,
+    IToken token) : ISemanticError
+{
+    public string Message =>
+        $"Property '{propertyName}' is not defined on prototype '{prototypeName}'. " +
+        $"It exists on implementation '{concreteTypeName}'. " +
+        $"Use pattern matching to access implementation-specific properties.";
+
+    public Dictionary<Language, string> Translations { get; } = [];
+    public IToken? StartToken { get; } = token;
+    public IToken? EndToken => null;
+}

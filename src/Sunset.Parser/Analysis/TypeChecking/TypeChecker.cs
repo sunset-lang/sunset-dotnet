@@ -204,9 +204,13 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
                 var resultUnit = BinaryUnitOperation(dest, leftQuantityType.Unit, rightUnitType.Unit);
                 return resultUnit == null ? null : new QuantityType(resultUnit);
             }
-            // String concatenation: string + string
+            // String operations: equality comparison and concatenation
             case StringType when rightResult is StringType:
             {
+                if (dest.Operator is TokenType.Equal or TokenType.NotEqual)
+                {
+                    return BooleanType.Instance;
+                }
                 if (dest.Operator == TokenType.Plus)
                 {
                     return StringType.Instance;
@@ -353,6 +357,13 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
             PatternBindingVariable patternBindingVariable =>
                 // When referencing a pattern binding variable, return the element type it's bound to
                 new ElementType(patternBindingVariable.BoundElementType),
+            PrototypeBindingVariable prototypeBindingVariable =>
+                // When referencing a prototype binding variable, return the prototype type it's bound to
+                new PrototypeType(prototypeBindingVariable.BoundPrototypeType),
+            PrototypeOutputDeclaration prototypeOutputDeclaration =>
+                // When referencing a prototype output (e.g., through pattern matching),
+                // return its declared type based on the unit assignment
+                Visit(prototypeOutputDeclaration),
             null =>
                 // Name resolution error was already logged by NameResolver, propagate error state
                 ErrorValueType.Instance,

@@ -288,8 +288,43 @@ public class ImportResolver
             // Handle re-exports if enabled
             if (ReExportImports)
             {
-                // TODO: Recursively resolve imports in the target file and include them
-                // This requires tracking to avoid infinite recursion
+                // Check if this file has already been processed for imports
+                if (!targetFile.PassData.ContainsKey(nameof(ImportPassData)))
+                {
+                    // Get import declarations from the target file
+                    var targetImports = targetFile.ChildDeclarations.Values
+                        .OfType<ImportDeclaration>()
+                        .ToList();
+                    
+                    if (targetImports.Count > 0)
+                    {
+                        // Recursively resolve imports for the target file
+                        // The processing stack in ResolveImportsForFile will prevent circular imports
+                        var targetResult = ResolveImportsForFile(
+                            targetFile,
+                            null, // We don't have the file path for standard library files
+                            targetImports);
+                        
+                        // Store the result in the target file's pass data
+                        targetFile.PassData[nameof(ImportPassData)] = new ImportPassData 
+                        { 
+                            ResolvedImports = targetResult 
+                        };
+                    }
+                }
+                
+                // Re-export the target file's resolved imports
+                if (targetFile.PassData.TryGetValue(nameof(ImportPassData), out var importData) &&
+                    importData is ImportPassData targetImportData)
+                {
+                    foreach (var (name, decl) in targetImportData.ResolvedImports.DirectImports)
+                    {
+                        if (!result.DirectImports.ContainsKey(name))
+                        {
+                            result.DirectImports[name] = decl;
+                        }
+                    }
+                }
             }
         }
         else if (currentScope is Module || currentScope is Package)
@@ -391,6 +426,47 @@ public class ImportResolver
             foreach (var (name, decl) in targetFile.ExportedDeclarations)
             {
                 result.DirectImports[name] = decl;
+            }
+            
+            // Handle re-exports if enabled
+            if (ReExportImports)
+            {
+                // Check if this file has already been processed for imports
+                if (!targetFile.PassData.ContainsKey(nameof(ImportPassData)))
+                {
+                    // Get import declarations from the target file
+                    var targetImports = targetFile.ChildDeclarations.Values
+                        .OfType<ImportDeclaration>()
+                        .ToList();
+                    
+                    if (targetImports.Count > 0)
+                    {
+                        // Recursively resolve imports for the target file
+                        var targetResult = ResolveImportsForFile(
+                            targetFile,
+                            null,
+                            targetImports);
+                        
+                        // Store the result in the target file's pass data
+                        targetFile.PassData[nameof(ImportPassData)] = new ImportPassData 
+                        { 
+                            ResolvedImports = targetResult 
+                        };
+                    }
+                }
+                
+                // Re-export the target file's resolved imports
+                if (targetFile.PassData.TryGetValue(nameof(ImportPassData), out var importData) &&
+                    importData is ImportPassData targetImportData)
+                {
+                    foreach (var (name, decl) in targetImportData.ResolvedImports.DirectImports)
+                    {
+                        if (!result.DirectImports.ContainsKey(name))
+                        {
+                            result.DirectImports[name] = decl;
+                        }
+                    }
+                }
             }
         }
         else if (currentScope is Module || currentScope is Package)

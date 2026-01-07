@@ -222,8 +222,6 @@ label = "Length: " + Length  // Results in "Length: 100 mm"
 
 ### String Interpolation
 
-> **Status: Not Yet Implemented**
-
 Expressions can be embedded within strings using `::expression::`:
 
 ```sunset
@@ -362,12 +360,14 @@ Result <r> = numerator / denominator
 
 | Operator | Description | Example |
 |----------|-------------|---------|
-| `==` | Equal to | `x == y` |
+| `=` | Equal to | `x = y` |
 | `!=` | Not equal to | `x != y` |
 | `<` | Less than | `x < y` |
 | `<=` | Less than or equal | `x <= y` |
 | `>` | Greater than | `x > y` |
 | `>=` | Greater than or equal | `x >= y` |
+
+> **Note:** The `=` operator is context-sensitive. In assignment contexts (variable declarations), it assigns a value. In condition contexts (if expressions), it tests for equality. This aligns with mathematical notation and is unambiguous because Sunset variables are immutable.
 
 ### Type Comparison Operators
 
@@ -384,7 +384,7 @@ From highest to lowest:
 3. Unary minus `-`
 4. Multiplication `*`, Division `/`
 5. Addition `+`, Subtraction `-`
-6. Comparisons `<`, `<=`, `>`, `>=`, `==`, `!=`
+6. Comparisons `<`, `<=`, `>`, `>=`, `=`, `!=`
 
 ---
 
@@ -468,6 +468,10 @@ area {m^2} = rect.Width * rect.Length if myShape is Rectangle rect
 - An `otherwise` branch is always required when using pattern matching
 - Binding variables are only in scope within their branch body
 - The binding has the matched type, enabling access to type-specific properties
+
+> **Note:** Consider whether pattern binding variables are needed for your use case.
+> When matching against a prototype without a binding, you can access prototype-defined 
+> properties directly on the scrutinee variable within the branch body.
 
 ---
 

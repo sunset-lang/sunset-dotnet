@@ -24,6 +24,7 @@ public static class TokenDefinitions
         { '.', TokenType.Dot },
         { '\\', TokenType.ForwardSlash },
         { '~', TokenType.Tilde },
+        { '?', TokenType.QuestionMark },
         { '\n', TokenType.Newline },
         { '\0', TokenType.EndOfFile }
     };
@@ -31,6 +32,7 @@ public static class TokenDefinitions
     public static readonly Dictionary<(char firstCharacter, char secondCharacter), TokenType> DoubleCharacterTokens =
         new()
         {
+            { ('=', '='), TokenType.Equal },
             { ('!', '='), TokenType.NotEqual },
             { ('#', '#'), TokenType.Documentation },
             { ('s', ':'), TokenType.SymbolAssignment },

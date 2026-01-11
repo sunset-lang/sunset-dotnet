@@ -77,6 +77,7 @@ public enum TokenType
     Comma, // ,
     Colon, // :
     Dot, // .
+    QuestionMark, // ? for private/internal variable declarations
     True, // true
     False, // false
     ErrorValue, // Represents an error passed through the calculations

@@ -156,7 +156,7 @@ public class DiagramsIntegrationTests
     // =========================================================================
 
     [Test]
-    [Ignore("Blocked by: Diagrams/Core.sun uses unsupported syntax - parser throws 'Expected an identifier' when parsing the module")]
+    [Ignore("Blocked by: Interpolated strings in imported elements return error during evaluation (colour.Svg returns Error!)")]
     public void Import_DiagramsCore_ResolvesFromStandardLibrary()
     {
         // This should resolve to StandardLibrary/Diagrams/Core.sun

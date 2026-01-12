@@ -41,12 +41,14 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
         StringToken? descriptionToken = null,
         StringToken? referenceToken = null,
         StringToken? labelToken = null,
-        IToken? returnToken = null)
+        IToken? returnToken = null,
+        IToken? privateToken = null)
     {
         _symbolExpression = symbolExpression;
         NameToken = nameToken;
         UnitAssignment = unitAssignment;
         ReturnToken = returnToken;
+        PrivateToken = privateToken;
 
         ParentScope = parentScope;
         Name = nameToken.Value.ToString();
@@ -92,6 +94,17 @@ public class VariableDeclaration : IDeclaration, IExpression, IEvaluationTarget
     /// Indicates whether this variable is marked as the default return value for its containing element.
     /// </summary>
     public bool IsDefaultReturn => ReturnToken != null;
+
+    /// <summary>
+    /// The token for the '?' prefix if this variable is marked as private/internal.
+    /// Private variables are not exposed in the public API of the containing element.
+    /// </summary>
+    public IToken? PrivateToken { get; }
+
+    /// <summary>
+    /// Indicates whether this variable is marked as private/internal (prefixed with ?).
+    /// </summary>
+    public bool IsPrivate => PrivateToken != null;
 
     public StringToken NameToken { get; }
 

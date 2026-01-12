@@ -487,6 +487,26 @@ public class Lexer
                 continue;
             }
 
+            // Check for escaped quote \"
+            if (_current == '\\' && _peek == '\"')
+            {
+                hasEscapes = true;
+                currentText.Append('\"');
+                Advance(); // Skip backslash
+                Advance(); // Skip quote
+                continue;
+            }
+
+            // Check for escaped backslash \\
+            if (_current == '\\' && _peek == '\\')
+            {
+                hasEscapes = true;
+                currentText.Append('\\');
+                Advance(); // Skip first backslash
+                Advance(); // Skip second backslash
+                continue;
+            }
+
             // Check for interpolation start ::
             if (_current == ':' && _peek == ':')
             {

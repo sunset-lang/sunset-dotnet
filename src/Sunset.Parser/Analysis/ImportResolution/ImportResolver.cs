@@ -1,8 +1,10 @@
+using Sunset.Parser.Analysis.NameResolution;
 using Sunset.Parser.Errors;
 using Sunset.Parser.Errors.Semantic;
 using Sunset.Parser.Packages;
 using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
+using Sunset.Parser.Visitors;
 
 namespace Sunset.Parser.Analysis.ImportResolution;
 
@@ -18,6 +20,11 @@ public class ImportResolver
     /// </summary>
     public const bool ReExportImports = true;
 
+    /// <summary>
+    ///     Pass data key to track if a file has been analyzed.
+    /// </summary>
+    private const string AnalyzedPassDataKey = "ImportResolver.Analyzed";
+
     private readonly PackageRegistry _registry;
     private readonly ErrorLog _log;
     private readonly Package? _standardLibraryPackage;
@@ -27,12 +34,131 @@ public class ImportResolver
     /// </summary>
     private readonly HashSet<string> _processingStack = [];
 
+    /// <summary>
+    ///     Track files currently being analyzed to detect circular dependencies.
+    /// </summary>
+    private readonly HashSet<string> _analyzingStack = [];
+
     public ImportResolver(PackageRegistry registry, ErrorLog log, Package? standardLibraryPackage = null)
     {
         _registry = registry;
         _log = log;
         _standardLibraryPackage = standardLibraryPackage;
     }
+
+    /// <summary>
+    ///     Ensures a file scope has been analyzed (name resolution has run).
+    ///     This is necessary for imported files from StandardLibrary which are parsed but not analyzed.
+    ///     Only applies to StandardLibrary files - external package files are analyzed as part of the
+    ///     main analysis pass.
+    /// </summary>
+    private void EnsureFileAnalyzed(FileScope fileScope)
+    {
+        // Only analyze files from the StandardLibrary package.
+        // External package files are analyzed as part of the main Environment.Analyse() pass
+        // where they have proper access to units and other dependencies.
+        if (!IsStandardLibraryFile(fileScope))
+        {
+            return;
+        }
+
+        // Check if already analyzed
+        if (fileScope.PassData.ContainsKey(AnalyzedPassDataKey))
+        {
+            return;
+        }
+
+        // Check for circular analysis dependency
+        var fileKey = fileScope.FullPath;
+        if (_analyzingStack.Contains(fileKey))
+        {
+            // Circular dependency - file is already being analyzed
+            return;
+        }
+
+        _analyzingStack.Add(fileKey);
+
+        try
+        {
+            // First, resolve imports for this file (if not already done)
+            if (!fileScope.PassData.ContainsKey(nameof(ImportPassData)))
+            {
+                var imports = fileScope.ChildDeclarations.Values
+                    .OfType<ImportDeclaration>()
+                    .ToList();
+
+                if (imports.Count > 0)
+                {
+                    var importResult = ResolveImportsForFile(fileScope, null, imports);
+                    fileScope.PassData[nameof(ImportPassData)] = new ImportPassData
+                    {
+                        ResolvedImports = importResult
+                    };
+                }
+            }
+
+            // Ensure all imported StandardLibrary files are analyzed first
+            // This populates their ImportPassData before we run name resolution
+            if (fileScope.PassData.TryGetValue(nameof(ImportPassData), out var passDataObj) &&
+                passDataObj is ImportPassData importPassData)
+            {
+                foreach (var (_, decl) in importPassData.ResolvedImports.DirectImports)
+                {
+                    // Find the containing FileScope for this declaration
+                    var declScope = decl as IScope ?? decl.ParentScope;
+                    while (declScope != null && declScope is not FileScope)
+                    {
+                        declScope = declScope.ParentScope;
+                    }
+
+                    if (declScope is FileScope importedFile && IsStandardLibraryFile(importedFile))
+                    {
+                        EnsureFileAnalyzed(importedFile);
+                    }
+                }
+            }
+
+            // Run name resolution on the file scope
+            var nameResolver = new NameResolver(_log);
+            nameResolver.Visit(fileScope);
+
+            // Mark as analyzed
+            fileScope.PassData[AnalyzedPassDataKey] = new AnalyzedPassData();
+        }
+        finally
+        {
+            _analyzingStack.Remove(fileKey);
+        }
+    }
+
+    /// <summary>
+    ///     Checks if a file scope belongs to the StandardLibrary package.
+    /// </summary>
+    private bool IsStandardLibraryFile(FileScope fileScope)
+    {
+        if (_standardLibraryPackage == null)
+        {
+            return false;
+        }
+
+        // Walk up the parent scope chain to find the package
+        IScope? current = fileScope.ParentScope;
+        while (current != null)
+        {
+            if (current == _standardLibraryPackage)
+            {
+                return true;
+            }
+            current = current.ParentScope;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Pass data marker indicating a file has been analyzed.
+    /// </summary>
+    private class AnalyzedPassData : IPassData { }
 
     /// <summary>
     ///     Resolves all imports for a file scope.
@@ -247,6 +373,9 @@ public class ImportResolver
                 return result;
             }
 
+            // Ensure the file has been analyzed before accessing its declarations
+            EnsureFileAnalyzed(fileScope);
+
             foreach (var identifierToken in import.SpecificIdentifiers)
             {
                 var identifier = identifierToken.ToString();
@@ -279,6 +408,9 @@ public class ImportResolver
         }
         else if (currentScope is FileScope targetFile)
         {
+            // Ensure the file has been analyzed before accessing its declarations
+            EnsureFileAnalyzed(targetFile);
+
             // Import all exported declarations from the file
             foreach (var (name, decl) in targetFile.ExportedDeclarations)
             {
@@ -379,6 +511,17 @@ public class ImportResolver
             currentScope = nextScope;
         }
 
+        // If we ended up at a Module, check for an "index file" (file with same name as module)
+        // e.g., import Diagrams -> look for Diagrams/Diagrams.sun
+        if (currentScope is Module indexModule)
+        {
+            var indexFile = indexModule.GetChildScope(indexModule.Name);
+            if (indexFile is FileScope indexFileScope)
+            {
+                currentScope = indexFileScope;
+            }
+        }
+
         // Build result based on what we found
         var result = new ImportResolutionResult();
 
@@ -389,6 +532,9 @@ public class ImportResolver
             {
                 return null;
             }
+
+            // Ensure the file has been analyzed before accessing its declarations
+            EnsureFileAnalyzed(fileScope);
 
             foreach (var identifierToken in import.SpecificIdentifiers)
             {
@@ -422,12 +568,15 @@ public class ImportResolver
         }
         else if (currentScope is FileScope targetFile)
         {
+            // Ensure the file has been analyzed before accessing its declarations
+            EnsureFileAnalyzed(targetFile);
+
             // Import all exported declarations from the file
             foreach (var (name, decl) in targetFile.ExportedDeclarations)
             {
                 result.DirectImports[name] = decl;
             }
-            
+
             // Handle re-exports if enabled
             if (ReExportImports)
             {

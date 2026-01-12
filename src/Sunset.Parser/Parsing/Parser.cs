@@ -168,14 +168,14 @@ public partial class Parser
             if (ifToken != null)
             {
                 var condition = GetArithmeticExpression();
-                
+
                 // Check for pattern matching: "if expr is Type [binding]"
                 IsPattern? pattern = null;
                 if (_current.Type == TokenType.TypeEquality)
                 {
                     pattern = GetIsPattern();
                 }
-                
+
                 var branch = new IfBranch(expression, condition, ifToken, pattern);
                 branches.Add(branch);
                 ConsumeNewlines();
@@ -894,6 +894,9 @@ public partial class Parser
         // Check for the 'return' keyword (marks this variable as the default return value)
         IToken? returnToken = Consume(TokenType.Return, optional: true);
 
+        // Check for the '?' prefix (marks this variable as private/internal)
+        IToken? privateToken = Consume(TokenType.QuestionMark, optional: true);
+
         StringToken nameToken;
         SymbolName? symbolExpression = null;
 
@@ -923,7 +926,7 @@ public partial class Parser
             }
             default:
                 // TODO: Handle this error better
-                throw new Exception("Expected an identifier");
+                throw new Exception($"Expected an identifier but got '{_current.Type}'");
         }
 
         UnitAssignmentExpression? unitAssignment = null;
@@ -947,7 +950,7 @@ public partial class Parser
         {
             // Required inputs must end with a newline or EOF
             Consume([TokenType.Newline, TokenType.EndOfFile]);
-            return new VariableDeclaration(nameToken, null, parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
+            return new VariableDeclaration(nameToken, null, parentScope, unitAssignment, symbolExpression, returnToken: returnToken, privateToken: privateToken);
         }
 
         // Check for incomplete expression (e.g., "x =" with no value)
@@ -962,7 +965,7 @@ public partial class Parser
                 _current.LineStart,
                 _current.ColumnStart,
                 _current.SourceFile);
-            return new VariableDeclaration(nameToken, new Constants.ErrorConstant(errorToken), parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
+            return new VariableDeclaration(nameToken, new Constants.ErrorConstant(errorToken), parentScope, unitAssignment, symbolExpression, returnToken: returnToken, privateToken: privateToken);
         }
 
         var expression = GetExpression();
@@ -974,7 +977,7 @@ public partial class Parser
         var isIfExpression = expression is IfExpression;
         Consume([TokenType.Newline, TokenType.EndOfFile], optional: isIfExpression);
 
-        return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression, returnToken: returnToken);
+        return new VariableDeclaration(nameToken, expression, parentScope, unitAssignment, symbolExpression, returnToken: returnToken, privateToken: privateToken);
     }
 
     /// <summary>

@@ -166,6 +166,15 @@ public class NameResolver(ErrorLog log) : INameResolver
                                 return;
                             }
                         }
+                        // Handle element type annotations (e.g., {ReqTestPoint2} on required inputs)
+                        else if (typeDecl is ElementDeclaration elementTypeDeclaration)
+                        {
+                            if (dest.Right is NameExpression rightNameExpression)
+                            {
+                                Visit(rightNameExpression, elementTypeDeclaration);
+                                return;
+                            }
+                        }
                     }
 
                     // Fall through to concrete element resolution

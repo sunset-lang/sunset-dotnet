@@ -340,7 +340,6 @@ public class RequiredInputsTests
     }
 
     [Test]
-    [Ignore("Blocked by: Required inputs with element type annotations (e.g., 'Start {ElementType}') need semantic analysis fix for accessing properties via dot operator")]
     public void TypeCheck_RequiredElementTypeInput_Provided_NoError()
     {
         var sourceFile = SourceFile.FromString("""
@@ -349,7 +348,7 @@ public class RequiredInputsTests
                                                        X {m} = 0 {m}
                                                        Y {m} = 0 {m}
                                                end
-                                               
+
                                                define ReqTestLine2:
                                                    inputs:
                                                        Start {ReqTestPoint2}
@@ -357,7 +356,7 @@ public class RequiredInputsTests
                                                    outputs:
                                                        DeltaX {m} = End.X - Start.X
                                                end
-                                               
+
                                                startPt = ReqTestPoint2(X = 1 {m}, Y = 2 {m})
                                                endPt = ReqTestPoint2(X = 4 {m}, Y = 6 {m})
                                                line = ReqTestLine2(Start = startPt, End = endPt)
@@ -366,7 +365,11 @@ public class RequiredInputsTests
         var environment = new Environment(sourceFile);
         environment.Analyse();
 
-        Console.WriteLine(DebugPrinter.Print(environment));
+        // Check for errors
+        foreach (var error in environment.Log.Errors)
+        {
+            Console.WriteLine($"Error: {error.GetType().Name}: {error.Message}");
+        }
 
         Assert.That(environment.Log.Errors, Is.Empty);
 

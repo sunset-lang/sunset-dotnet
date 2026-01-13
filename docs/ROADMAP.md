@@ -129,6 +129,8 @@ A new file format (`.sunmd`) that combines Markdown with Sunset code blocks. Cod
 **Known Issues:**
 - **Multi-block incremental analysis bug:** Documents with multiple `sunset` code blocks fail due to `Environment.Analyse()` re-analyzing all scopes when each new block is added, causing type-checking errors to cascade. Workaround: use a single code block per document. Fix requires implementing true incremental analysis that only processes newly added scopes.
 - **String conditionals not supported:** Variables with string conditional expressions (e.g. `Result = "OK" if x < 1 = "Not OK" otherwise`) throw `NotImplementedException` during rendering.
+- **String variables not supported:** Any string variable (including simple literals and SVG markup) throws `NotImplementedException` during rendering. This blocks inline diagram generation via string interpolation.
+- **sqrt function rendering:** The `sqrt()` function renders as "Error!" in LaTeX output.
 
 **Implementation Notes:**
 - Uses MarkDig for Markdown parsing

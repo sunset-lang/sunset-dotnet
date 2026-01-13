@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"
+      onload="renderMathInElement(document.body);"></script>
+  <style>
+      body {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 2em;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          line-height: 1.6;
+      }
+      pre {
+          background: #f5f5f5;
+          padding: 1em;
+          overflow-x: auto;
+      }
+      code {
+          background: #f5f5f5;
+          padding: 0.2em 0.4em;
+          border-radius: 3px;
+      }
+      pre code {
+          background: none;
+          padding: 0;
+      }
+      svg {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 1em auto;
+      }
+      .sunmd-error {
+          background: #ffcccc;
+          padding: 1em;
+          border-left: 4px solid red;
+          margin: 1em 0;
+      }
+  </style>
+</head>
+<body>
+  <h1 id="steel-column-section-properties">Steel Column Section Properties</h1>
+<p>This calculation determines the section properties of a rectangular hollow section (RHS) steel column.</p>
+<h2 id="calculations">Calculations</h2>
+<div class="math">
+\[
+\begin{alignedat}{2}
+D &amp;= 200 \text{ mm} \\\\
+B &amp;= 100 \text{ mm} \\\\
+t &amp;= 6 \text{ mm} \\\\
+d &amp;= D - 2 t \\
+&amp;= 200 \text{ mm} - 2 \times 6 \text{ mm} \\
+&amp;= 188 \text{ mm} \\\\
+b &amp;= B - 2 t \\
+&amp;= 100 \text{ mm} - 2 \times 6 \text{ mm} \\
+&amp;= 88 \text{ mm} \\\\
+A_g &amp;= D B - d b \\
+&amp;= 200 \text{ mm} \times 100 \text{ mm} - 188 \text{ mm} \times 88 \text{ mm} \\
+&amp;= 3,456 \text{ mm}^{2} \\\\
+I_x &amp;= \frac{B D^{3} - b d^{3}}{12} \\
+&amp;= \frac{100 \text{ mm} \times \left(200 \text{ mm}\right)^{3} - 88 \text{ mm} \times \left(188 \text{ mm}\right)^{3}}{12} \\
+&amp;= 17.94 \times 10^{-6} \text{ m}^{4} \\\\
+I_y &amp;= \frac{D B^{3} - d b^{3}}{12} \\
+&amp;= \frac{200 \text{ mm} \times \left(100 \text{ mm}\right)^{3} - 188 \text{ mm} \times \left(88 \text{ mm}\right)^{3}}{12} \\
+&amp;= 5.99 \times 10^{6} \text{ mm}^{4} \\\\
+Z_x &amp;= \frac{I_x}{\frac{D}{2}} \\
+&amp;= \frac{17.94 \times 10^{-6} \text{ m}^{4}}{\frac{200 \text{ mm}}{2}} \\
+&amp;= 179.4 \times 10^{3} \text{ mm}^{3} \\\\
+Z_y &amp;= \frac{I_y}{\frac{B}{2}} \\
+&amp;= \frac{5.99 \times 10^{6} \text{ mm}^{4}}{\frac{100 \text{ mm}}{2}} \\
+&amp;= 119.8 \times 10^{3} \text{ mm}^{3} \\
+\end{alignedat}
+\]</div>
+<h2 id="summary">Summary</h2>
+<p>The <strong>200 x 100 x 6 RHS</strong> section has the following calculated properties:</p>
+<ul>
+<li>Gross Area (A_g)</li>
+<li>Second Moment of Area about major axis (I_x) and minor axis (I_y)</li>
+<li>Section Modulus (Z_x, Z_y)</li>
+</ul>
+
+</body>
+</html>

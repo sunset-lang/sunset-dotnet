@@ -160,6 +160,74 @@ sunset build design.sun -o design-report.md --show-symbols --show-values
 sunset build foundations.sun walls.sun roof.sun -o structural-report.md --title "Structural Calculations"
 ```
 
+### sunset render
+
+Renders a SunMd file (`.sunmd`) to Markdown or HTML. SunMd files combine Markdown documentation with embedded Sunset code blocks, which are replaced with LaTeX mathematics and SVG diagrams.
+
+```bash
+sunset render <FILE> [options]
+```
+
+#### Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `<FILE>` | Path to the SunMd source file (`.sunmd`) |
+
+#### Options
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output <FILE>` | Output file path (default: input file with `.md` extension) |
+| `--html` | Output as HTML with KaTeX math rendering instead of Markdown |
+| `--continue` | Continue on errors, showing inline error messages |
+| `--sf, --significant-figures <N>` | Number of significant figures (default: 4) |
+| `--dp, --decimal-places <N>` | Number of decimal places |
+| `--no-color` | Disable colored output |
+
+#### Examples
+
+```bash
+# Render to Markdown
+sunset render calculations.sunmd
+
+# Render to HTML with KaTeX
+sunset render calculations.sunmd --html -o report.html
+
+# Render with custom output path
+sunset render beam-design.sunmd -o docs/beam-design.md
+
+# Continue on errors (show inline error messages)
+sunset render calculations.sunmd --continue
+
+# Render with specific precision
+sunset render calculations.sunmd --sf 6
+```
+
+#### SunMd File Format
+
+SunMd files are Markdown files with `sunset` fenced code blocks:
+
+````markdown
+# My Calculation
+
+Some explanation text.
+
+```sunset
+L {m} = 6 {m}
+w {N/m} = 10000 {N/m}
+M {N m} = w * L^2 / 8
+```
+
+More text explaining the results.
+````
+
+When rendered, the code block is replaced with LaTeX mathematics showing the full calculation with symbolic expressions, numeric substitution, and final results.
+
+See [SunMd Documentation](./sunset-md.md) for the full specification.
+
+---
+
 ### sunset new
 
 Creates a new Sunset module or file from a template.

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"
+      onload="renderMathInElement(document.body);"></script>
+  <style>
+      body {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 2em;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          line-height: 1.6;
+      }
+      pre {
+          background: #f5f5f5;
+          padding: 1em;
+          overflow-x: auto;
+      }
+      code {
+          background: #f5f5f5;
+          padding: 0.2em 0.4em;
+          border-radius: 3px;
+      }
+      pre code {
+          background: none;
+          padding: 0;
+      }
+      svg {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 1em auto;
+      }
+      .sunmd-error {
+          background: #ffcccc;
+          padding: 1em;
+          border-left: 4px solid red;
+          margin: 1em 0;
+      }
+  </style>
+</head>
+<body>
+  <h1 id="simple-beam-calculation">Simple Beam Calculation</h1>
+<p>A quick check of a steel beam.</p>
+<div class="math">
+\[
+\begin{alignedat}{2}
+L &amp;= 6 \text{ m} \\\\
+w &amp;= 21000 \text{ kg s}^{-2} \\\\
+f_y &amp;= 300000000 \text{ Pa} \\\\
+S_x &amp;= 8.1E-07 \text{ m}^{3} \\\\
+M ^ * &amp;= \frac{w L^{2}}{8} \\
+&amp;= \frac{21 \times 10^{3} \text{ kg s}^{-2} \times \left(6 \text{ m}\right)^{2}}{8} \\
+&amp;= 94.5 \times 10^{3} \text{ N m} \\\\
+M_s &amp;= f_y S_x \\
+&amp;= 300 \text{ MPa} \times 810 \text{ mm}^{3} \\
+&amp;= 243 \text{ N m} \\\\
+\eta &amp;= \frac{M ^ *}{M_s} \\
+&amp;= \frac{94.5 \times 10^{3} \text{ N m}}{243 \text{ N m}} \\
+&amp;= 388.9 \\
+\end{alignedat}
+\]</div>
+<p>The beam utilisation ratio is shown above.</p>
+
+</body>
+</html>

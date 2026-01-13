@@ -1,0 +1,44 @@
+# Simply Supported Steel Beam Design
+
+This calculation checks a simply supported steel beam under uniformly distributed loading.
+
+## Calculations
+
+```sunset
+// ===== INPUTS =====
+
+// Geometry
+// NOTE: Should use type inference
+Length <L> = 6 {m}
+
+// Loading
+DeadLoad <w_G> = 5 {kN/m}
+LiveLoad <w_Q> = 10 {kN/m}
+
+// Material - Grade 300 steel
+YieldStrength <f_y> = 300 {MPa}
+
+// Section properties - 310UB46.2
+SectionModulus <Z_ex> {mm^3} = 770e3 {mm^3}
+
+// ===== LOAD COMBINATION =====
+// Ultimate limit state per AS/NZS 1170.0
+
+UltimateLoad <w^*> {kN/m} = 1.2 * DeadLoad + 1.5 * LiveLoad
+
+// ===== BENDING ANALYSIS =====
+// Maximum moment at midspan for simply supported beam with UDL
+
+DesignMoment <M^*> {N m} = UltimateLoad * Length^2 / 8
+
+// ===== SECTION CAPACITY =====
+// Design section moment capacity
+
+Phi <\phi> = 0.9
+MomentCapacity <M_s> {kN m} = YieldStrength * SectionModulus
+DesignMomentCapacity <\phi M_s> {kN m} = Phi * MomentCapacity
+
+// ===== DESIGN CHECK =====
+
+Utilisation <\eta> = DesignMoment / DesignMomentCapacity
+```

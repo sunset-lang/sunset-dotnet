@@ -1,0 +1,39 @@
+# Steel Column Section Properties
+
+This calculation determines the section properties of a rectangular hollow section (RHS) steel column.
+
+## Calculations
+
+```sunset
+// ===== SECTION DIMENSIONS =====
+
+OverallDepth <D> {mm} = 200 {mm}
+OverallWidth <B> {mm} = 100 {mm}
+WallThickness <t> {mm} = 6 {mm}
+
+// Internal dimensions
+InternalDepth <d> {mm} = OverallDepth - 2 * WallThickness
+InternalWidth <b> {mm} = OverallWidth - 2 * WallThickness
+
+// ===== SECTION PROPERTIES =====
+
+// Gross area
+GrossArea <A_g> {mm^2} = OverallDepth * OverallWidth - InternalDepth * InternalWidth
+
+// Second moment of area about major axis (x-x)
+MajorInertia <I_x> {mm^4} = (OverallWidth * OverallDepth^3 - InternalWidth * InternalDepth^3) / 12
+
+// Second moment of area about minor axis (y-y)
+MinorInertia <I_y> {mm^4} = (OverallDepth * OverallWidth^3 - InternalDepth * InternalWidth^3) / 12
+
+// Section modulus
+MajorModulus <Z_x> {mm^3} = MajorInertia / (OverallDepth / 2)
+MinorModulus <Z_y> {mm^3} = MinorInertia / (OverallWidth / 2)
+```
+
+## Summary
+
+The **200 x 100 x 6 RHS** section has the following calculated properties:
+- Gross Area (A_g)
+- Second Moment of Area about major axis (I_x) and minor axis (I_y)
+- Section Modulus (Z_x, Z_y)

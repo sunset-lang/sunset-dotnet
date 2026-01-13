@@ -1,0 +1,18 @@
+# Simple Beam Calculation
+
+A quick check of a steel beam.
+
+```sunset
+// Inputs
+Length <L> {m} = 6 {m}
+DistributedLoad <w> {N/m} = 21000 {N/m}
+YieldStrength <f_y> {Pa} = 300000000 {Pa}
+SectionModulus <S_x> {m^3} = 0.00000081 {m^3}
+
+// Calculations
+MomentStar <M^*> {N m} = DistributedLoad * Length^2 / 8
+MomentCapacity <M_s> {N m} = YieldStrength * SectionModulus
+Utilisation <\eta> = MomentStar / MomentCapacity
+```
+
+The beam utilisation ratio is shown above.

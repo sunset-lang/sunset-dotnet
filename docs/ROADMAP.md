@@ -122,9 +122,13 @@ A new file format (`.sunmd`) that combines Markdown with Sunset code blocks. Cod
 | CLI `render` command | `sunset render file.sunmd` | 🔶 |
 | HTML output | KaTeX rendering with `--html` flag | 🔶 |
 | Error handling | `--continue` flag for inline errors | 🔶 |
+| String conditionals | Render string conditional expressions | ⬜ |
+| Symbol subscript braces | Auto-wrap multi-char subscripts (e.g. `Z_ex` → `Z_{ex}`) | ⬜ |
+| Preserve declared units | Render in declared unit without simplification (e.g. `{kN/m}` stays as kN/m) | ⬜ |
 
 **Known Issues:**
 - **Multi-block incremental analysis bug:** Documents with multiple `sunset` code blocks fail due to `Environment.Analyse()` re-analyzing all scopes when each new block is added, causing type-checking errors to cascade. Workaround: use a single code block per document. Fix requires implementing true incremental analysis that only processes newly added scopes.
+- **String conditionals not supported:** Variables with string conditional expressions (e.g. `Result = "OK" if x < 1 = "Not OK" otherwise`) throw `NotImplementedException` during rendering.
 
 **Implementation Notes:**
 - Uses MarkDig for Markdown parsing
@@ -139,6 +143,22 @@ A new file format (`.sunmd`) that combines Markdown with Sunset code blocks. Cod
 
 ---
 
+## Priority 6: Standard Library
+
+### Units
+**Status:** 🔶 Partially Implemented
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Percentage unit | Add `{percent}` unit to display dimensionless values as percentages (similar to degrees/radians) | ⬜ |
+
+**Implementation Notes:**
+- Percentage should work like angle units where the underlying value is dimensionless but displayed with a `%` symbol
+- `0.5 {percent}` should display as `50%`
+- Conversion: `value {percent}` = `value * 100` for display
+
+---
+
 ## Summary
 
 | Category | Total | 🔶 | ⬜ |
@@ -149,8 +169,9 @@ A new file format (`.sunmd`) that combines Markdown with Sunset code blocks. Cod
 | Element Inheritance | 4 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 2 |
 | Element Groups | 2 | 0 | 2 |
-| SunMd Format | 8 | 8 | 0 |
-| **Total** | **26** | **14** | **12** |
+| SunMd Format | 11 | 8 | 3 |
+| Standard Library | 1 | 0 | 1 |
+| **Total** | **30** | **14** | **16** |
 
 ---
 

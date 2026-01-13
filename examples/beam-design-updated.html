@@ -46,23 +46,15 @@
 <body>
   <h1 id="simply-supported-steel-beam-design">Simply Supported Steel Beam Design</h1>
 <p>This calculation checks a simply supported steel beam under uniformly distributed loading.</p>
-<h2 id="design-parameters">Design Parameters</h2>
-<ul>
-<li><strong>Span:</strong> 6 m</li>
-<li><strong>Dead Load:</strong> 5 kN/m</li>
-<li><strong>Live Load:</strong> 10 kN/m</li>
-<li><strong>Steel Grade:</strong> 300 (f_y = 300 MPa)</li>
-<li><strong>Section:</strong> 310UB46.2 (S_x = 810,000 mm^3)</li>
-</ul>
 <h2 id="calculations">Calculations</h2>
 <div class="math">
 \[
 \begin{alignedat}{2}
 L &amp;= 6 \text{ m} \\\\
-w_G &amp;= 5000 \text{ kg s}^{-2} \\\\
-w_Q &amp;= 10000 \text{ kg s}^{-2} \\\\
-f_y &amp;= 300000000 \text{ Pa} \\\\
-S_x &amp;= 8.1E-07 \text{ m}^{3} \\\\
+w_G &amp;= 5 \text{ kg s}^{-2} \\\\
+w_Q &amp;= 10 \text{ kg s}^{-2} \\\\
+f_y &amp;= 300 \text{ MPa} \\\\
+Z_ex &amp;= 770000 \text{ mm}^{3} \\\\
 w ^ * &amp;= 1.2 w_G + 1.5 w_Q \\
 &amp;= 1.2 \times 5,000 \text{ kg s}^{-2} + 1.5 \times 10,000 \text{ kg s}^{-2} \\
 &amp;= 21 \times 10^{3} \text{ kg s}^{-2} \\\\
@@ -70,23 +62,17 @@ M ^ * &amp;= \frac{w ^ * L^{2}}{8} \\
 &amp;= \frac{21 \times 10^{3} \text{ kg s}^{-2} \times \left(6 \text{ m}\right)^{2}}{8} \\
 &amp;= 94.5 \times 10^{3} \text{ N m} \\\\
 \phi &amp;= 0.9 \\\\
-M_s &amp;= f_y S_x \\
-&amp;= 300 \text{ MPa} \times 810 \text{ mm}^{3} \\
-&amp;= 243 \text{ N m} \\\\
+M_s &amp;= f_y Z_ex \\
+&amp;= 300 \text{ MPa} \times 770 \times 10^{-6} \text{ m}^{3} \\
+&amp;= 231 \times 10^{3} \text{ N m} \\\\
 \phi M_s &amp;= \phi M_s \\
-&amp;= 0.9 \times 243 \text{ N m} \\
-&amp;= 218.7 \text{ N m} \\\\
+&amp;= 0.9 \times 231 \times 10^{3} \text{ N m} \\
+&amp;= 207.9 \times 10^{3} \text{ N m} \\\\
 \eta &amp;= \frac{M ^ *}{\phi M_s} \\
-&amp;= \frac{94.5 \times 10^{3} \text{ N m}}{218.7 \text{ N m}} \\
-&amp;= 432.1 \\
+&amp;= \frac{94.5 \times 10^{3} \text{ N m}}{207.9 \times 10^{3} \text{ N m}} \\
+&amp;= 0.4545 \\
 \end{alignedat}
 \]</div>
-<h2 id="summary">Summary</h2>
-<p>The beam utilisation ratio indicates whether the section is adequate:</p>
-<ul>
-<li><strong>Utilisation &lt; 1.0:</strong> Section is adequate</li>
-<li><strong>Utilisation &gt; 1.0:</strong> Section is inadequate, select a larger section</li>
-</ul>
 
 </body>
 </html>

@@ -16,38 +16,38 @@ This calculation checks a simply supported steel beam under uniformly distribute
 // ===== INPUTS =====
 
 // Geometry
-L {m} = 6 {m}
+Length <L> {m} = 6 {m}
 
 // Loading
-w_dead {N/m} = 5000 {N/m}
-w_live {N/m} = 10000 {N/m}
+DeadLoad <w_G> {N/m} = 5000 {N/m}
+LiveLoad <w_Q> {N/m} = 10000 {N/m}
 
 // Material - Grade 300 steel
-f_y {Pa} = 300000000 {Pa}
+YieldStrength <f_y> {Pa} = 300000000 {Pa}
 
 // Section properties - 310UB46.2
-S_x {m^3} = 0.00000081 {m^3}
+SectionModulus <S_x> {m^3} = 0.00000081 {m^3}
 
 // ===== LOAD COMBINATION =====
 // Ultimate limit state per AS/NZS 1170.0
 
-w_uls {N/m} = 1.2 * w_dead + 1.5 * w_live
+UltimateLoad <w^*> {N/m} = 1.2 * DeadLoad + 1.5 * LiveLoad
 
 // ===== BENDING ANALYSIS =====
 // Maximum moment at midspan for simply supported beam with UDL
 
-M_star {N m} = w_uls * L^2 / 8
+MomentStar <M^*> {N m} = UltimateLoad * Length^2 / 8
 
 // ===== SECTION CAPACITY =====
 // Design section moment capacity
 
-phi = 0.9
-M_s {N m} = f_y * S_x
-phi_M_s {N m} = phi * M_s
+Phi <\phi> = 0.9
+MomentCapacity <M_s> {N m} = YieldStrength * SectionModulus
+DesignMomentCapacity <\phi M_s> {N m} = Phi * MomentCapacity
 
 // ===== DESIGN CHECK =====
 
-utilisation = M_star / phi_M_s
+Utilisation <\eta> = MomentStar / DesignMomentCapacity
 ```
 
 ## Summary

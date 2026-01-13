@@ -123,6 +123,8 @@ A new file format (`.sunmd`) that combines Markdown with Sunset code blocks. Cod
 | HTML output | KaTeX rendering with `--html` flag | 🔶 |
 | Error handling | `--continue` flag for inline errors | 🔶 |
 | String conditionals | Render string conditional expressions | ⬜ |
+| String variables | Render string literals and concatenated strings | ⬜ |
+| sqrt function | Render `sqrt()` as LaTeX `\sqrt{}` | ⬜ |
 | Symbol subscript braces | Auto-wrap multi-char subscripts (e.g. `Z_ex` → `Z_{ex}`) | ⬜ |
 | Preserve declared units | Render in declared unit without simplification (e.g. `{kN/m}` stays as kN/m) | ⬜ |
 
@@ -171,9 +173,9 @@ A new file format (`.sunmd`) that combines Markdown with Sunset code blocks. Cod
 | Element Inheritance | 4 | 0 | 4 |
 | Anonymous Elements | 2 | 0 | 2 |
 | Element Groups | 2 | 0 | 2 |
-| SunMd Format | 11 | 8 | 3 |
+| SunMd Format | 13 | 8 | 5 |
 | Standard Library | 1 | 0 | 1 |
-| **Total** | **30** | **14** | **16** |
+| **Total** | **32** | **14** | **18** |
 
 ---
 

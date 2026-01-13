@@ -10,5 +10,6 @@ rootCommand.AddCommand(BuildCommand.Create());
 rootCommand.AddCommand(NewCommand.Create());
 rootCommand.AddCommand(WatchCommand.Create());
 rootCommand.AddCommand(ReplCommand.Create());
+rootCommand.AddCommand(RenderCommand.Create());
 
 return await rootCommand.InvokeAsync(args);

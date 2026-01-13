@@ -1,0 +1,57 @@
+# Simply Supported Steel Beam Design
+
+This calculation checks a simply supported steel beam under uniformly distributed loading.
+
+## Design Parameters
+
+- **Span:** 6 m
+- **Dead Load:** 5 kN/m
+- **Live Load:** 10 kN/m
+- **Steel Grade:** 300 (f_y = 300 MPa)
+- **Section:** 310UB46.2 (S_x = 810,000 mm^3)
+
+## Calculations
+
+```sunset
+// ===== INPUTS =====
+
+// Geometry
+L {m} = 6 {m}
+
+// Loading
+w_dead {N/m} = 5000 {N/m}
+w_live {N/m} = 10000 {N/m}
+
+// Material - Grade 300 steel
+f_y {Pa} = 300000000 {Pa}
+
+// Section properties - 310UB46.2
+S_x {m^3} = 0.00000081 {m^3}
+
+// ===== LOAD COMBINATION =====
+// Ultimate limit state per AS/NZS 1170.0
+
+w_uls {N/m} = 1.2 * w_dead + 1.5 * w_live
+
+// ===== BENDING ANALYSIS =====
+// Maximum moment at midspan for simply supported beam with UDL
+
+M_star {N m} = w_uls * L^2 / 8
+
+// ===== SECTION CAPACITY =====
+// Design section moment capacity
+
+phi = 0.9
+M_s {N m} = f_y * S_x
+phi_M_s {N m} = phi * M_s
+
+// ===== DESIGN CHECK =====
+
+utilisation = M_star / phi_M_s
+```
+
+## Summary
+
+The beam utilisation ratio indicates whether the section is adequate:
+- **Utilisation < 1.0:** Section is adequate
+- **Utilisation > 1.0:** Section is inadequate, select a larger section

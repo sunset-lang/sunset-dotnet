@@ -1,0 +1,97 @@
+// Sunset Diagramming Standard Library - Render Module
+// Generates SVG output from diagram definitions.
+// This module is separate from core.sun to avoid circular dependencies.
+
+// Units and dimensions are loaded automatically from StandardLibrary
+// Note: DiagramElement and RGBA are used as type annotations from Core
+
+// =============================================================================
+// SVG DOCUMENT GENERATOR
+// =============================================================================
+
+/// Generates a complete SVG document from diagram elements.
+/// ViewportWidth and ViewportHeight are injected from the parent Diagram.
+define DrawSVG:
+    inputs:
+        /// Width of the SVG viewport in pixels (injected from Diagram)
+        ViewportWidth = 400
+        /// Height of the SVG viewport in pixels (injected from Diagram)
+        ViewportHeight = 300
+        /// Construction/reference geometry (optional, for debugging)
+        References = []
+        /// Main elements to render
+        Elements = []
+    outputs:
+        // SVG document header
+        ?header {text} = """<svg
+            width="::ViewportWidth::"
+            height="::ViewportHeight::"
+            xmlns="http://www.w3.org/2000/svg"
+            style="background-color: white;">"""
+
+        // SVG document footer
+        ?footer {text} = "</svg>"
+
+        // Render main elements
+        ?elementDrawings {text} = Elements.select(value.Draw).join("\n")
+
+        /// Complete SVG document as a string
+        return Draw {text} = header + "\n" + elementDrawings + "\n" + footer
+end
+
+// =============================================================================
+// SVG UTILITIES
+// =============================================================================
+
+/// Wraps content in an SVG group with optional transform.
+define SvgGroup:
+    inputs:
+        /// Content to wrap
+        Content {text} = ""
+        /// Optional CSS class
+        Class {text} = ""
+        /// Optional transform (e.g., "translate(10, 20)")
+        Transform {text} = ""
+    outputs:
+        ?classAttr {text} = "" if Class == ""
+            = " class=\"::Class::\"" otherwise
+
+        ?transformAttr {text} = "" if Transform == ""
+            = " transform=\"::Transform::\"" otherwise
+
+        return Draw {text} = "<g::classAttr::::transformAttr::>\n::Content::\n</g>"
+end
+
+/// Creates an SVG text element.
+define SvgText:
+    inputs:
+        /// Text content
+        Text {text} = ""
+        /// X position in pixels
+        x = 0
+        /// Y position in pixels
+        y = 0
+        /// Font size in pixels
+        FontSize = 12
+        /// Text anchor: "start", "middle", or "end"
+        Anchor {text} = "start"
+        /// Fill colour (RGB values 0-255)
+        FillR = 0
+        FillG = 0
+        FillB = 0
+    outputs:
+        ?fillColour {text} = "rgb(::FillR::,::FillG::,::FillB::)"
+        return Draw {text} = """<text
+            x="::x::" y="::y::"
+            font-size="::FontSize::"
+            text-anchor="::Anchor::"
+            fill="::fillColour::"
+        >::Text::</text>"""
+end
+
+// =============================================================================
+// FUTURE: TYPST/CETZ RENDERER
+// =============================================================================
+
+// A Typst/CeTZ renderer will be added in a future version to support
+// Typst document output alongside SVG.

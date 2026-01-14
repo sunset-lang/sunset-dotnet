@@ -202,14 +202,27 @@ public class SunMdProcessor
         {
             var result = varDecl.GetResult(scope);
 
-            if (result != null && DiagramDetector.IsDiagramElement(result))
+            if (result != null && DiagramDetector.IsDiagram(result))
             {
-                var svg = DiagramDetector.TryExtractSvg(result, scope);
+                var svg = DiagramDetector.TryExtractSvgFromAny(result, scope);
                 if (svg != null)
                 {
                     diagrams.Add((varDecl, svg));
                     continue;
                 }
+            }
+
+            // Skip string results that are not diagrams - they cannot be rendered as LaTeX
+            if (result is StringResult)
+            {
+                continue;
+            }
+
+            // Skip private variables (prefixed with ?) and hidden variables (prefixed with _)
+            // These are typically intermediate calculations not intended for display
+            if (varDecl.IsPrivate || varDecl.Name.StartsWith("_"))
+            {
+                continue;
             }
 
             calculations.Add(varDecl);

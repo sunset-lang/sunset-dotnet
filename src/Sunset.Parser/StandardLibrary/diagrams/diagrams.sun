@@ -82,6 +82,7 @@
 // Rendering:
 //   - DrawSVG: Generate SVG document
 
+import Diagrams.Render
 import Diagrams.Core
 import Diagrams.Geometry
 import Diagrams.Shapes

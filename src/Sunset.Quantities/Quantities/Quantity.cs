@@ -29,6 +29,8 @@ public partial class Quantity : IQuantity
 
     public Unit Unit { get; private set; } = DefinedUnits.Dimensionless;
 
+    public bool HasExplicitUnit { get; private set; }
+
     public void SimplifyUnits()
     {
         var simplifiedUnit = Unit.Simplify(ConvertedValue);
@@ -53,6 +55,7 @@ public partial class Quantity : IQuantity
         return new Quantity(BaseValue)
         {
             Unit = Unit,
+            HasExplicitUnit = HasExplicitUnit,
         };
     }
 
@@ -62,18 +65,20 @@ public partial class Quantity : IQuantity
     }
 
 
-    public void SetUnits(Unit unit)
+    public void SetUnits(Unit unit, bool isExplicit = false)
     {
         if (Unit.IsDimensionless)
         {
             Unit = unit;
             // Convert values to the new unit if the previous unit is dimensionless
             BaseValue *= unit.GetConversionFactorToBase();
+            HasExplicitUnit = isExplicit;
             return;
         }
 
         if (!Unit.EqualDimensions(unit, Unit)) throw new ArgumentException("Units do not have the same dimensions.");
         Unit = unit;
+        HasExplicitUnit = isExplicit;
     }
 
     public override string ToString()

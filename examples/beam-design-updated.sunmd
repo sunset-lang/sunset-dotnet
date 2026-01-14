@@ -40,5 +40,5 @@ DesignMomentCapacity <\phi M_s> {kN m} = Phi * MomentCapacity
 
 // ===== DESIGN CHECK =====
 
-Utilisation <\eta> = DesignMoment / DesignMomentCapacity
+Utilisation <\eta> {percent} = DesignMoment / DesignMomentCapacity
 ```

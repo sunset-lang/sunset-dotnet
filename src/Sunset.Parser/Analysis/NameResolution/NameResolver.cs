@@ -246,6 +246,13 @@ public class NameResolver(ErrorLog log) : INameResolver
             return;
         }
 
+        // Handle built-in percent unit which is not declared in StandardLibrary
+        // but is a special dimensionless unit handled by PercentUnit
+        if (dest.Name is "percent" or "%")
+        {
+            return;
+        }
+
         var declaration = SearchParentsForName(dest.Name, parentScope, dest.Token);
 
         if (declaration != null)

@@ -81,9 +81,27 @@ public abstract class ValueExpressionPrinter(PrinterSettings settings, EquationC
         };
     }
 
+    protected override string Visit(CallExpression dest, IScope currentScope)
+    {
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc != null && dest.Arguments.Count > 0)
+        {
+            var argValue = Visit(dest.Arguments[0].Expression, currentScope);
+
+            if (builtInFunc.Name == "sqrt")
+                return Eq.Sqrt(argValue);
+
+            return Eq.MathFunction(builtInFunc.Name, argValue);
+        }
+
+        throw new NotImplementedException("Non-builtin CallExpression rendering not yet supported");
+    }
+
     protected override string Visit(StringConstant dest)
     {
-        throw new NotImplementedException();
+        // Trim quotes and wrap in LaTeX text formatting
+        var text = dest.Token.ToString().Trim('"');
+        return Eq.Text(text);
     }
 
     protected override string Visit(UnitConstant dest)

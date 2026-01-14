@@ -99,4 +99,35 @@ public class MarkdownEquationComponents : EquationComponents
     {
         return BeginArray + "{" + alignment + "}";
     }
+
+    public override string Sqrt(string argument)
+    {
+        return $"\\sqrt{{{argument}}}";
+    }
+
+    public override string MathFunction(string functionName, string argument)
+    {
+        // LaTeX trig functions: \sin, \cos, \tan, \arcsin, \arccos, \arctan
+        var latexName = functionName switch
+        {
+            "asin" => "arcsin",
+            "acos" => "arccos",
+            "atan" => "arctan",
+            _ => functionName
+        };
+        return $"\\{latexName}\\left({argument}\\right)";
+    }
+
+    /// <summary>
+    /// Formats a symbol with proper subscript braces for LaTeX.
+    /// Single-char subscripts stay as-is: Z_1 -> Z_1
+    /// Multi-char subscripts get braces: Z_ex -> Z_{ex}
+    /// </summary>
+    public string FormatSymbolWithSubscripts(string symbol)
+    {
+        if (string.IsNullOrEmpty(symbol) || !symbol.Contains('_'))
+            return symbol;
+
+        return Regex.Replace(symbol, @"_([a-zA-Z0-9]{2,})", @"_{$1}");
+    }
 }

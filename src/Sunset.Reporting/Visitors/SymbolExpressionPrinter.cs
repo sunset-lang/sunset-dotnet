@@ -28,11 +28,16 @@ public abstract class SymbolExpressionPrinter(
         {
             // If there is no symbol associated with a variable, just use its name as text.
             VariableDeclaration variableDeclaration => variableDeclaration.Variable.Symbol != string.Empty
-                ? variableDeclaration.Variable.Symbol
+                ? FormatSymbol(variableDeclaration.Variable.Symbol)
                 : Eq.Text(dest.Name),
             _ => throw new NotImplementedException()
         };
     }
+
+    /// <summary>
+    /// Formats a symbol for output. Override in subclasses for format-specific handling.
+    /// </summary>
+    protected virtual string FormatSymbol(string symbol) => symbol;
 
     protected override string Visit(BinaryExpression dest, IScope currentScope)
     {
@@ -112,9 +117,27 @@ public abstract class SymbolExpressionPrinter(
         return dest.Value is NumberConstant ? _valuePrinter.Visit(dest, currentScope) : Visit(dest.Value, currentScope);
     }
 
+    protected override string Visit(CallExpression dest, IScope currentScope)
+    {
+        var builtInFunc = dest.GetBuiltInFunction();
+        if (builtInFunc != null && dest.Arguments.Count > 0)
+        {
+            var argSymbol = Visit(dest.Arguments[0].Expression, currentScope);
+
+            if (builtInFunc.Name == "sqrt")
+                return Eq.Sqrt(argSymbol);
+
+            return Eq.MathFunction(builtInFunc.Name, argSymbol);
+        }
+
+        throw new NotImplementedException("Non-builtin CallExpression rendering not yet supported");
+    }
+
     protected override string Visit(StringConstant dest)
     {
-        throw new NotImplementedException();
+        // Trim quotes and wrap in LaTeX text formatting
+        var text = dest.Token.ToString().Trim('"');
+        return Eq.Text(text);
     }
 
     protected override string Visit(UnitConstant dest)

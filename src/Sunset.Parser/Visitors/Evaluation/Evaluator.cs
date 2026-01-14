@@ -490,7 +490,8 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
         // Units can only be set for quantities
         if (value is QuantityResult quantityResult)
         {
-            quantityResult.Result.SetUnits(unitType.Unit);
+            // Unit assignments are explicit by definition - the user specified the unit
+            quantityResult.Result.SetUnits(unitType.Unit, isExplicit: true);
             return value;
         }
 
@@ -554,7 +555,10 @@ public class Evaluator(ErrorLog log) : IScopedVisitor<IResult>
             if (assignedType != null && evaluatedType != null &&
                 Unit.EqualDimensions(assignedType.Unit, evaluatedType.Unit))
             {
-                quantityResult.Result.SetUnits(assignedType.Unit);
+                // Mark as explicit if there's an explicit unit annotation on the variable,
+                // OR if the quantity already has an explicit unit (from a unit assignment expression)
+                var hasExplicitUnitAnnotation = dest.UnitAssignment != null || quantityResult.Result.HasExplicitUnit;
+                quantityResult.Result.SetUnits(assignedType.Unit, hasExplicitUnitAnnotation);
             }
 
             // Set the default value of the variable to the evaluated quantity

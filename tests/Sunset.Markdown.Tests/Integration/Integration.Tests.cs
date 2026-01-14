@@ -191,7 +191,7 @@ public class IntegrationTests
                        \begin{array}{cl}
                        A &= w l \\
                        &= 200 \text{ mm} \times 350 \text{ mm} \\
-                       &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       &= 70 \times 10^{3} \text{ mm}^{2} \\
                        \end{array}
                        \right.
                        \end{array}
@@ -200,7 +200,7 @@ public class IntegrationTests
                         \\
 
                        \text{Result} &= A_{\text{SquareInstance}} \\
-                       &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       &= 70 \times 10^{3} \text{ mm}^{2} \\
                        """;
         AssertResultingReport(source, expected);
     }
@@ -242,7 +242,7 @@ public class IntegrationTests
                        \begin{array}{cl}
                        A &= w l \\
                        &= 200 \text{ mm} \times 350 \text{ mm} \\
-                       &= 70 \times 10^{-3} \text{ m}^{2} \\
+                       &= 70 \times 10^{3} \text{ mm}^{2} \\
                        \end{array}
                        \right.
                        \end{array}
@@ -251,8 +251,8 @@ public class IntegrationTests
                         \\
 
                        \text{Result} &= A_{\text{SquareInstance}} + 10,000 \text{ mm}^{2} \\
-                       &= 70 \times 10^{-3} \text{ m}^{2} + 10,000 \text{ mm}^{2} \\
-                       &= 80 \times 10^{-3} \text{ m}^{2} \\
+                       &= 70 \times 10^{3} \text{ mm}^{2} + 10,000 \text{ mm}^{2} \\
+                       &= 80 \times 10^{3} \text{ mm}^{2} \\
                        """;
         AssertResultingReport(source, expected);
     }

@@ -114,7 +114,13 @@ public class RuntimeUnitRegistry
     /// </summary>
     /// <param name="symbol">The unit symbol.</param>
     /// <returns>The NamedUnit, or null if not found.</returns>
-    public NamedUnit? GetBySymbol(string symbol) => _unitsBySymbol.GetValueOrDefault(symbol);
+    public NamedUnit? GetBySymbol(string symbol)
+    {
+        // Special case for percent (not registered dynamically to avoid simplification issues)
+        if (symbol is "%" or "percent") return PercentUnit.Instance;
+
+        return _unitsBySymbol.GetValueOrDefault(symbol);
+    }
 
     /// <summary>
     ///     Tries to get a unit by its symbol.

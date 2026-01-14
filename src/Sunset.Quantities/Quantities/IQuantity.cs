@@ -34,13 +34,19 @@ public interface IQuantity
     public IQuantity Clone();
 
     /// <summary>
+    /// Indicates whether the unit was explicitly declared and should not be auto-simplified.
+    /// </summary>
+    public bool HasExplicitUnit { get; }
+
+    /// <summary>
     /// Sets the units of a quantity to a new unit.
     /// If the original quantity is dimensionless, the base value of the quantity is assumed to be in the units that are set.
     /// For example, if the base value is 1000 and the quantity is currently dimensionless, setting the unit to millimetres
     /// will set the base value to 1 as the base unit is metres.
     /// </summary>
     /// <param name="unit">New unit to assign.</param>
-    public void SetUnits(Unit unit);
+    /// <param name="isExplicit">Whether the unit was explicitly declared by the user.</param>
+    public void SetUnits(Unit unit, bool isExplicit = false);
 
     public Quantity ToQuantity();
 

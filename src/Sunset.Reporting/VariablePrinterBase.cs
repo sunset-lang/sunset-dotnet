@@ -136,8 +136,9 @@ public abstract class VariablePrinterBase(PrinterSettings settings, EquationComp
                 var unit = unitAssignmentExpression.GetEvaluatedType();
                 // If there are no units evaluated (e.g. due to this being defined in code), try to evaluate the units first
                 if (unit == null) TypeChecker.EvaluateExpressionType(unitAssignmentExpression);
+                // Pass simplify: false since UnitAssignmentExpression means the user explicitly declared this unit
                 return variableDisplayName + eq.AlignEquals + quantityConstant.Value +
-                       unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString() + eq.Linebreak;
+                       unitAssignmentExpression.GetEvaluatedUnit()?.ToLatexString(simplify: false) + eq.Linebreak;
             default:
                 throw new NotImplementedException();
         }

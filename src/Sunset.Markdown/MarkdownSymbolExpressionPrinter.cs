@@ -27,4 +27,9 @@ public class MarkdownSymbolExpressionPrinter(
     {
         return $"{Visit(right, currentScope)}_{{{Visit(left, currentScope)}}}";
     }
+
+    protected override string FormatSymbol(string symbol)
+    {
+        return MarkdownEquationComponents.Instance.FormatSymbolWithSubscripts(symbol);
+    }
 }

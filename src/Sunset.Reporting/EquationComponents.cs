@@ -42,4 +42,14 @@ public abstract class EquationComponents
     public abstract string IfBranch(string body, string condition, string? evaluatedCondition, bool? result);
     public abstract string OtherwiseBranch(string body);
     public abstract string BeginArrayWithAlignment(string alignment);
+
+    /// <summary>
+    /// Formats a square root expression.
+    /// </summary>
+    public abstract string Sqrt(string argument);
+
+    /// <summary>
+    /// Formats a mathematical function call (sin, cos, tan, etc.).
+    /// </summary>
+    public abstract string MathFunction(string functionName, string argument);
 }

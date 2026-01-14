@@ -304,20 +304,22 @@ public partial class Unit(UnitSystem unitSystem = UnitSystem.SI) : IAdditionOper
     }
 
     // TODO: Clean up duplicate code between ToString() and ToLatexString() and move to a Unit Printer class
-    public string ToLatexString()
+    public string ToLatexString(bool simplify = true)
     {
         if (this is NamedUnit namedUnit) return $" \\text{{ {namedUnit.Symbol}}}";
 
         if (EqualDimensions(this, Units.DefinedUnits.Dimensionless)) return "";
 
-        var unit = Simplify();
+        // When simplify=true, select best multiples based on value magnitude
+        // When simplify=false, preserve the original unit's factors (for explicit unit declarations)
+        var unit = Simplify(selectBestMultiple: simplify);
 
         // If there is no symbol, generate a LaTeX representation of the unit
 
         var result = " \\text{";
 
         // Rearrange the units into numerators first and denominators last
-        var units = unit.NumeratorBaseUnits.Concat(DenominatorBaseUnits).ToList();
+        var units = unit.NumeratorBaseUnits.Concat(unit.DenominatorBaseUnits).ToList();
 
         // Join each unit symbol with the next symbol
         for (var i = 0; i < units.Count - 1; i++)

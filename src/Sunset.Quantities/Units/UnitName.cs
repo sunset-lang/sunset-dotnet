@@ -46,5 +46,8 @@ public enum UnitName
     // Frequency
     // TODO: Not implemented yet.
     Millihertz,
-    Hertz
+    Hertz,
+
+    // Dimensionless display units
+    Percent
 }

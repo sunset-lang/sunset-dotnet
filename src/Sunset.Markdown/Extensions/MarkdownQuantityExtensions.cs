@@ -3,6 +3,7 @@ using Sunset.Parser.Parsing.Declarations;
 using Sunset.Parser.Scopes;
 using Sunset.Quantities.MathUtilities;
 using Sunset.Quantities.Quantities;
+using Sunset.Quantities.Units;
 using Sunset.Reporting;
 
 namespace Sunset.Markdown.Extensions;
@@ -32,17 +33,36 @@ public static class MarkdownQuantityExtensions
         // Example output for density calculation
         // 2 \text{ kg m}^{-3}
 
-        if (settings.AutoSimplifyUnits) quantity = quantity.WithSimplifiedUnits();
+        // Special handling for percentage unit
+        // 0.5 {percent} displays as 50%
+        if (quantity.Unit is PercentUnit)
+        {
+            var percentValue = quantity.ConvertedValue * 100;
+            var formattedValue = settings.RoundingOption switch
+            {
+                RoundingOption.None => percentValue.ToString(),
+                RoundingOption.Auto => NumberUtilities.ToAutoString(percentValue, settings.SignificantFigures, true),
+                RoundingOption.Engineering => NumberUtilities.ToEngineeringString(percentValue, settings.SignificantFigures),
+                RoundingOption.SignificantFigures => NumberUtilities.ToNumberString(percentValue),
+                _ => percentValue.ToString()
+            };
+            return $"{formattedValue}\\%";
+        }
+
+        // Only auto-simplify if the unit wasn't explicitly declared
+        var shouldSimplify = settings.AutoSimplifyUnits && !quantity.HasExplicitUnit;
+        if (shouldSimplify)
+            quantity = quantity.WithSimplifiedUnits();
 
         return settings.RoundingOption switch
         {
-            RoundingOption.None => $"{quantity.ConvertedValue} {quantity.Unit.ToLatexString()}",
+            RoundingOption.None => $"{quantity.ConvertedValue} {quantity.Unit.ToLatexString(shouldSimplify)}",
             RoundingOption.Auto =>
-                $"{NumberUtilities.ToAutoString(quantity.ConvertedValue, settings.SignificantFigures, true)}{quantity.Unit.ToLatexString()}",
+                $"{NumberUtilities.ToAutoString(quantity.ConvertedValue, settings.SignificantFigures, true)}{quantity.Unit.ToLatexString(shouldSimplify)}",
             RoundingOption.Engineering =>
-                $"{NumberUtilities.ToEngineeringString(quantity.ConvertedValue, settings.SignificantFigures)}{quantity.Unit.ToLatexString()}",
+                $"{NumberUtilities.ToEngineeringString(quantity.ConvertedValue, settings.SignificantFigures)}{quantity.Unit.ToLatexString(shouldSimplify)}",
             RoundingOption.SignificantFigures =>
-                $"{NumberUtilities.ToNumberString(quantity.ConvertedValue)}{quantity.Unit.ToLatexString()}",
+                $"{NumberUtilities.ToNumberString(quantity.ConvertedValue)}{quantity.Unit.ToLatexString(shouldSimplify)}",
             RoundingOption.FixedDecimal or RoundingOption.Scientific => throw new NotImplementedException(),
             _ => throw new Exception("Rounding option not found.")
         };

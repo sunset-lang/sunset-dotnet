@@ -14,6 +14,9 @@ public static class DefinedUnits
     /// <returns>The NamedUnit corresponding to the symbol, or null if such a unit cannot be found.</returns>
     public static NamedUnit? GetBySymbol(string unitSymbol)
     {
+        // Special case for percent (not in UnitList to avoid simplification issues)
+        if (unitSymbol is "%" or "percent") return Percent;
+
         return UnitList.FirstOrDefault(unit => unit.Symbol == unitSymbol);
     }
 
@@ -69,6 +72,9 @@ public static class DefinedUnits
     public static readonly BaseCoherentUnit Radian = new(DimensionName.Angle, UnitName.Radian, "", "rad");
 
     public static readonly NamedUnitMultiple Degree = new(Radian, UnitName.Degree, "", "deg", Math.PI / 180);
+
+    // Percentage unit - dimensionless with special display (value * 100 + %)
+    public static readonly PercentUnit Percent = PercentUnit.Instance;
 
     #endregion
 
@@ -210,8 +216,17 @@ public static class DefinedUnits
     /// <summary>
     ///     A dictionary that maps the symbol of each named coherent unit to the unit itself.
     /// </summary>
-    public static readonly Dictionary<string, NamedUnit> NamedUnits = UnitList
-        .ToDictionary(unit => unit.Symbol, unit => unit);
+    public static readonly Dictionary<string, NamedUnit> NamedUnits = GetNamedUnits();
+
+    private static Dictionary<string, NamedUnit> GetNamedUnits()
+    {
+        var result = UnitList.ToDictionary(unit => unit.Symbol, unit => unit);
+        // Add percent separately (not in UnitList to avoid simplification issues)
+        result[Percent.Symbol] = Percent;
+        // Also add "percent" as an alias for the % symbol
+        result["percent"] = Percent;
+        return result;
+    }
 
     private static Dictionary<NamedUnit, List<NamedUnitMultiple>> GetNamedUnitMultiples()
     {

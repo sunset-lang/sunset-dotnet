@@ -369,6 +369,12 @@ public class TypeChecker(ErrorLog log) : IVisitor<IResultType?>
 
     private IResultType? Visit(NameExpression dest)
     {
+        // Handle built-in percent unit which is not declared in StandardLibrary
+        if (dest.Name is "percent" or "%")
+        {
+            return new UnitType(PercentUnit.Instance);
+        }
+
         // This assumes that name resolution happens first.
         return dest.GetResolvedDeclaration() switch
         {

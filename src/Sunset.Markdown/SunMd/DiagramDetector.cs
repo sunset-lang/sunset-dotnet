@@ -88,4 +88,53 @@ public static class DiagramDetector
         if (!IsDiagramElement(instance)) return null;
         return ExtractSvg(instance, scope);
     }
+
+    /// <summary>
+    ///     Determines whether a StringResult contains SVG content (starts with "&lt;svg").
+    /// </summary>
+    /// <param name="result">The string result to check.</param>
+    /// <returns>True if the string contains SVG content, false otherwise.</returns>
+    public static bool IsSvgString(StringResult result)
+    {
+        if (string.IsNullOrWhiteSpace(result.Result)) return false;
+        return result.Result.TrimStart().StartsWith("<svg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    ///     Determines whether the given result is any diagram source (DiagramElement or SVG string).
+    /// </summary>
+    /// <param name="result">The result to check.</param>
+    /// <returns>True if the result is a diagram source, false otherwise.</returns>
+    public static bool IsDiagram(IResult? result)
+    {
+        // Check for traditional DiagramElement instances
+        if (IsDiagramElement(result))
+            return true;
+
+        // Check for SVG strings
+        if (result is StringResult stringResult && IsSvgString(stringResult))
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Extracts SVG from any diagram source (DiagramElement or StringResult).
+    /// </summary>
+    /// <param name="result">The result to extract from.</param>
+    /// <param name="scope">The scope for evaluation.</param>
+    /// <returns>The SVG string if available, null otherwise.</returns>
+    public static string? TryExtractSvgFromAny(IResult? result, IScope scope)
+    {
+        // Try DiagramElement extraction first
+        var svg = TryExtractSvg(result, scope);
+        if (svg != null)
+            return svg;
+
+        // Try direct SVG string
+        if (result is StringResult stringResult && IsSvgString(stringResult))
+            return stringResult.Result;
+
+        return null;
+    }
 }

@@ -1,11 +1,9 @@
 // Sunset Diagramming Standard Library - Core Module
 // Provides core types, styles, and prototypes for diagram generation.
-//
-// Prerequisites (not yet implemented):
-// - String interpolation: "text ::expression::"
-// - Import statement: import module.path
 
 // Units and dimensions are loaded automatically from StandardLibrary
+// Import render module for DrawSVG used by Diagram element
+import Diagrams.Render
 
 // =============================================================================
 // COLOUR DEFINITIONS

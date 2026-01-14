@@ -2,7 +2,7 @@
 
 This calculation determines the section properties of a rectangular hollow section (RHS) steel column.
 
-## Calculations
+## Section Dimensions
 
 ```sunset
 // ===== SECTION DIMENSIONS =====
@@ -14,7 +14,84 @@ WallThickness <t> {mm} = 6 {mm}
 // Internal dimensions
 InternalDepth <d> {mm} = OverallDepth - 2 * WallThickness
 InternalWidth <b> {mm} = OverallWidth - 2 * WallThickness
+```
 
+## Section Diagram
+
+```sunset
+// ===== SECTION DIAGRAM =====
+// Generate an SVG diagram of the RHS cross-section using the Diagrams library
+
+import Diagrams
+
+// Create diagram container
+// Scale: 1000 pixels per metre (so 1mm = 1px)
+// Viewport sized to fit 200x100mm section with padding
+?_diagram {Diagram} = Diagram(
+    ViewportWidth = 300,
+    ViewportHeight = 350,
+    Scale = 1000
+)
+
+// Define styles
+?_steelStyle {PathStyle} = PathStyle(
+    FillColour = RGBA(R = 180, G = 180, B = 180),
+    StrokeColour = RGBA(R = 0, G = 0, B = 0),
+    StrokeWidth = 1.5
+)
+
+?_voidStyle {PathStyle} = PathStyle(
+    FillColour = RGBA(R = 255, G = 255, B = 255),
+    StrokeColour = RGBA(R = 0, G = 0, B = 0),
+    StrokeWidth = 1
+)
+
+// Section centre point (offset from origin to centre in viewport)
+?_centreX = 0.110 {m}
+?_centreY = 0.170 {m}
+
+// Outer rectangle (the steel section outline)
+?_outerRect {Rectangle} = Rectangle(
+    centre = Point(x = _centreX, y = _centreY, _diagram = _diagram),
+    width = OverallWidth,
+    height = OverallDepth,
+    Style = _steelStyle,
+    _diagram = _diagram
+)
+
+// Inner rectangle (the hollow void)
+?_innerRect {Rectangle} = Rectangle(
+    centre = Point(x = _centreX, y = _centreY, _diagram = _diagram),
+    width = InternalWidth,
+    height = InternalDepth,
+    Style = _voidStyle,
+    _diagram = _diagram
+)
+
+// Centrelines (construction geometry)
+?_centrelineX {PlaneHorizontal} = PlaneHorizontal(
+    y = _centreY,
+    _diagram = _diagram
+)
+
+?_centrelineY {PlaneVertical} = PlaneVertical(
+    x = _centreX,
+    _diagram = _diagram
+)
+
+// Assemble the complete diagram
+SectionDiagram {Diagram} = Diagram(
+    ViewportWidth = 300,
+    ViewportHeight = 350,
+    Scale = 1000,
+    References = [_centrelineX, _centrelineY],
+    Elements = [_outerRect, _innerRect]
+)
+```
+
+## Section Properties
+
+```sunset
 // ===== SECTION PROPERTIES =====
 
 // Gross area
